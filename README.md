@@ -320,7 +320,8 @@ a hall without internet looks like.
 
 ### What you need
 
-- Elixir 1.17 or newer with Erlang/OTP 26 or newer (written on Elixir 1.20).
+- Elixir 1.19 or newer with Erlang/OTP 28 or newer (written on Elixir 1.20,
+  OTP 29). Older ones fail at start, or later, in fair play.
 - Nothing else for the demo. The first `mix alnasl.demo` downloads `esbuild`
   (the JavaScript bundler Phoenix uses) once.
 - For real boards: a C compiler and `make` (the serial library is C). See

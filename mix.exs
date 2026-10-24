@@ -5,7 +5,7 @@ defmodule Alnasl.MixProject do
     [
       app: :alnasl,
       version: "0.8.1",
-      elixir: "~> 1.17",
+      elixir: "~> 1.19",
       elixirc_paths: elixirc_paths(Mix.env()),
       start_permanent: Mix.env() == :prod,
       aliases: aliases(),

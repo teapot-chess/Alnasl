@@ -19,6 +19,8 @@ section, word for word. See [docs/releasing.md](docs/releasing.md).
 
 ## [Unreleased]
 
+- [Change] **Elixir 1.19 and Erlang/OTP 28 are now the minimum.** `mix.exs` said 1.17 and meant it about as much as anyone means a minimum they never test: on 1.17 the box crashed at start on a regex flag that only 1.19 knows, and fair-play calibration calls `:zstd`, which OTP 27 does not have. The minimum now says what the code needs. CI and the releases stay on Elixir 1.20 and OTP 29.
+
 ## [0.8.1] - 2026-10-24
 
 - [Verified] **Ten thousand games a suite, before and after.** All 46 bench suites over 10,000 Lichess broadcast games each, same seeds, 0.7.0 against this: games wrong without a mark of any kind went from 357 to 36, no suite has more than it had, and the fourteen suites that were exact still are. The bill: 261 more alarms in the bullet hall suite, where 6,300 fewer games end wrong, and six more red guesses in the no-clock "set down between squares" suite. The table, and what is left and why, are in docs/design.md, "At scale".
