@@ -25,10 +25,12 @@ Traversal.FileModule: Directory Traversal in `File.mkdir_p!`,lib/alnasl/applicat
 Traversal.FileModule: Directory Traversal in `File.mkdir_p!`,lib/alnasl/fair_play/calibration.ex:264,68B0519
 Traversal.FileModule: Directory Traversal in `File.mkdir_p!`,lib/alnasl/fair_play/calibration.ex:300,64D8CA5
 Traversal.FileModule: Directory Traversal in `File.mkdir_p!`,lib/alnasl/fair_play/calibration.ex:320,EBCBFB
+Traversal.FileModule: Directory Traversal in `File.mkdir_p!`,lib/alnasl/fair_play/calibration.ex:331,51F90C6
 Traversal.FileModule: Directory Traversal in `File.mkdir_p!`,lib/alnasl/fair_play/installer.ex:246,34852E6
 Traversal.FileModule: Directory Traversal in `File.mkdir_p!`,lib/alnasl/fair_play/model.ex:310,2D3324F
 Traversal.FileModule: Directory Traversal in `File.mkdir_p!`,lib/alnasl/fair_play/model.ex:343,78E194B
 Traversal.FileModule: Directory Traversal in `File.mkdir_p!`,lib/alnasl/fair_play/model.ex:476,126E73A
+Traversal.FileModule: Directory Traversal in `File.mkdir_p!`,lib/alnasl/fair_play/model.ex:501,4F2B33C
 Traversal.FileModule: Directory Traversal in `File.mkdir_p!`,lib/alnasl/games.ex:767,51A48FC
 Traversal.FileModule: Directory Traversal in `File.mkdir_p!`,lib/alnasl/games.ex:776,9DA5B2
 Traversal.FileModule: Directory Traversal in `File.mkdir_p!`,lib/alnasl/games.ex:798,166C777
@@ -45,9 +47,12 @@ Traversal.FileModule: Directory Traversal in `File.mkdir_p`,lib/alnasl/updates.e
 Traversal.FileModule: Directory Traversal in `File.open`,lib/alnasl/fair_play/calibration.ex:174,368DAEC
 Traversal.FileModule: Directory Traversal in `File.open`,lib/alnasl/fair_play/calibration.ex:190,2B754EE
 Traversal.FileModule: Directory Traversal in `File.open`,lib/alnasl/fair_play/calibration.ex:210,50D8ABA
+Traversal.FileModule: Directory Traversal in `File.open`,lib/alnasl/fair_play/calibration.ex:221,462A00A
 Traversal.FileModule: Directory Traversal in `File.open`,lib/alnasl/fair_play/calibration.ex:471,7F1F657
 Traversal.FileModule: Directory Traversal in `File.open`,lib/alnasl/fair_play/calibration.ex:545,5C87E53
 Traversal.FileModule: Directory Traversal in `File.open`,lib/alnasl/fair_play/calibration.ex:565,6308B42
+Traversal.FileModule: Directory Traversal in `File.open`,lib/alnasl/fair_play/calibration.ex:576,360233A
+Traversal.FileModule: Directory Traversal in `File.open`,lib/alnasl/fair_play/dump.ex:59,2BE2953
 Traversal.FileModule: Directory Traversal in `File.open`,lib/alnasl/launcher_details/cli.ex:223,3FAE107
 Traversal.FileModule: Directory Traversal in `File.read!`,lib/alnasl/pgn.ex:52,622CF0
 Traversal.FileModule: Directory Traversal in `File.read!`,lib/alnasl_web/live/fair_play_live.ex:467,35463A5
@@ -57,9 +62,11 @@ Traversal.FileModule: Directory Traversal in `File.read!`,lib/alnasl_web/live/pg
 Traversal.FileModule: Directory Traversal in `File.read`,lib/alnasl/fair_play/calibration.ex:243,2F1A135
 Traversal.FileModule: Directory Traversal in `File.read`,lib/alnasl/fair_play/calibration.ex:279,6E4181B
 Traversal.FileModule: Directory Traversal in `File.read`,lib/alnasl/fair_play/calibration.ex:299,55F5482
+Traversal.FileModule: Directory Traversal in `File.read`,lib/alnasl/fair_play/calibration.ex:310,29ED69A
 Traversal.FileModule: Directory Traversal in `File.read`,lib/alnasl/fair_play/model.ex:301,54584D5
 Traversal.FileModule: Directory Traversal in `File.read`,lib/alnasl/fair_play/model.ex:334,31B709F
 Traversal.FileModule: Directory Traversal in `File.read`,lib/alnasl/fair_play/model.ex:469,D8C8F
+Traversal.FileModule: Directory Traversal in `File.read`,lib/alnasl/fair_play/model.ex:494,5FFE136
 Traversal.FileModule: Directory Traversal in `File.read`,lib/alnasl/hall_replays.ex:47,4F61D18
 Traversal.FileModule: Directory Traversal in `File.read`,lib/alnasl/launcher_details/cli.ex:265,3B966BB
 Traversal.FileModule: Directory Traversal in `File.read`,lib/alnasl/listen.ex:32,403022C
@@ -96,14 +103,19 @@ Traversal.FileModule: Directory Traversal in `File.stream!`,lib/alnasl/fair_play
 Traversal.FileModule: Directory Traversal in `File.stream!`,lib/alnasl/fair_play/calibration.ex:599,49E37BA
 Traversal.FileModule: Directory Traversal in `File.stream!`,lib/alnasl/fair_play/calibration.ex:656,48A7978
 Traversal.FileModule: Directory Traversal in `File.stream!`,lib/alnasl/fair_play/calibration.ex:712,715DC86
+Traversal.FileModule: Directory Traversal in `File.stream!`,lib/alnasl/fair_play/calibration.ex:724,4EAB8B8
 Traversal.FileModule: Directory Traversal in `File.stream!`,lib/alnasl/fair_play/installer.ex:144,7E17E8B
 Traversal.FileModule: Directory Traversal in `File.stream!`,lib/alnasl/fair_play/installer.ex:158,25C9F1
 Traversal.FileModule: Directory Traversal in `File.write!`,lib/alnasl/fair_play/calibration.ex:251,4829763
 Traversal.FileModule: Directory Traversal in `File.write!`,lib/alnasl/fair_play/calibration.ex:287,2AE9B66
 Traversal.FileModule: Directory Traversal in `File.write!`,lib/alnasl/fair_play/calibration.ex:307,2DA4C7F
+Traversal.FileModule: Directory Traversal in `File.write!`,lib/alnasl/fair_play/calibration.ex:318,306BEBB
 Traversal.FileModule: Directory Traversal in `File.write!`,lib/alnasl/fair_play/model.ex:311,553C863
 Traversal.FileModule: Directory Traversal in `File.write!`,lib/alnasl/fair_play/model.ex:344,76B4853
 Traversal.FileModule: Directory Traversal in `File.write!`,lib/alnasl/fair_play/model.ex:477,7D8DA62
+Traversal.FileModule: Directory Traversal in `File.write!`,lib/alnasl/fair_play/model.ex:502,258346
+Traversal.FileModule: Directory Traversal in `File.write!`,lib/alnasl/fair_play/power.ex:200,645ACAF
+Traversal.FileModule: Directory Traversal in `File.write!`,lib/alnasl/fair_play/power.ex:218,48C88CF
 Traversal.FileModule: Directory Traversal in `File.write!`,lib/alnasl/hall_replays.ex:100,27EBFDF
 Traversal.FileModule: Directory Traversal in `File.write`,lib/alnasl/games.ex:781,18FB87E
 Traversal.FileModule: Directory Traversal in `File.write`,lib/alnasl/games.ex:790,F56607
@@ -127,4 +139,3 @@ XSS.SendResp: XSS in `send_resp`,lib/alnasl_web/controllers/file_controller.ex:8
 XSS.SendResp: XSS in `send_resp`,lib/alnasl_web/controllers/theme_pack_controller.ex:63,73B3CD8
 XSS.SendResp: XSS in `send_resp`,lib/alnasl_web/endpoint.ex:73,116D82F
 XSS.SendResp: XSS in `send_resp`,lib/alnasl_web/endpoint.ex:77,3C28565
-Traversal.FileModule: Directory Traversal in `File.write!`,lib/alnasl/fair_play/power.ex:200,645ACAF
