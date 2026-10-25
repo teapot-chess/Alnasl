@@ -201,6 +201,17 @@ defmodule AlnaslWeb.CoreComponents do
   move; `diff` outlines squares (those where a raw board differs from the
   certain one). `label` is what a screen reader is told instead of 64 squares.
   """
+  # The squares: one dark rectangle and the 32 light ones as a single path.
+  # They were 64 rectangles, and a round of twelve tiles is 768 elements
+  # that the browser walks again on every update the page gets, to learn
+  # once more that a chessboard has not changed.
+  @light_squares for(
+                   i <- 0..63,
+                   rem(rem(i, 8) + div(i, 8), 2) == 0,
+                   into: "",
+                   do: "M#{rem(i, 8)} #{div(i, 8)}h1v1h-1z"
+                 )
+
   attr :position, :string, default: nil
   attr :last, :any, default: nil
   attr :diff, :list, default: []
@@ -224,7 +235,7 @@ defmodule AlnaslWeb.CoreComponents do
         _none -> []
       end
 
-    assigns = assign(assigns, pieces: pieces, marks: marks)
+    assigns = assign(assigns, pieces: pieces, marks: marks, light: @light_squares)
 
     ~H"""
     <svg
@@ -234,14 +245,9 @@ defmodule AlnaslWeb.CoreComponents do
       role="img"
       aria-label={@label || gettext("Chess board")}
     >
-      <rect
-        :for={i <- 0..63}
-        x={rem(i, 8)}
-        y={div(i, 8)}
-        width="1"
-        height="1"
-        class={if rem(rem(i, 8) + div(i, 8), 2) == 0, do: "l", else: "d"}
-      /> <rect :for={i <- @marks} x={rem(i, 8)} y={div(i, 8)} width="1" height="1" class="mark" />
+      <rect x="0" y="0" width="8" height="8" class="d" />
+      <path d={@light} class="l" />
+      <rect :for={i <- @marks} x={rem(i, 8)} y={div(i, 8)} width="1" height="1" class="mark" />
       <g :if={@coords}>
         <text :for={f <- 0..7} x={f + 0.06} y="7.95">{<<?a + f>>}</text>
 
