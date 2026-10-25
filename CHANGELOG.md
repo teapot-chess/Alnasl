@@ -19,6 +19,8 @@ section, word for word. See [docs/releasing.md](docs/releasing.md).
 
 ## [Unreleased]
 
+- [Feature] **What changed is now on the Updates page, not on GitHub.** "All versions and what changed" used to send a touch-only kiosk to a website it could not leave. The release notes now sit under the update settings: newest first, your version marked, newer ones marked and open, older ones folded. The notes that came with your version are there at once, since the CHANGELOG now travels inside the program; GitHub's list is fetched once when the section is opened, kept for six hours, and replaces them when it answers. When it does not (no internet, the rate limit, a bad day) the page says so in one calm sentence and keeps what it has. Notes are rendered as Markdown with the manual's renderer: no raw HTML, no `javascript:` links, and `rel="noopener noreferrer"` on every link. "View on GitHub" remains, small, for the nostalgic.
+
 ## [0.9.0] - 2026-10-25
 
 - [Feature] **Fair play now has a score out of the box.** Alnasl ships `priv/fair_play/model-sf19.json`, the model for the Stockfish 19 it installs, so the report gives a score instead of "not calibrated". It is the model that was frozen before the final test, not the one that looked best afterwards.

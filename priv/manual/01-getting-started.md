@@ -89,6 +89,8 @@ Then open the site in a browser: on the box itself at `http://localhost:4040`; f
 
 The box asks once every half hour whether a newer version is out, and says so at the top of the page. It downloads nothing until you say yes under Setup, Updates, where it also says how big the download is. It will not restart while a game is being played unless you insist: the moves played during the restart are not read. "Later" asks again tomorrow; "Don't ask again" stops the looking, and Setup switches it back on.
 
+What changed in each version is on the same page, under the button, so nobody has to leave Alnasl to read it. The notes that came with your version are there at once; the newer ones are fetched from GitHub when you open the section, and kept for six hours so the hall's internet is not asked twice. Your version is marked, newer ones are marked and open, older ones are folded. Offline, you get the notes that came with your version and a calm remark that anything newer needs the internet. A small "View on GitHub" link remains for anyone who wants the original, though a hall kiosk should not need it.
+
 ### Where your data is {#where-your-data-is}
 
 Not in the program's folder. Windows: `%LOCALAPPDATA%\AlnaslData` (type that in Explorer's address bar). Linux, installed: `/var/lib/alnasl`. Mac: `~/Library/Application Support/AlnaslData`. It holds the database, the PGN of every game, the raw recordings, and the keys and codes you pasted. Updating and uninstalling leave it alone; installing again finds it. To move to another computer, copy that folder while Alnasl is stopped.

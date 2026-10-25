@@ -37,6 +37,7 @@ defmodule AlnaslWeb.SetupLive do
     Log,
     OpenPairings,
     OpenResults,
+    ReleaseNotes,
     ResultsSite,
     Seating,
     Settings,
@@ -48,6 +49,8 @@ defmodule AlnaslWeb.SetupLive do
 
   alias Alnasl.Destination.{LichessApi, LichessBroadcast}
   alias Alnasl.OpenPairings.Duplicates
+
+  alias AlnaslWeb.Components.ReleaseNotes, as: ReleaseNotesView
 
   alias AlnaslWeb.{
     Access,
@@ -78,6 +81,8 @@ defmodule AlnaslWeb.SetupLive do
      |> assign(link_tests: %{}, link_testing: nil, lichess_tid: Tournaments.default_id())
      |> assign(code_form: to_form(%{"code" => ""}, as: :link), code_key: 0)
      |> assign(update_step: nil, update_games: [], update_looked: nil)
+     |> assign(notes: ReleaseNotesView.prepare(ReleaseNotes.bundled(), Updates.current_version()))
+     |> assign(notes_source: :bundled, notes_asked?: false)
      |> assign(section: :tournaments, open: MapSet.new(), search: "")
      |> assign(show_rest?: false, show_quiet?: false, adding?: false)
      |> assign(wizard_editing?: false, wizard_params: nil, wizard_due?: false)
@@ -102,9 +107,37 @@ defmodule AlnaslWeb.SetupLive do
             _none -> socket.assigns.open
           end
 
-        {:noreply, assign(socket, section: key, open: open)}
+        {:noreply, socket |> assign(section: key, open: open) |> ask_notes(key)}
     end
   end
+
+  # The release notes are on the page at once (the ones this build carries);
+  # the live ones are asked for once, when the Updates section is opened. Not
+  # in tests unless they say so: nothing is fetched on a mount.
+  defp ask_notes(socket, :updates) do
+    if connected?(socket) and not socket.assigns.notes_asked? and
+         Application.get_env(:alnasl, :release_notes_on_open, true) do
+      socket |> assign(notes_asked?: true) |> start_async(:notes, &ReleaseNotes.get/0)
+    else
+      socket
+    end
+  end
+
+  defp ask_notes(socket, _section), do: socket
+
+  @impl true
+  def handle_async(:notes, {:ok, {:ok, notes, source}}, socket) do
+    source = if source == :bundled, do: :offline, else: source
+
+    {:noreply,
+     assign(socket,
+       notes: ReleaseNotesView.prepare(notes, Updates.current_version()),
+       notes_source: source
+     )}
+  end
+
+  def handle_async(:notes, _failed, socket),
+    do: {:noreply, assign(socket, notes_source: :offline)}
 
   @doc """
   The sections of the page this edition and this account have, in order:
@@ -1356,6 +1389,7 @@ defmodule AlnaslWeb.SetupLive do
       <.site_link id={"tournament-live-link-#{t.id}"} href={ResultsSite.live_url(t)}>
         {gettext("Open the live boards")}
       </.site_link>
+
       <.site_link id={"tournament-site-link-#{t.id}"} href={ResultsSite.tournament_url(t)}>
         {gettext("Open the results page: %{address}", address: ResultsSite.display(t))}
       </.site_link>
@@ -2729,9 +2763,7 @@ defmodule AlnaslWeb.SetupLive do
             <.panel :if={@box_admin? and not @server?} id="setup-updates" title={gettext("Updates")}>
               <p id="update-version">
                 {gettext("This is Alnasl %{version}.", version: Updates.current_version())}
-                <a href={Updates.releases_page()} target="_blank" rel="noopener">
-                  {gettext("All versions and what changed")}
-                </a>
+                <a href="#release-notes">{gettext("All versions and what changed")}</a>
               </p>
 
               <form :if={@may_admin} id="update-mode-form" phx-change="save_update_mode" class="stack">
@@ -2811,9 +2843,15 @@ defmodule AlnaslWeb.SetupLive do
                     )}
                   </span>
 
-                  <a id="update-notes" href={@update_available.url} target="_blank" rel="noopener">
-                    {gettext("What is new")}
-                  </a>
+                  <%= if Enum.any?(@notes, &(&1.version == @update_available.version)) do %>
+                    <a id="update-notes" href={"#release-" <> @update_available.version}>
+                      {gettext("What is new")}
+                    </a>
+                  <% else %>
+                    <a id="update-notes" href={@update_available.url} target="_blank" rel="noopener">
+                      {gettext("What is new")}
+                    </a>
+                  <% end %>
                 </p>
 
                 <%= cond do %>
@@ -2964,6 +3002,13 @@ defmodule AlnaslWeb.SetupLive do
                 </label>
               </form>
             </.panel>
+
+            <ReleaseNotesView.release_notes
+              :if={@box_admin? and not @server?}
+              notes={@notes}
+              source={@notes_source}
+              releases_page={Updates.releases_page()}
+            />
           </div>
 
           <div :if={@section == :advanced} class="stack">

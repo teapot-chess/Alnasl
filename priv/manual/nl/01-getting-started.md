@@ -89,6 +89,8 @@ Open daarna de site in een browser: op het kastje zelf via `http://localhost:404
 
 Het kastje vraagt om het halfuur of er een nieuwere versie is en meldt dat bovenaan de pagina. Er wordt niets gedownload voor je ja zegt bij Instellingen, Updates, waar ook staat hoe groot de download is. Het herstart niet terwijl er een partij bezig is, tenzij je aandringt: de zetten tijdens de herstart worden niet gelezen. "Later" vraagt morgen opnieuw; "Niet meer vragen" stopt het zoeken, en Instellingen zet het weer aan.
 
+Wat er per versie veranderd is, staat op dezelfde pagina onder de knop, zodat niemand Alnasl hoeft te verlaten om het te lezen. De notities die bij je versie horen staan er meteen; de nieuwere worden bij GitHub opgehaald zodra je het onderdeel opent, en zes uur bewaard zodat het internet van de zaal niet twee keer wordt gevraagd. Je eigen versie is gemarkeerd, nieuwere zijn gemarkeerd en open, oudere zijn ingeklapt. Zonder internet krijg je de notities die bij je versie horen en een kalme opmerking dat alles wat nieuwer is internet nodig heeft. Een klein "Bekijk op GitHub"-linkje blijft voor wie het origineel wil, al hoort een zaalkiosk dat niet nodig te hebben.
+
 ### Waar je gegevens staan {#where-your-data-is}
 
 Niet in de map van het programma. Windows: `%LOCALAPPDATA%\AlnaslData` (typ dat in de adresbalk van Verkenner). Linux, geïnstalleerd: `/var/lib/alnasl`. Mac: `~/Library/Application Support/AlnaslData`. Daarin staan de database, de PGN van elke partij, de ruwe opnames en de sleutels en codes die je geplakt hebt. Updaten en verwijderen laten die map met rust; opnieuw installeren vindt ze terug. Om naar een andere computer te verhuizen kopieer je die map terwijl Alnasl gestopt is.
