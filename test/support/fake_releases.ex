@@ -16,7 +16,9 @@ defmodule Alnasl.FakeReleases do
   use Agent
 
   def start_link(_opts \\ []) do
-    Agent.start_link(fn -> %{release: nil, mode: :ok, requests: []} end, name: __MODULE__)
+    Agent.start_link(fn -> %{release: nil, list: nil, mode: :ok, requests: []} end,
+      name: __MODULE__
+    )
   end
 
   @doc "Points the update check at this server."
@@ -59,6 +61,25 @@ defmodule Alnasl.FakeReleases do
     Agent.update(__MODULE__, &%{&1 | release: release})
   end
 
+  @doc """
+  Publishes the list of releases (`/releases`, what the Updates page's notes
+  are read from): `[{version, markdown_body}]`, in any order.
+  """
+  def publish_list(entries) do
+    list =
+      for {version, body} <- entries do
+        %{
+          "tag_name" => "v#{version}",
+          "draft" => false,
+          "prerelease" => false,
+          "published_at" => "2026-10-01T10:00:00Z",
+          "body" => body
+        }
+      end
+
+    Agent.update(__MODULE__, &%{&1 | list: list})
+  end
+
   @doc "`:ok`, `:down`, `:rate_limited`, `:garbage`."
   def mode(mode), do: Agent.update(__MODULE__, &%{&1 | mode: mode})
 
@@ -66,13 +87,21 @@ defmodule Alnasl.FakeReleases do
   def requests, do: Agent.get(__MODULE__, &Enum.reverse(&1.requests))
 
   def call(conn) do
-    %{release: release, mode: mode} = Agent.get(__MODULE__, & &1)
+    %{release: release, list: list, mode: mode} = Agent.get(__MODULE__, & &1)
     asked = List.first(Plug.Conn.get_req_header(conn, "if-none-match"))
     Agent.update(__MODULE__, &%{&1 | requests: [asked | &1.requests]})
 
     etag = release && ~s(W/"#{:erlang.phash2(release)}")
 
     cond do
+      String.ends_with?(conn.request_path, "/releases") ->
+        cond do
+          mode == :down -> Req.Test.transport_error(conn, :nxdomain)
+          mode == :rate_limited -> json(conn, 403, %{"message" => "API rate limit exceeded"})
+          list == nil -> json(conn, 404, %{"message" => "Not Found"})
+          true -> json(conn, 200, list)
+        end
+
       mode == :down ->
         Req.Test.transport_error(conn, :nxdomain)
 

@@ -51,6 +51,9 @@ config :alnasl,
   # need them start their own `Alnasl.LauncherDetails`.
   launcher_details: false,
   updates_timer: false,
+  # Setup's Updates section does not ask GitHub for the release notes when it
+  # opens; the tests that mean to, say so.
+  release_notes_on_open: false,
   install_kind: :manual,
   autostart_cmd: &Alnasl.NoReg.cmd/3,
   skip_migrations: true

@@ -34,7 +34,7 @@ defmodule Alnasl.Markdown do
   # attribute, not a value), so they are a closed set too. `style` is here
   # only because earmark_parser puts table alignment and the step counter
   # there.
-  @attributes ~w(class style title id role aria-label aria-hidden tabindex start data-callout)
+  @attributes ~w(class style title id rel role aria-label aria-hidden tabindex start data-callout)
 
   @doc "The parser's AST for `markdown` (GFM), for the manual to rewrite before `render_ast/1`."
   def parse(markdown) when is_binary(markdown) do

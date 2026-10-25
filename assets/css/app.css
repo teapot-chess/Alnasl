@@ -4626,3 +4626,15 @@ button.menu-item {
     transition: none;
   }
 }
+
+/* Setup > Updates: the release notes, inside the program. */
+.release-notes-title { margin: 8px 0 0; font-size: 1.1rem; }
+.release-note { border: 1px solid var(--rule); border-radius: 10px; padding: 0 14px; background: var(--panel); }
+.release-note > summary { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 12px; padding: 12px 0; cursor: pointer; min-height: 44px; }
+.release-note-new { border-color: var(--accent); border-width: 2px; }
+.release-flag { font-size: 0.8rem; padding: 1px 8px; border-radius: 999px; border: 1px solid var(--rule); }
+.release-flag.new { border-color: var(--accent); font-weight: 600; }
+.release-body { padding: 0 0 14px; overflow-wrap: anywhere; }
+.release-body h1, .release-body h2, .release-body h3 { font-size: 1rem; margin: 14px 0 6px; }
+.release-body ul, .release-body ol { padding-left: 1.3em; }
+.release-body li { margin: 6px 0; }
