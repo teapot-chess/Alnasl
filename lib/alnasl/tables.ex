@@ -33,11 +33,15 @@ defmodule Alnasl.Tables do
 
   ## A board that comes back
 
-  A board added on a port is a new row. When it then says who it is and the
-  box knows that serial - with a table number, and not connected anywhere
-  just now - it is the same board on another port: the known row takes the
-  new port and keeps its number, its game and its captures, and the new row
-  goes (`recognise/4`). A serial the box has never seen stays a new board,
+  A board added on a port is a row of its own, known by its port, until it
+  says who it is. When the box knows that serial from a row that is not
+  reading it now - another port, another hub, another adapter, another
+  bridge of the hall - it is the same board: the known row takes the new
+  port and keeps its name, its number, its game and its captures, and the
+  row of the port goes (`recognise/4`). Numbered or not: a board is not a
+  cable. The old port may not have noticed yet that its cable is out (a
+  serial port takes a few seconds to say so); when it does, the rows become
+  one then (`settle/1`). A serial the box has never seen stays a new board,
   and asks for a number.
 
   And the other way round: a row that has a serial keeps it. When its port
@@ -369,11 +373,14 @@ defmodule Alnasl.Tables do
   `address` are where the row was when it said so: a row that has been
   moved since is not judged by old news (`:stale`).
 
-  The row's own serial - nothing to do, unless the row is new and the box
-  knows that serial on a numbered row that is not connected now: then that
-  row takes this one's port and this one goes (`{:recognised, board}`).
-  Otherwise `:new`, `:known`, or `:duplicate` (the same serial connected
-  twice - see `checks/1`).
+  The row's own serial - nothing to do (`:new`), unless the box knows that
+  serial on other rows of the hall that are not reading it now: then the
+  rows become one, on this row's port (`{:recognised, board}`, the row that
+  stays). The row with a table number stays; of two, the one that knew the
+  board first, and it keeps its own number and game unless the game in
+  play is the other's. `:duplicate` when the same serial is being read
+  elsewhere as well (see `checks/1`; sorted out by `settle/1` when the
+  other port lets go), or when two numbered rows were left behind for it.
 
   Another serial - another board is on this row's port:
 
@@ -407,6 +414,9 @@ defmodule Alnasl.Tables do
     end
   end
 
+  # The serial this row has is the serial of other rows of the hall too:
+  # the same board, seen before on another port. Whichever of them is not
+  # reading it now is a row left behind, and the rows become one.
   defp arrived(%Board{serial: serial} = fresh) do
     others =
       for other <- Boards.list(),
@@ -416,16 +426,52 @@ defmodule Alnasl.Tables do
           same_hall?(other, fresh),
           do: other
 
-    {known, _unknown} = Enum.split_with(others, &(not new?(&1)))
-    absent = Enum.reject(known, &connected?/1)
+    {here, away} = Enum.split_with(others, &present?/1)
+    {numbered, unnumbered} = Enum.split_with(away, &(not new?(&1)))
+    unnumbered = Enum.sort_by(unnumbered, & &1.id)
 
     cond do
-      others == [] -> :new
-      not new?(fresh) -> if Enum.any?(others, &connected?/1), do: :duplicate, else: :known
-      match?([_one], absent) and length(known) == 1 -> take_over(hd(absent), fresh)
-      true -> :duplicate
+      others == [] ->
+        :new
+
+      # Read on two ports at once: two adapters on one loop, or the old
+      # port that has not noticed yet that its cable is out. The second
+      # sorts itself out the moment that port says so (`settle/1`).
+      here != [] ->
+        :duplicate
+
+      # Two numbered rows left behind for one board: which number is the
+      # board's is the arbiter's call, not a guess.
+      length(numbered) > 1 ->
+        :duplicate
+
+      # This row has the number; the others are leftovers without one.
+      numbered == [] and not new?(fresh) ->
+        take_over(fresh, fresh, unnumbered)
+
+      true ->
+        [keep | rest] = numbered ++ unnumbered
+        take_over(keep, fresh, [fresh | rest])
     end
   end
+
+  @doc """
+  Row `board` has lost its board: its port says it is gone. A row that
+  reads the same board on another port meanwhile - plugged into the other
+  hub before the first port noticed the cable was out - is recognised again
+  now, and the two become one row (`recognise/4`).
+  """
+  def settle(%Board{serial: serial} = gone) when is_binary(serial) and serial != "" do
+    for row <- Boards.list(),
+        row.id != gone.id,
+        row.serial == serial,
+        row.driver in @dgt,
+        same_hall?(row, gone),
+        present?(row),
+        do: {row.id, recognise(row.id)}
+  end
+
+  def settle(_board), do: []
 
   defp other_board(%Board{} = row, seen) do
     owner =
@@ -525,34 +571,78 @@ defmodule Alnasl.Tables do
 
   defp connected?(%Board{} = board), do: Boards.snapshot(board).connected? == true
 
-  defp take_over(%Board{} = known, %Board{} = fresh) do
-    Boards.stop(fresh)
-    Repo.delete(fresh)
-    Phoenix.PubSub.broadcast(Alnasl.PubSub, "boards", {:board, fresh.id})
+  # Reading its board now. A bridge's row is only as present as its bridge:
+  # one whose link is down says nothing at all, not even that its board
+  # went - and the board may be on the next bridge already.
+  defp present?(%Board{driver: "remote", port: "bridge-" <> rest} = board) do
+    with [id, _name] <- String.split(rest, ":", parts: 2),
+         {id, ""} <- Integer.parse(id),
+         pid when is_pid(pid) <- Alnasl.Bridges.link(id) do
+      connected?(board)
+    else
+      _down -> false
+    end
+  end
+
+  defp present?(%Board{} = board), do: connected?(board)
+
+  # The rows of one board become `keep`, on the port `here` reads it on;
+  # the rows in `gone` go. Which row stays: the one with a number; of two
+  # with a number, the one that knew the board first. It keeps its name,
+  # number, tournament, game, turned-round setting and history - unless
+  # the game in play is the other row's (begun there, not on its own): then
+  # it takes that row's table and board of the round, so the game stays
+  # with the board that is playing it. A row that goes takes no game with
+  # it: games belong to the board of the round, not to a row.
+  defp take_over(%Board{} = keep, %Board{} = here, gone) do
+    slot = slot(keep, here)
+    # The port is let go of before the row that stays opens it; the rows
+    # that go are removed after, so that nobody looks in between and sees
+    # the board nowhere.
+    for row <- gone, do: Boards.stop(row)
 
     {:ok, board} =
-      Boards.update(known, %{
-        driver: fresh.driver,
-        port: fresh.port,
-        address: fresh.address,
-        firmware: fresh.firmware || known.firmware,
-        enabled: true
-      })
+      if keep.id == here.id do
+        {:ok, keep}
+      else
+        Boards.update(
+          keep,
+          Map.merge(slot, %{
+            driver: here.driver,
+            port: here.port,
+            address: here.address,
+            firmware: here.firmware || keep.firmware,
+            enabled: true
+          })
+        )
+      end
+
+    for row <- gone, do: drop(row)
+    from = if keep.id == here.id, do: hd(gone).port, else: keep.port
 
     Log.add(
       :info,
       "board.recognised",
-      %{
-        name: board.name,
-        serial: board.serial,
-        from: known.port,
-        to: fresh.port,
-        table: board.table_no
-      },
+      %{name: board.name, serial: board.serial, from: from, to: here.port, table: board.table_no},
       ref(board)
     )
 
     {:recognised, board}
+  end
+
+  @slot [:tournament_id, :table_no, :round, :board_no]
+
+  defp slot(%Board{id: id}, %Board{id: id}), do: %{}
+
+  defp slot(%Board{} = keep, %Board{} = here) do
+    if (new?(keep) and not new?(here)) or (started?(here) and not started?(keep)),
+      do: Map.take(here, @slot),
+      else: %{}
+  end
+
+  defp drop(%Board{} = row) do
+    Repo.delete(row)
+    Phoenix.PubSub.broadcast(Alnasl.PubSub, "boards", {:board, row.id})
   end
 
   # --- ready or not ------------------------------------------------------------
