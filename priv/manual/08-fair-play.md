@@ -102,6 +102,8 @@ Beside a score of 2 or more the report says how rare it is: **"about 1 in N norm
 > [!IMPORTANT] No calibration, no score
 > The model is a file that belongs to one engine build. Until Alnasl has one for the engine you installed, the report shows the counts and says plainly that there is **no score**. The counts are real. They are not a score, and they should not be read as one. The model is made for standard time controls; rapid and blitz are not calibrated.
 
+Alnasl comes with a model for Stockfish 19, the engine it installs. It was tested once, after it was frozen, on 25,000 broadcast games from 2026 it had never seen: of 7,914 honest player-events, none scored 3.75 or more, and 2 scored 3 or more. In other words: an honest player is very unlikely to be flagged, an engine game played in full or engine help at the critical moments usually shows, and a player who copies an engine carefully (a good move, not the best) does not show at all.
+
 What the screening cannot see: a game played without the boards (unless you upload it, below), a move the tracker could not read, opening knowledge, a player who is simply much stronger than their rating, a player who prepared one line very well. Strong, simple, forced-looking positions give high matching without anybody doing anything wrong.
 
 ## Games from a PGN file {#pgn-upload}

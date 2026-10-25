@@ -102,6 +102,8 @@ Naast een score van 2 of meer zegt het rapport hoe zeldzaam die is: **"ongeveer 
 > [!IMPORTANT] Geen kalibratie, geen score
 > Het model is een bestand dat bij één engine-build hoort. Zolang Alnasl er geen heeft voor de engine die je installeerde, toont het rapport de aantallen en zegt het duidelijk dat er **geen score** is. De aantallen kloppen. Ze zijn geen score en moeten niet als een score gelezen worden. Het model is gemaakt voor standaard bedenktijden; rapid en blitz zijn niet gekalibreerd.
 
+Alnasl wordt geleverd met een model voor Stockfish 19, de engine die het installeert. Het is één keer getest, nadat het vastgelegd was, op 25.000 broadcastpartijen uit 2026 die het nooit gezien had: van 7.914 eerlijke speler-toernooien scoorde er geen 3,75 of meer, en 2 scoorden 3 of meer. Met andere woorden: een eerlijke speler wordt zeer onwaarschijnlijk gemarkeerd, een volledig met de engine gespeelde partij of engine-hulp op de beslissende momenten valt meestal op, en een speler die voorzichtig een engine overneemt (een goede zet, niet de beste) valt helemaal niet op.
+
 Wat de screening niet kan zien: een partij die zonder de borden gespeeld is (tenzij je ze uploadt, hieronder), een zet die de tracker niet kon lezen, openingskennis, een speler die gewoon veel sterker is dan zijn rating, een speler die één variant erg goed voorbereid heeft. Sterke, eenvoudige, gedwongen ogende stellingen geven veel overeenkomst zonder dat iemand iets verkeerd doet.
 
 ## Partijen uit een PGN-bestand {#pgn-upload}
