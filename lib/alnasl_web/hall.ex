@@ -36,6 +36,9 @@ defmodule AlnaslWeb.Hall do
 
   @locale_cookie "_alnasl_locale"
 
+  # At most one count of the outbox, and one redraw for it, a second a page.
+  @link_every 1_000
+
   @doc "The cookie that keeps a person's language on a browser without an account."
   def locale_cookie, do: @locale_cookie
 
@@ -166,6 +169,7 @@ defmodule AlnaslWeb.Hall do
             locale: locale,
             update: Scope.can?(scope, :admin) && not Accounts.server?() && Updates.notice(),
             phone_signin: nil,
+            link_held: nil,
             current_path: "/"
           )
           |> refresh()
@@ -239,20 +243,21 @@ defmodule AlnaslWeb.Hall do
   # message goes on to the page, which may care too.
   # Only the badges move with the queue; the lines about boards wait for a
   # change of tournaments or boards.
-  defp info(:outbox_changed, socket) do
-    link = Outbox.status(socket.assigns[:current_scope])
-    hall = socket.assigns[:hall]
-    socket = assign(socket, link: link)
+  #
+  # The queue changes with every move of every board, and every open page
+  # used to count it again and redraw itself each time - a dozen times a
+  # second in a busy hall, which a small box's browser does not keep up
+  # with. The first change is shown at once; the rest of the next second's
+  # are one redraw at its end (`@link_every`).
+  defp info(:outbox_changed, %{assigns: %{link_held: held}} = socket) when held != nil,
+    do: {:cont, assign(socket, link_held: :again)}
 
-    {:cont,
-     if(hall,
-       do:
-         assign(socket,
-           hall: %{hall | heads: Status.heads(link, socket.assigns[:current_scope])}
-         ),
-       else: refresh(socket)
-     )}
-  end
+  defp info(:outbox_changed, socket), do: {:cont, link_now(socket)}
+
+  defp info(:hall_link_free, %{assigns: %{link_held: :again}} = socket),
+    do: {:halt, link_now(socket)}
+
+  defp info(:hall_link_free, socket), do: {:halt, assign(socket, link_held: nil)}
 
   defp info({:setting, "box_name"}, socket) do
     {:cont,
@@ -276,6 +281,18 @@ defmodule AlnaslWeb.Hall do
        )}
 
   defp info(_other, socket), do: {:cont, socket}
+
+  defp link_now(socket) do
+    Process.send_after(self(), :hall_link_free, @link_every)
+    link = Outbox.status(socket.assigns[:current_scope])
+    hall = socket.assigns[:hall]
+    socket = assign(socket, link: link, link_held: :quiet)
+
+    if hall,
+      do:
+        assign(socket, hall: %{hall | heads: Status.heads(link, socket.assigns[:current_scope])}),
+      else: refresh(socket)
+  end
 
   # Both halt: no page has a clause for them, and a second click on a notice
   # that is already gone must not be a page's crash.

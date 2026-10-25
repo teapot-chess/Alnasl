@@ -19,6 +19,8 @@ section, word for word. See [docs/releasing.md](docs/releasing.md).
 
 ## [Unreleased]
 
+- [Fix] **Opening a board no longer waits for the rest of the hall.** Every board's page redrew for every board that moved, the link light in the top bar redrew for every result on its way out, and each redraw had the browser walk the whole page again. On a fast PC nobody noticed; on the small box at the hall, with a dozen boards going, the browser spent its time redrawing what had not changed and got round to the click a few seconds later. A board's page now listens to its own board, the link light redraws at most once a second, the Round page redraws a tile on its own instead of the round around it, and a board is drawn as two shapes rather than 64 squares. Measured with the browser slowed six times to pass for the box and twelve boards playing: a click that took up to 8 seconds now takes at most about 1.4, and a board page that is merely being looked at does less than half the work it did. With one board in the hall nothing changes, because nothing was wrong.
+
 ## [0.9.0] - 2026-10-25
 
 - [Feature] **Fair play now has a score out of the box.** Alnasl ships `priv/fair_play/model-sf19.json`, the model for the Stockfish 19 it installs, so the report gives a score instead of "not calibrated". It is the model that was frozen before the final test, not the one that looked best afterwards.
