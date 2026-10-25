@@ -80,9 +80,9 @@ The **expected** values come from a model fitted on real games from over-the-boa
 
 The standard deviation is the one the player's own games have: the moves of one game are not independent of each other (a good day lasts more than one move), and nine short games spread differently from five long ones. How strongly moves hang together within a game, and across one player's games in an event, is measured on real games when the model is made.
 
-Each game of at least 20 counted moves is also looked at on its own. One game played far better than the rest disappears in the score of a whole event of nine games; on its own it does not. Alnasl takes the most unusual of the player's games and asks how unusual that is, given how many games there were to pick from (with nine games, one of them is bound to be the player's best). The **score** is whichever of the two is higher: the whole event, or that one game. When it is the game, the report says **decided by one game: round N**. Open that game first.
+Each game of at least 20 counted moves is also looked at on its own. One game played far better than the rest disappears in the score of a whole event of nine games; on its own it does not. Alnasl takes the most unusual of the player's games and asks how unusual that is, given how many games there were to pick from (with nine games, one of them is bound to be the player's best). The **score** is whichever of the two is higher, the whole event or that one game, corrected for having had two looks at the same moves: taking the better of two numbers every time would make an honest player look a little better than they are, on average about a third of a standard deviation. After the correction an honest player is again at zero on average, and scores 2 or more no more often than the standard deviation promises. When the game is the higher of the two, the report says **decided by one game: round N**. Open that game first.
 
-- **From 2: "worth a closer look".** Such scores come up by chance in a few of every hundred honest players. Look at the games, not at the number.
+- **From 2: "worth a closer look".** Such scores come up by chance in about two of every hundred honest players. Look at the games, not at the number.
 - **Above 5: "statistically very unusual".** Honest players almost never have such a score in a model that fits. It is still not proof of anything, and the next section says what you may do with it.
 
 Those two words and those two numbers are Alnasl's own, for its own score. They are not FIDE's thresholds (FIDE's 5.00 for over-the-board play belongs to the approved method, and its 2.50 only supports other evidence), and a 5 here is not a 5 there.
@@ -101,6 +101,8 @@ Beside a score of 2 or more the report says how rare it is: **"about 1 in N norm
 
 > [!IMPORTANT] No calibration, no score
 > The model is a file that belongs to one engine build. Until Alnasl has one for the engine you installed, the report shows the counts and says plainly that there is **no score**. The counts are real. They are not a score, and they should not be read as one. The model is made for standard time controls; rapid and blitz are not calibrated.
+
+Alnasl comes with a model for Stockfish 19, the engine it installs. It was tested once, after it was frozen, on 25,000 broadcast games from 2026 it had never seen: of 7,914 honest player-events, none scored 3.75 or more, and 2 scored 3 or more. In other words: an honest player is very unlikely to be flagged, an engine game played in full or engine help at the critical moments usually shows, and a player who copies an engine carefully (a good move, not the best) does not show at all.
 
 What the screening cannot see: a game played without the boards (unless you upload it, below), a move the tracker could not read, opening knowledge, a player who is simply much stronger than their rating, a player who prepared one line very well. Strong, simple, forced-looking positions give high matching without anybody doing anything wrong.
 

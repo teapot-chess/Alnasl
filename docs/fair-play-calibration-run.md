@@ -198,7 +198,7 @@ mix fair_play.fit --holdout 0.67 \
 
 - `--holdout 0.67`: two thirds of the **events** are held out, about
   10,000 games, about 2,500 to 3,000 player-events with 40 counted moves.
-  That is the size the gate needs: showing "under 1 in 700 at 3 or more"
+  That is the size the gate needs: showing "under 1 in 700 at 3.75 or more" (3 before §10)
   takes at least 2,583 held-out player-events with none that high. The fit
   keeps about 5,000 games, the same as phase 1 planned.
 - The log ends with the false-positive table and the gate's verdict:
@@ -526,3 +526,37 @@ union needs a higher threshold (2.33 against 2.19); pooled over the
 realistic cheats it still gains 1.5 points. At 3.0 nothing is lost
 anywhere: every profile's row is the event score's or better. Camouflaged
 cheating is still not caught by any variant, with or without the scan.
+
+## 10. The final gate, 2026-10-25
+
+The rule, written down before anything was scored: the 50,000 games of §7-§9
+are development games, and everything may be tuned on them; 25,000 broadcast
+games from 2026 (May to September) are labelled into `/root/w-final` with an
+exact copy of the development labeller, and nobody looks at them; the model
+and the threshold are frozen first (`/root/w-dev/frozen/model.json`, sha256
+`29294362c49f217bd5afba65f9ce0937feb959c8d7a5ef3beb766f3dc3e18c0b`, fitted
+2026-10-24 11:49 UTC at 2f01be6, threshold 3.75), and then the final games
+are scored once, with `mix fair_play.check`. Labelling finished 2026-10-25
+11:20 UTC; the check ran at 14:10 UTC.
+
+| final games, 7,914 player-events | honest player-events at or above |
+| --- | --- |
+| >= 2.0 | 106 (1.34%, 95%: 1.10% to 1.62%) |
+| >= 2.5 | 18 (0.23%) |
+| >= 3.0 | 2 (0.03%, upper 0.09%) |
+| >= 3.5 | 0 |
+| **>= 3.75** | **0 (upper 0.05%)** |
+
+**Gate passed**: the upper bound at 3.75 is 0.05%, against the gate's 1 in
+700 (0.143%). Every rating band averages within 0.1 of zero; 1400 to 2600
+are "worth a closer look" 0.8% to 1.8% of the time. 57 of the 25,000 games
+had nothing to score. The final set is now spent: a second look at it would
+make it a development set, and a gate that is re-run until it passes is not
+one.
+
+What 3.75 costs, from the power benchmark on the development games
+(`/root/w-dev/runs/power.log`, share of made-up cheats reaching 3.75): one
+whole engine game in an event 37%, two 59%, three 76%; selective engine use
+on 20% of moves 44%, 30% 82%; naive top-move copying on 30% of moves 6%, 50%
+57%; camouflaged (a random move within 40 cp of the best) 0% at every rate.
+The model ships as `priv/fair_play/model-sf19.json`.

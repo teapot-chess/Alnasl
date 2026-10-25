@@ -45,6 +45,10 @@ defmodule Alnasl.FairPlay.Model do
       of `Alnasl.FairPlay.Scan` is measured against. Optional in the file:
       a model without it has no scan, and the score is the event score
       alone;
+    * from the same cross-fit, the correlation between the event score and
+      the scan, by the number of games scanned (`union`, see
+      `Alnasl.FairPlay.Union`). Optional too: without it the score is the
+      plain larger of the two, as in format 2 files fitted before it;
     * the held-out false-positive table (`false_positives`): for each
       threshold, how many normal player-events scored that high, with a
       95% interval. Written by the fit (`Alnasl.FairPlay.Calibration`),
@@ -70,7 +74,7 @@ defmodule Alnasl.FairPlay.Model do
   the file says so.
   """
 
-  alias Alnasl.FairPlay.{Cluster, Scan, Selection, Stats}
+  alias Alnasl.FairPlay.{Cluster, Scan, Selection, Stats, Union}
 
   @type t :: %__MODULE__{}
 
@@ -82,6 +86,7 @@ defmodule Alnasl.FairPlay.Model do
             loss: %{cells: %{}, bands: %{}, global: {0.0, 0.0, 0}},
             dispersion: nil,
             scan: nil,
+            union: nil,
             weights: [1.0, 1.0, 1.0],
             false_positives: nil,
             meta: %{}
@@ -248,6 +253,11 @@ defmodule Alnasl.FairPlay.Model do
   (`Alnasl.FairPlay.Scan`) come from the same cross-fitted residuals, with
   the correlations just measured: the scan's null is one the model never
   saw the answers to either. No cross-fit, no scan.
+
+  The same cross-fit then pairs each player-event's event score with its
+  scan and measures how far the two move together, by the number of games
+  scanned (`Alnasl.FairPlay.Union`): what turns "the larger of two" back
+  into a z.
   """
   @spec fit([[map()] | {term(), [map()]}], keyword()) :: t()
   def fit(events, opts \\ []) do
@@ -262,7 +272,7 @@ defmodule Alnasl.FairPlay.Model do
     all = Enum.map(keyed, &elem(&1, 1))
     regression = Task.async(fn -> regression(all, opts) end)
     halves = Enum.split_with(keyed, &(fold(elem(&1, 0)) == 0))
-    {dispersion, scan} = cross_fitted(halves, opts)
+    {dispersion, scan, union} = cross_fitted(halves, opts)
     model = Task.await(regression, :infinity)
 
     %{
@@ -272,6 +282,7 @@ defmodule Alnasl.FairPlay.Model do
         nodes: opts[:nodes],
         dispersion: dispersion,
         scan: scan,
+        union: union,
         meta:
           Map.merge(
             %{
@@ -329,10 +340,24 @@ defmodule Alnasl.FairPlay.Model do
     plies = Enum.map(b, &Stats.residuals(&1, on_a)) ++ Enum.map(a, &Stats.residuals(&1, on_b))
     dispersion = plies |> Enum.map(&Cluster.accumulate/1) |> Cluster.fit()
     scan = plies |> Enum.flat_map(&Scan.game_scores(&1, dispersion)) |> Scan.fit()
-    {dispersion, scan}
+    union = plies |> Enum.flat_map(&union_pair(&1, dispersion, scan)) |> Union.fit()
+    {dispersion, scan, union}
   end
 
-  defp cross_fitted(_halves, _opts), do: {nil, nil}
+  defp cross_fitted(_halves, _opts), do: {nil, nil, nil}
+
+  # The event score and the scan of one player-event with a score, for the
+  # correlation `Alnasl.FairPlay.Union` corrects the larger of them with.
+  defp union_pair(plies, dispersion, scan) do
+    with true <- length(plies) >= Stats.min_moves(),
+         {zs, corr} = plies |> Cluster.accumulate() |> Cluster.z_scores(dispersion),
+         event when is_number(event) <- Stats.combined(zs, [1.0, 1.0, 1.0], corr),
+         {z, _game, games} <- Scan.result(plies, dispersion, scan) do
+      [{event, z, games}]
+    else
+      _ -> []
+    end
+  end
 
   @doc """
   Logistic regression by Newton's method: `rows` are feature lists, `ys`
@@ -495,6 +520,7 @@ defmodule Alnasl.FairPlay.Model do
       },
       "dispersion" => m.dispersion && Cluster.to_json(m.dispersion),
       "scan" => Scan.to_json(m.scan),
+      "union" => Union.to_json(m.union),
       "weights" => m.weights,
       "false_positives" => m.false_positives,
       "meta" => m.meta
@@ -518,6 +544,7 @@ defmodule Alnasl.FairPlay.Model do
        },
        dispersion: Cluster.from_json(j["dispersion"]),
        scan: Scan.from_json(j["scan"]),
+       union: Union.from_json(j["union"]),
        weights: j["weights"],
        false_positives: j["false_positives"],
        meta: j["meta"] || %{}
