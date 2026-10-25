@@ -723,17 +723,32 @@ defmodule AlnaslWeb.GameLive do
     end
   end
 
+  # Every board in the hall says so when it changes, up to four times a
+  # second each. This page shows one: it listens to that one, and to the
+  # others only while it has none, since one of them may be linked here
+  # next. (Listening to all twelve redrew the page a dozen times a second
+  # for nothing, and a browser on a small box spent its evenings on that.)
   @impl true
-  def handle_info({:board, _id}, %{assigns: %{refresh_due?: true}} = socket),
-    do: {:noreply, socket}
-
-  def handle_info({:board, _id}, socket) do
-    Process.send_after(self(), :refresh, 250)
-    {:noreply, assign(socket, refresh_due?: true)}
+  def handle_info({:board, id}, socket) do
+    cond do
+      not mine?(socket, id) -> {:noreply, socket}
+      socket.assigns.refresh_due? -> {:noreply, socket}
+      true -> {:noreply, schedule_refresh(socket)}
+    end
   end
 
   def handle_info(:refresh, socket), do: {:noreply, load(socket)}
   def handle_info(_other, socket), do: {:noreply, socket}
+
+  # Whether a board's news is this page's: its own board, or any board while
+  # it has none. A board moved off this game says so under its own id.
+  defp mine?(%{assigns: %{board: %{id: own}}}, id) when is_integer(id), do: id == own
+  defp mine?(_socket, _id), do: true
+
+  defp schedule_refresh(socket) do
+    Process.send_after(self(), :refresh, 250)
+    assign(socket, refresh_due?: true)
+  end
 
   # --- page --------------------------------------------------------------------
 
