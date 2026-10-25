@@ -2625,8 +2625,8 @@ msgstr "Een elektronisch bord draagt zijn serienummer op een etiket aan de onder
 
 #: lib/alnasl_web/live/boards_live.ex:1368
 #, elixir-autogen, elixir-format
-msgid "A board the box already knows is recognised by its serial number, whichever port it is on now: it keeps its table number."
-msgstr "Een bord dat het kastje al kent, wordt herkend aan zijn serienummer, op welke poort het nu ook zit: het houdt zijn tafelnummer."
+msgid "A board the box already knows is recognised by its own serial number, wherever it is plugged in now - another port, hub, adapter or bridge of this hall: its old row comes back, with its table number and its game."
+msgstr "Een bord dat het kastje al kent, wordt herkend aan zijn eigen serienummer, waar het nu ook ingestoken is - een andere poort, hub, adapter of bridge van deze zaal: zijn oude rij komt terug, met zijn tafelnummer en zijn partij."
 
 #: lib/alnasl_web/destination_words.ex:21
 #, elixir-autogen, elixir-format

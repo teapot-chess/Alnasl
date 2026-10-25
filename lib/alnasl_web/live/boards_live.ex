@@ -1366,7 +1366,7 @@ defmodule AlnaslWeb.BoardsLive do
 
             <p :if={@add_form[:driver].value != "simulator"} id="add-known-note" class="note">
               {gettext(
-                "A board the box already knows is recognised by its serial number, whichever port it is on now: it keeps its table number."
+                "A board the box already knows is recognised by its own serial number, wherever it is plugged in now - another port, hub, adapter or bridge of this hall: its old row comes back, with its table number and its game."
               )}
             </p>
 

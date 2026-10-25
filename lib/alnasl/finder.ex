@@ -63,6 +63,16 @@ defmodule Alnasl.Finder do
   def identified(%{id: id, port: port, address: address}, serial),
     do: GenServer.cast(__MODULE__, {:identified, id, port, address, serial})
 
+  @doc """
+  The board on `board`'s port has gone. If the same board is being read on
+  another port already - replugged faster than the old port noticed - the
+  two rows become one now (`Alnasl.Tables.settle/1`).
+  """
+  def gone(%{serial: serial} = board) when is_binary(serial) and serial != "",
+    do: GenServer.cast(__MODULE__, {:gone, board})
+
+  def gone(_board), do: :ok
+
   @doc "A touch from outside a board process: the tests, and nothing else."
   def touch(board_id, at \\ System.system_time(:millisecond)),
     do: GenServer.cast(__MODULE__, {:touch, board_id, at})
@@ -175,9 +185,31 @@ defmodule Alnasl.Finder do
   end
 
   def handle_cast({:identified, id, port, address, serial}, s) do
-    safely(fn -> Tables.recognise(id, port, address, serial) end)
-    {:noreply, s}
+    result = safely(fn -> Tables.recognise(id, port, address, serial) end)
+    {:noreply, merged(s, [{id, result}])}
   end
+
+  def handle_cast({:gone, board}, s) do
+    case safely(fn -> Tables.settle(board) end) do
+      results when is_list(results) -> {:noreply, merged(s, results)}
+      _failed -> {:noreply, s}
+    end
+  end
+
+  # Two rows of one board became one: a run that numbered the row that went
+  # numbered the board, which is the row that stayed.
+  defp merged(%{wizard: %{done: done} = w} = s, results) do
+    moved = for {id, {:recognised, %{id: kept}}} <- results, id != kept, into: %{}, do: {id, kept}
+
+    done =
+      Enum.map(done, fn entry ->
+        %{entry | board_id: Map.get(moved, entry.board_id, entry.board_id)}
+      end)
+
+    %{s | wizard: %{w | done: done}}
+  end
+
+  defp merged(s, _results), do: s
 
   # The run: a board touched for the first time gets the next number.
   defp number(%{wizard: nil} = s, _board_id, _at), do: s

@@ -273,6 +273,10 @@ defmodule Alnasl.BoardServer do
     Recorder.record(state.board.id, {:status, :disconnected})
     if state.connected?, do: Log.add(:warn, "board.disconnected", %{}, ref(state))
 
+    # It may be on another port already: replugged faster than this one
+    # noticed the cable was out (`Alnasl.Tables.settle/1`).
+    if state.connected?, do: Alnasl.Finder.gone(state.board)
+
     # Its clock is not heard either while it is gone (`Tracker.deaf/1`).
     session =
       state.session && %{state.session | tracker: Tracker.deaf(state.session.tracker)}
