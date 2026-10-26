@@ -867,6 +867,25 @@ defmodule AlnaslWeb.Words do
         name: d["name"]
       )
 
+  defp log("table.merged", %{"table" => nil} = d),
+    do:
+      gettext(
+        "Table %{dropped} was given to board %{serial} on another port; that row went when the board was recognised as \"%{name}\", which has no table number.",
+        dropped: d["dropped"],
+        serial: d["serial"],
+        name: d["name"]
+      )
+
+  defp log("table.merged", d),
+    do:
+      gettext(
+        "Table %{dropped} was given to board %{serial} on another port; that row went when the board was recognised as \"%{name}\", and it stays table %{table}.",
+        dropped: d["dropped"],
+        serial: d["serial"],
+        name: d["name"],
+        table: d["table"]
+      )
+
   defp log("loop.read", d),
     do:
       ngettext(

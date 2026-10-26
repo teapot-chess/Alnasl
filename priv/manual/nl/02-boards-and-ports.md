@@ -47,11 +47,15 @@ Twaalf borden lijken op elkaar, en twaalf kabels ook. Het kastje houdt drie ding
 
 ### De tafelnummers geven {#giving-numbers}
 
-Drie manieren:
+Drie manieren, naast elkaar in het blok "De borden nummeren" op de pagina Borden:
 
-- **Nummeren door aan te raken.** Druk op Start, til dan een stuk op het bord van tafel 1, dan op dat van tafel 2, enzovoort. Elk bord krijgt het volgende nummer op het moment dat het het stuk voelt weggaan. Ongedaan maken neemt het laatste terug, Overslaan laat een nummer weg, Stop beëindigt het.
-- **Alles nummeren in aansluitvolgorde.** Eén klik, wanneer de borden in de volgorde van de tafels aangesloten zijn.
+- **Borden nummeren door ze aan te raken.** Druk op de knop, dan op Start, til dan een stuk op het bord van tafel 1, dan op dat van tafel 2, enzovoort. Elk bord krijgt het volgende nummer op het moment dat het het stuk voelt weggaan. Ongedaan maken neemt het laatste terug, Overslaan laat een nummer weg, Stop beëindigt het.
+- **In volgorde nummeren.** Eén klik: alle borden, in de volgorde van de lijst - de volgorde waarin ze aangesloten zijn. Handig wanneer je de borden in de volgorde van de tafels aangesloten hebt.
 - **Met de hand.** Typ het nummer in de kolom "Tafel".
+
+"Toon mij" op een rij is geen van de drie: het helpt je dat bord in de zaal te vinden, en geeft geen nummer.
+
+De lijst houdt haar volgorde terwijl je nummert: een bord schuift niet op of neer omdat het een nummer kreeg, dus de volgende rij die je aantikt is het bord dat je bedoelt. Een tafelnummer staat op één bord, en een bord van de ronde wordt door één bord gespeeld: neemt het nummer dat je geeft er een af van een ander bord, dan zegt de pagina welk bord wat kwijt is. En blijkt een bord dat je nummerde een bord dat het kastje al kende aan zijn serienummer (omgestoken op een andere poort), dan houdt het kastje het nummer waaronder het dat bord kende, en zegt het logboek welk nummer verdween.
 
 ### Welk bord is dit? {#which-board-is-this}
 
@@ -63,7 +67,7 @@ Met een telefoon in je hand langs de tafels lopen is makkelijker dan heen en wee
 
 1. Instellingen, Toegang, "Toegang vanaf andere machines": stel een pincode in, laat dan andere machines in de zaal de site openen, en start Alnasl opnieuw. Doe het voor de zaal volloopt.
 2. Open op het kastje Borden (of Instellingen, Toegang): "Open deze site op je telefoon" toont het adres en een QR-code. Richt de camera van de telefoon erop en geef de pincode. (Op een kastje met accounts meldt de code je aan; zie [Accounts, zalen en rollen](06-accounts-and-halls.md).)
-3. Op de telefoon: Borden, "Nummeren door aan te raken", Start. Het volgende tafelnummer vult het scherm. Loop naar die tafel en til een willekeurig stuk op; de telefoon laat het nummer en het serienummer van het bord oplichten, trilt (alleen Android) en piept eenmaal zodra "Geluid uit" aangetikt is tot "Geluid aan". Een telefoon wil per bezoek één tik voor hij geluid maakt, en een iPhone op stil speelt niets af.
+3. Op de telefoon: Borden, "Borden nummeren door ze aan te raken", Start. Het volgende tafelnummer vult het scherm. Loop naar die tafel en til een willekeurig stuk op; de telefoon laat het nummer en het serienummer van het bord oplichten, trilt (alleen Android) en piept eenmaal zodra "Geluid uit" aangetikt is tot "Geluid aan". Een telefoon wil per bezoek één tik voor hij geluid maakt, en een iPhone op stil speelt niets af.
 4. Ongedaan maken, Overslaan en Stop staan onderaan het scherm. Valt het netwerk van de telefoon tussen twee tafels weg, dan gaat er niets verloren: de ronde wordt op het kastje bewaard.
 
 > [!WARNING] Nooit zonder pincode

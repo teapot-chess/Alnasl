@@ -627,6 +627,18 @@ defmodule Alnasl.Tables do
       ref(board)
     )
 
+    # A number given to a row that went is a number that vanished from the
+    # page: said, with the one the board kept, so nobody has to guess why
+    # table 9 is table 1 again.
+    for row <- gone, row.table_no != nil, row.table_no != board.table_no do
+      Log.add(
+        :warn,
+        "table.merged",
+        %{name: board.name, serial: board.serial, dropped: row.table_no, table: board.table_no},
+        ref(board)
+      )
+    end
+
     {:recognised, board}
   end
 
