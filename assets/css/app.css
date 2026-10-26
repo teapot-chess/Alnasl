@@ -1642,6 +1642,14 @@ code,
   flex: none;
 }
 
+/* A sentence, not a word: it wraps and keeps a pill's colour, not its shape. */
+.state.waiting-pairing {
+  white-space: normal;
+  border-radius: var(--radius);
+  padding: 0.35rem 0.7rem 0.35rem 0.5rem;
+  font-weight: 600;
+}
+
 .state.ok {
   background: var(--ok-bg);
   color: var(--ok);

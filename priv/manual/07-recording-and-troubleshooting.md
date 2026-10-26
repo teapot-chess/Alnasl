@@ -50,7 +50,7 @@ OpenPairings does not accept the connect code: it was withdrawn there, or it is 
 
 ### "No answer" under Connections in Setup {#no-answer}
 
-OpenPairings cannot be reached. Nothing is lost: the boards go on with the pairings Alnasl has, the games are kept for it, and Alnasl asks again by itself. A round paired meanwhile is started with "Start round N" and takes its names when the connection is back.
+OpenPairings cannot be reached. Nothing is lost: the boards go on with the pairings Alnasl has, the games are kept for it, and Alnasl asks again by itself. A round paired meanwhile starts by itself, and takes its names, when the connection is back; with rounds set not to start by themselves, "Start round N" does it.
 
 ### A tournament has no results page {#no-results-page}
 

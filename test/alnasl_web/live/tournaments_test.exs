@@ -306,6 +306,8 @@ defmodule AlnaslWeb.TournamentsTest do
 
     test "'Start round' is one tournament's, and stays there as the fallback", %{conn: conn} do
       %{open: open, u12: u12, boards: [a, _b, c, _d]} = hall()
+      # Auto-start off: nothing moves the boards but a hand.
+      Tournaments.update!(u12, %{auto_start: false})
       {:ok, view, _html} = live(conn, ~p"/")
 
       view |> element("#next-round-t#{u12.id}") |> render_click()
@@ -317,6 +319,35 @@ defmodule AlnaslWeb.TournamentsTest do
       view |> element("#follow-t#{u12.id}") |> render_click()
       assert Boards.get!(c.id).round == 1
       refute has_element?(view, "#round-behind-t#{u12.id}")
+    end
+
+    test "a linked tournament that starts by itself says so instead of offering the button", %{
+      conn: conn
+    } do
+      %{open: open, u12: u12} = hall()
+      Tournaments.update!(u12, %{auto_start: false})
+      {:ok, view, _html} = live(conn, ~p"/")
+
+      assert has_element?(view, "#waiting-for-pairing-t#{open.id}", "Waiting for OpenPairings")
+      refute has_element?(view, "#next-round-t#{open.id}")
+      # Auto-start off: the button, and no promise.
+      assert has_element?(view, "#next-round-t#{u12.id}")
+      refute has_element?(view, "#waiting-for-pairing-t#{u12.id}")
+    end
+
+    test "no waiting line once OpenPairings is ahead, or after the last round", %{conn: conn} do
+      %{open: open} = hall()
+      Tournaments.update!(open, %{remote_round: 2})
+      {:ok, view, _html} = live(conn, ~p"/")
+
+      assert has_element?(view, "#round-behind-t#{open.id}")
+      assert has_element?(view, "#follow-t#{open.id}")
+      refute has_element?(view, "#waiting-for-pairing-t#{open.id}")
+
+      # The document plans 5 rounds: on the fifth there is no sixth to wait for.
+      Tournaments.update!(open, %{remote_round: 5, round: 5})
+      {:ok, view, _html} = live(conn, ~p"/")
+      refute has_element?(view, "#waiting-for-pairing-t#{open.id}")
     end
 
     test "a result from the tile's menu goes to the right tournament's board 1", %{conn: conn} do

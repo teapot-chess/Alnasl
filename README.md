@@ -102,7 +102,9 @@ Lichess round.
   to 8" under the tournament, and table 5 is its board 1. Board numbers
   begin again in each tournament; a table number is the sticker, as before.
 - **A round starts by itself** when it is paired in OpenPairings, for that
-  tournament's boards and no others. "Start round N" stays as the fallback.
+  tournament's boards and no others. Until then the Round page says it is
+  waiting for OpenPairings; "Start round N" is for a box with no link or
+  with auto-start off.
 - **A pairing changed after the round began** reaches the box the same way.
   A board where nothing was played takes the new pairing; a game with moves
   is kept and flagged "Pairing changed", and the arbiter says whether the
