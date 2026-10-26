@@ -96,7 +96,7 @@ A game that was not captured at all: Games page, read the scoresheet's moves, an
 ## Rounds {#rounds}
 
 
-With OpenPairings, a round starts by itself a few seconds after the arbiter pairs it there: that tournament's boards show the new round with names, ratings and colours. The boards of the other tournaments are not touched. "Start round N" on the Live page stays for when there is no connection, and a tournament can be told not to start rounds by itself (Setup, Tournaments, open the tournament).
+With OpenPairings, a round starts by itself a few seconds after the arbiter pairs it there: that tournament's boards show the new round with names, ratings and colours. The boards of the other tournaments are not touched. Until it does, the Live page says "Waiting for OpenPairings to pair round N - the boards switch by themselves when it does." and shows no "Start round N" button: there is nothing to press. The button comes back when the tournament is told not to start rounds by itself (Setup, Tournaments, open the tournament), and for a tournament that has no OpenPairings. If OpenPairings is already on another round than the boards (a game is under way, so the boards stay put), the page says which round it is on and offers "Follow round N" instead.
 
 Without OpenPairings, "Start round N" moves the tournament's boards on to the next round.
 

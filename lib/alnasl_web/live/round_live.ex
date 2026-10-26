@@ -290,6 +290,7 @@ defmodule AlnaslWeb.RoundLive do
           do: tournament.remote_round
         ),
       gone?: tournament.gone,
+      waiting?: waiting_for_pairing?(tournament, round, info),
       time_control: info.time_control,
       site: site,
       # What a tile needs of its section, and nothing that moves with the
@@ -321,6 +322,19 @@ defmodule AlnaslWeb.RoundLive do
         |> Enum.sort()
     }
     |> put_tiles(tiles, snapshots)
+  end
+
+  # A linked tournament that starts its rounds by itself: the next one begins
+  # when OpenPairings pairs it, so there is nothing for an arbiter to press.
+  # Not said when the pairing program is on another round than the boards
+  # (that has its own line and its own button), after the last round, or once
+  # the tournament is over.
+  defp waiting_for_pairing?(tournament, round, info) do
+    Tournaments.linked?(tournament) and tournament.auto_start and not tournament.gone and
+      round == tournament.round and
+      (is_nil(tournament.remote_round) or tournament.remote_round == tournament.round) and
+      tournament.state != "finished" and
+      not (is_integer(info.planned_rounds) and round >= info.planned_rounds)
   end
 
   # The tiles of a section and everything counted from them: the states,
@@ -816,6 +830,7 @@ defmodule AlnaslWeb.RoundLive do
             {Tournaments.title(t) || gettext("The hall's own tournament")}
           </.link>
         </div>
+
         <.section_actions
           :if={match?([_one], @sections)}
           section={hd(@sections)}
@@ -839,6 +854,7 @@ defmodule AlnaslWeb.RoundLive do
           >
             <.icon name="grid" /> {gettext("Boards")}
           </button>
+
           <button
             id="view-list"
             type="button"
@@ -850,6 +866,7 @@ defmodule AlnaslWeb.RoundLive do
             <.icon name="list" /> {gettext("List")}
           </button>
         </div>
+
         <script :type={Phoenix.LiveView.ColocatedHook} name=".ViewChoice">
           // Tiles or a list, remembered in this browser. Storage may be
           // missing or refused (a private window): then the page decides.
@@ -996,7 +1013,9 @@ defmodule AlnaslWeb.RoundLive do
             <p class="note">
               {gettext("The live page on the results site: point a phone at the code.")}
             </p>
+
             <p id={sid("site-qr-url", section.tid)} class="note mono">{@shared.url}</p>
+
             <.button id={sid("share-close", section.tid)} small phx-click="unshare">
               {gettext("Close")}
             </.button>
@@ -1099,12 +1118,17 @@ defmodule AlnaslWeb.RoundLive do
             <thead>
               <tr>
                 <th scope="col">{gettext("Board")}</th>
+
                 <th scope="col">{gettext("Players")}</th>
+
                 <th scope="col">{gettext("Last move")}</th>
+
                 <th scope="col">{gettext("Clock")}</th>
+
                 <th scope="col">{gettext("State")}</th>
               </tr>
             </thead>
+
             <tbody>
               <.live_component
                 :for={tile <- section.tiles}
@@ -1246,8 +1270,20 @@ defmodule AlnaslWeb.RoundLive do
       phx-click="refresh"
       phx-value-t={@section.tid}
     >{gettext("Ask OpenPairings now")}</.button>
+    <span
+      :if={@section.waiting?}
+      id={sid("waiting-for-pairing", @section.tid)}
+      class="state waiting-pairing"
+      role="status"
+    >
+      <.icon name="waiting" /> {gettext(
+        "Waiting for OpenPairings to pair round %{n} - the boards switch by themselves when it does.",
+        n: @section.round + 1
+      )}
+    </span>
+
     <.button
-      :if={@may_arbiter}
+      :if={@may_arbiter and not @section.waiting?}
       id={sid("next-round", @section.tid)}
       small
       phx-click="next_round"
@@ -1302,14 +1338,17 @@ defmodule AlnaslWeb.RoundLive do
         )}
       </span>
     </td>
+
     <td class="row-players">
       <span class="row-player">
         <span class="dot white"></span>{@tile.white || gettext("White")}
       </span>
+
       <span class="row-player">
         <span class="dot black"></span>{@tile.black || gettext("Black")}
       </span>
     </td>
+
     <td class="row-move">
       <%= cond do %>
         <% @tile.result -> %>
@@ -1321,6 +1360,7 @@ defmodule AlnaslWeb.RoundLive do
           <span class="note">{gettext("No moves")}</span>
       <% end %>
     </td>
+
     <td class="row-clock">
       <%= if @tile.clock do %>
         <.clock ms={@tile.clock.white_ms} running={@tile.clock.running == :white} />
@@ -1329,6 +1369,7 @@ defmodule AlnaslWeb.RoundLive do
         <span class="note">-</span>
       <% end %>
     </td>
+
     <td class="row-state">
       <.state state={@tile.state} />
       <span :if={@tile.alarm} id={"row-alarm-#{@tile.dom}"} class="note">{@tile.alarm}</span>

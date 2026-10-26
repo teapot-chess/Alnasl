@@ -332,6 +332,7 @@ defmodule Alnasl.Tournaments do
     %{
       name: described["name"] || (tournament && tournament.name),
       city: described["site"] || described["city"],
+      planned_rounds: described["rounds"],
       time_control: get_in(described, ["time_control", "text"]),
       time_control_pgn: get_in(described, ["time_control", "pgn"]),
       display: described["display"] || %{}

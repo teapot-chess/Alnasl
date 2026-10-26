@@ -50,7 +50,7 @@ OpenPairings aanvaardt de koppelcode niet: ze is daar ingetrokken, of het is nie
 
 ### "Geen antwoord" bij Koppelingen in Instellingen {#no-answer}
 
-OpenPairings is niet bereikbaar. Er gaat niets verloren: de borden gaan door met de paringen die Alnasl heeft, de partijen worden voor OpenPairings bewaard, en Alnasl vraagt vanzelf opnieuw. Een ronde die intussen gepaard werd, start je met "Ronde N starten" en ze krijgt haar namen zodra de verbinding terug is.
+OpenPairings is niet bereikbaar. Er gaat niets verloren: de borden gaan door met de paringen die Alnasl heeft, de partijen worden voor OpenPairings bewaard, en Alnasl vraagt vanzelf opnieuw. Een ronde die intussen gepaard werd, start vanzelf en krijgt haar namen zodra de verbinding terug is; staan rondes ingesteld om niet vanzelf te starten, dan doe je dat met "Ronde N starten".
 
 ### Een toernooi heeft geen uitslagenpagina {#no-results-page}
 

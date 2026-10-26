@@ -19,6 +19,8 @@ section, word for word. See [docs/releasing.md](docs/releasing.md).
 
 ## [Unreleased]
 
+- [Change] **The Round page stops offering a button nobody has to press.** A tournament linked to OpenPairings starts its next round by itself the moment it is paired there, yet the page kept showing "Start round N+1", and arbiters, being conscientious people, pressed it. When the link is up and auto-start is on, the button is gone and a plain line takes its place: "Waiting for OpenPairings to pair round N+1 - the boards switch by themselves when it does." It shows to everyone, not only to arbiters. It is not shown when OpenPairings is already on another round (that has its own line and its "Follow round N" button), after the last round, or when the tournament is over. Unlinked tournaments and tournaments with auto-start off keep the button, as before.
+
 ## [0.10.1] - 2026-10-26
 
 - [Fix] **Numbering two boards one after the other no longer makes the numbers jump.** The Boards page listed the boards by their board of the round, unnumbered ones first. Give the top board table 1 and it promptly sank to the bottom, so the row you tapped next for table 2 was the board you had just numbered: it became table 2, and the other one stayed without. The data did exactly what it was told; the list moved the target. The rows now stay in the order the boards were connected, numbered or not - which is also the order "Number in order" counts in, as its question always claimed.

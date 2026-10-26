@@ -96,7 +96,7 @@ Een partij die helemaal niet vastgelegd werd: pagina Partijen, lees de zetten va
 ## Rondes {#rounds}
 
 
-Met OpenPairings begint een ronde vanzelf een paar seconden nadat de arbiter ze daar paart: de borden van dat toernooi tonen de nieuwe ronde met namen, ratings en kleuren. De borden van de andere toernooien blijven ongemoeid. "Ronde N starten" op de pagina Live blijft er voor als er geen verbinding is, en een toernooi kan ingesteld worden om rondes niet vanzelf te starten (Instellingen, Toernooien, open het toernooi).
+Met OpenPairings begint een ronde vanzelf een paar seconden nadat de arbiter ze daar paart: de borden van dat toernooi tonen de nieuwe ronde met namen, ratings en kleuren. De borden van de andere toernooien blijven ongemoeid. Tot het zover is, staat op de pagina Live "Wacht op OpenPairings om ronde N te paren - de borden schakelen vanzelf over zodra dat gebeurt." en is er geen knop "Ronde N starten": er valt niets in te drukken. De knop komt terug als je het toernooi instelt om rondes niet vanzelf te starten (Instellingen, Toernooien, open het toernooi), en bij een toernooi zonder OpenPairings. Staat OpenPairings al op een andere ronde dan de borden (er loopt nog een partij, dus de borden blijven staan), dan zegt de pagina welke ronde dat is en biedt ze "Ronde N volgen" aan.
 
 Zonder OpenPairings zet "Ronde N starten" de borden van het toernooi door naar de volgende ronde.
 
