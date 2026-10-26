@@ -19,6 +19,8 @@ section, word for word. See [docs/releasing.md](docs/releasing.md).
 
 ## [Unreleased]
 
+## [0.10.1] - 2026-10-26
+
 - [Fix] **Numbering two boards one after the other no longer makes the numbers jump.** The Boards page listed the boards by their board of the round, unnumbered ones first. Give the top board table 1 and it promptly sank to the bottom, so the row you tapped next for table 2 was the board you had just numbered: it became table 2, and the other one stayed without. The data did exactly what it was told; the list moved the target. The rows now stay in the order the boards were connected, numbered or not - which is also the order "Number in order" counts in, as its question always claimed.
 - [Change] **A number that takes one from another board says so.** A table number is on one board, and a board of the round is fed by one. Typing a number that belonged to another board still moves it, but the page now names the board that lost its table or its board of the round, instead of letting it find out later. When a board you numbered turns out to be one the box knew by its serial (replugged on another port), it keeps the number it was known by, as before, and the log now says which number went and why.
 - [Change] **Numbering by touch is a button you can find.** It lived in the row of small buttons at the top, between "Which board is this?" and "Labels", where it was easy to read past - and "Show me" on every row looked like the nearest thing. A panel "Number the boards" now sits above the list with the three ways side by side, each with a line saying what it does: **Number boards by touching them**, **Number in order**, and typing it in the Table column. It also says what "Show me" is: a way to find one board, not to number it.
