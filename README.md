@@ -624,6 +624,7 @@ release carries the installer, the updater and the systemd units
 | `ALNASL_UART` | on for Linux/macOS, off for Windows | `1` / `0`: build the serial library or not |
 | `ALNASL_NO_LOCAL_BOARDS` | (unset: a box with ports) | `true`: a server that reads no boards of its own and takes bridges only. Every page asks who is there, always, and accounts come by invitation |
 | `ALNASL_ADMIN_EMAILS` | (none) | Comma-separated addresses that are admins: every hall and the box itself. On the server they sign in with 02cloud before any account exists; optional on a box |
+| `ALNASL_SUPPORT_ADMINS` | (none: support off) | Comma-separated addresses that may read the diagnostics boxes send for support, on `/support`. Empty, the upload address refuses everything and `/support` is a 404. See [docs/support.md](docs/support.md) |
 | `ALNASL_KEYCLOAK_CLIENT_SECRET` | (unset: no 02cloud button) | **Secret.** The client secret of the Keycloak client; set, the sign-in page offers "Sign in with 02cloud" |
 | `ALNASL_KEYCLOAK_URL` | `https://auth.zerotwo.cloud` | Keycloak's base address |
 | `ALNASL_KEYCLOAK_REALM` | `zerotwo` | The realm |

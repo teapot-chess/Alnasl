@@ -140,6 +140,10 @@ defmodule AlnaslWeb.Permit do
   # for every event, so the ladder is not asked for more than a seat.
   def needed(AlnaslWeb.FairPlayLive, _event), do: :viewer
 
+  # Support is the support admins' (`AlnaslWeb.SupportAccess`), not a role
+  # in a hall; the page asks that on every event itself.
+  def needed(AlnaslWeb.SupportLive, _event), do: :viewer
+
   def needed(view, event) do
     Map.get(@everywhere, event) ||
       Map.get(@frame, event) ||

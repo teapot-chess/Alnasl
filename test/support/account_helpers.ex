@@ -59,6 +59,9 @@ defmodule AlnaslWeb.AccountHelpers do
   @doc "`ALNASL_ADMIN_EMAILS` for the test."
   def admin_emails(emails), do: put_env(:admin_emails, emails)
 
+  @doc "`ALNASL_SUPPORT_ADMINS` for the test."
+  def support_admins(emails), do: put_env(:support_admins, emails)
+
   @doc "02cloud set up for the test, answered by `Alnasl.KeycloakStub` and never by the real one."
   def keycloak_on do
     put_env(:keycloak,

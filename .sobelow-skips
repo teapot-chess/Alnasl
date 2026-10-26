@@ -4,6 +4,7 @@ CI.System: Command Injection via `System` function,lib/alnasl/fair_play/installe
 Config.CSP: Missing Content-Security-Policy,lib/alnasl_web/router.ex:16,6FFF42
 Config.CSP: Missing Content-Security-Policy,lib/alnasl_web/router.ex:31,1B797C2
 Config.CSP: Missing Content-Security-Policy,lib/alnasl_web/router.ex:63,7C9229
+Config.CSP: Missing Content-Security-Policy,lib/alnasl_web/router.ex:105,69C3B11
 Config.CSRF: Missing CSRF Protections,lib/alnasl_web/router.ex:58,1B49DAD
 Config.CSWH: Cross-Site Websocket Hijacking,lib/alnasl_web/endpoint.ex:14,2E2D1C8
 Config.CSWH: Cross-Site Websocket Hijacking,lib/alnasl_web/endpoint.ex:21,B7F464
@@ -55,6 +56,7 @@ Traversal.FileModule: Directory Traversal in `File.open`,lib/alnasl/fair_play/ca
 Traversal.FileModule: Directory Traversal in `File.open`,lib/alnasl/fair_play/dump.ex:59,2BE2953
 Traversal.FileModule: Directory Traversal in `File.open`,lib/alnasl/launcher_details/cli.ex:223,3FAE107
 Traversal.FileModule: Directory Traversal in `File.read!`,lib/alnasl/pgn.ex:52,622CF0
+Traversal.FileModule: Directory Traversal in `File.read!`,lib/alnasl_web/controllers/support_controller.ex:72,56EBBA
 Traversal.FileModule: Directory Traversal in `File.read!`,lib/alnasl_web/live/fair_play_live.ex:467,35463A5
 Traversal.FileModule: Directory Traversal in `File.read!`,lib/alnasl_web/live/fair_play_live.ex:475,52DB8A8
 Traversal.FileModule: Directory Traversal in `File.read!`,lib/alnasl_web/live/fair_play_live.ex:476,1793E1D

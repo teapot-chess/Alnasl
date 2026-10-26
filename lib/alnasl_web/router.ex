@@ -85,6 +85,40 @@ defmodule AlnaslWeb.Router do
     get "/:id/fonts/:file", ThemePackController, :font
   end
 
+  # Support uploads (`Alnasl.Support`). A box sending its diagnostics is a
+  # program with no session, no CSRF token and no account: no pipeline, and
+  # the controller refuses everything while support is off.
+  scope "/support", AlnaslWeb do
+    post "/upload", SupportController, :upload
+  end
+
+  # Reading them: the support admins' (`ALNASL_SUPPORT_ADMINS`) and a 404
+  # for everybody else, signed in or not - which is why `:gate` comes after
+  # the support check and not before, where it would send a stranger to
+  # the sign-in page and so tell them there is something here.
+  pipeline :support do
+    plug :accepts, ["html"]
+    plug :fetch_session
+    plug :fetch_live_flash
+    plug :put_root_layout, html: {AlnaslWeb.Layouts, :root}
+    plug :protect_from_forgery
+    plug :put_secure_browser_headers
+    plug :fetch_current_scope
+    plug :put_locale
+    plug AlnaslWeb.SupportAccess
+    plug :gate
+  end
+
+  scope "/support", AlnaslWeb do
+    pipe_through :support
+
+    get "/download/:code", SupportController, :download
+
+    live_session :support, on_mount: [AlnaslWeb.SupportAccess, AlnaslWeb.Hall] do
+      live "/", SupportLive, :index
+    end
+  end
+
   scope "/", AlnaslWeb do
     pipe_through :browser
 

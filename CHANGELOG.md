@@ -19,6 +19,7 @@ section, word for word. See [docs/releasing.md](docs/releasing.md).
 
 ## [Unreleased]
 
+- [Feature] **A server can take support uploads.** A box posts its diagnostics as a text file to `POST /support/upload` and gets a six-digit code back, which somebody reads out over the phone instead of attaching a log file to an email the kiosk cannot send. The server's support people find it on `/support`: by code or among the newest, shown as plain text, downloadable. Off unless `ALNASL_SUPPORT_ADMINS` names who may read them; until then the upload address refuses everything and `/support` is a 404 for everybody, which is also what everybody who is not on that list gets. Text only, 2 MB at most, five an hour from one address, kept thirty days. Anybody may post, since a box has nothing to prove itself with, so what arrives is treated as a stranger's text and never as a page. Any Alnasl server can run its own support this way; see [docs/support.md](docs/support.md). The box side that sends comes separately.
 - [Change] **Arkab 0.4.0 inside.** Nothing a hall notices: 0.4.0's remote PIN and encrypted cookie belong to the bridge's own page, which Alnasl does not use. Bumped because the nightly pin check had started to complain, and it was right.
 
 ## [0.10.2] - 2026-10-26

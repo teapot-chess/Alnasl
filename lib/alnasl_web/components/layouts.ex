@@ -225,7 +225,7 @@ defmodule AlnaslWeb.Layouts do
        [
          item(:halls, ~p"/halls", "hall", gettext("Halls")),
          item(:setup, ~p"/setup", "setup", gettext("Setup"))
-       ] ++ fair_play_item(scope)},
+       ] ++ fair_play_item(scope) ++ support_item(scope)},
       {"back", gettext("Look back"),
        [
          item(:log, ~p"/log", "log", gettext("Log")),
@@ -242,6 +242,14 @@ defmodule AlnaslWeb.Layouts do
   defp fair_play_item(scope) do
     if Alnasl.FairPlay.Access.menu?(scope),
       do: [item(:fair_play, ~p"/fair-play", "search", gettext("Fair play"))],
+      else: []
+  end
+
+  # Support uploads are for the support admins (`Alnasl.Support.admin?/1`),
+  # and in nobody else's menu.
+  defp support_item(scope) do
+    if Alnasl.Support.admin?(scope),
+      do: [item(:support, ~p"/support", "list", gettext("Support"))],
       else: []
   end
 

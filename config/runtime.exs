@@ -85,6 +85,18 @@ config :alnasl,
     |> Enum.map(&(&1 |> String.trim() |> String.downcase()))
     |> Enum.reject(&(&1 == ""))
 
+# Who may read the diagnostics boxes send for support (`Alnasl.Support`):
+# comma-separated addresses. Unset or empty, support is off - the upload
+# address refuses everything and /support is a 404 for everybody - which is
+# what a box in a hall wants. Not the same list as the admins above, on
+# purpose: running the server and reading strangers' log files are two jobs.
+config :alnasl,
+  support_admins:
+    (System.get_env("ALNASL_SUPPORT_ADMINS") || "")
+    |> String.split(",", trim: true)
+    |> Enum.map(&(&1 |> String.trim() |> String.downcase()))
+    |> Enum.reject(&(&1 == ""))
+
 # "Sign in with 02cloud" (Keycloak, `Alnasl.Keycloak`): shown only when a
 # client secret is set. The secret goes in a file only root reads (the
 # deploy script does that for every name with SECRET in it).
