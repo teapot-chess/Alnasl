@@ -76,7 +76,10 @@ defmodule AlnaslWeb.BoardsLive do
   defp load(socket) do
     %{tid: tid, round: round} = socket.assigns
     scope = socket.assigns.current_scope
-    snapshots = Alnasl.Halls.here(scope, Boards.snapshots())
+    # In the order the boards were added, whatever their numbers: a row that
+    # moved the moment it got its number put the arbiter's next tap on the
+    # wrong board. It is also the order "Number in order" counts in.
+    snapshots = scope |> Alnasl.Halls.here(Boards.snapshots()) |> Enum.sort_by(& &1.id)
     checks = Tables.checks(tid, round)
     everyone = Tournaments.list()
     tournaments = Alnasl.Halls.here(scope, everyone) |> Enum.reject(& &1.gone)
@@ -392,8 +395,7 @@ defmodule AlnaslWeb.BoardsLive do
         text ->
           case Integer.parse(text) do
             {number, ""} when number > 0 and number < 10_000 ->
-              Tables.set_table(board, number)
-              {:noreply, load(socket)}
+              {:noreply, socket |> numbered(board, number) |> load()}
 
             _bad ->
               {:noreply,
@@ -479,6 +481,50 @@ defmodule AlnaslWeb.BoardsLive do
          |> put_flash(:error, gettext("That board is no longer there."))
          |> load()}
     end
+  end
+
+  # A sticker is on one board, and a board of the round is fed by one: a
+  # number given here may take one from another board. That is said, with
+  # the board it was taken from - a number that changes without a word is a
+  # number the arbiter stops trusting.
+  defp numbered(socket, board, number) do
+    before = Map.new(Boards.list(), &{&1.id, &1})
+    Tables.set_table(board, number)
+
+    lines =
+      for other <- Boards.list(),
+          other.id != board.id,
+          was = before[other.id],
+          line <- side_effects(was, other, number),
+          do: line
+
+    if lines == [], do: socket, else: put_flash(socket, :info, Enum.join(lines, " "))
+  end
+
+  defp side_effects(was, now, number) do
+    Enum.reject(
+      [
+        if(was.table_no != nil and now.table_no == nil,
+          do:
+            gettext(
+              "\"%{name}\" no longer has table %{table}: a table number is on one board only.",
+              name: now.name,
+              table: was.table_no
+            )
+        ),
+        if(was.board_no != nil and now.board_no == nil,
+          do:
+            gettext(
+              "\"%{name}\" no longer feeds board %{board} of round %{round}: that is the board of table %{table} now.",
+              name: now.name,
+              board: was.board_no,
+              round: was.round,
+              table: number
+            )
+        )
+      ],
+      &is_nil/1
+    )
   end
 
   # What Remove asks: what goes, and what stays, said for this board.
@@ -637,9 +683,6 @@ defmodule AlnaslWeb.BoardsLive do
           {gettext("Which board is this?")}
         </.button>
 
-        <.button :if={@may_arbiter} id="number-by-touch" small navigate={~p"/boards/number"}>
-          {gettext("Number by touching")}
-        </.button>
         <.button id="print-labels" small href={~p"/files/labels"}>{gettext("Labels")}</.button>
       </:actions>
 
@@ -745,42 +788,70 @@ defmodule AlnaslWeb.BoardsLive do
         </.form>
       </.panel>
 
-      <.panel id="board-list" title={gettext("Connected and known boards")} flush>
-        <:actions>
+      <%!-- Three ways to number, side by side and each saying what it does:
+           "Show me" on a row finds a board, it numbers nothing. --%>
+      <.panel
+        :if={@may_arbiter and @snapshots != []}
+        id="numbering"
+        title={gettext("Number the boards")}
+      >
+        <div class="numbering-ways">
+          <div id="numbering-touch" class="stack">
+            <.button id="number-by-touch" variant="primary" navigate={~p"/boards/number"}>
+              {gettext("Number boards by touching them")}
+            </.button>
+            <p class="note">
+              {gettext(
+                "Lift a piece on table 1's board, then on table 2's, and so on: each board gets the next table number. From the box or from a phone."
+              )}
+            </p>
+          </div>
+
           <.form
-            :if={@may_arbiter}
             for={@order_form}
             id="link-in-order-form"
             phx-submit="link_in_order"
-            class="row"
+            class="stack"
           >
-            <label for="order-first" class="note">{gettext(
-              "Number all in connection order, starting at"
-            )}</label>
-            <input
-              id="order-first"
-              type="number"
-              min="1"
-              name="order[first]"
-              value={@order_form[:first].value}
-              class="input num-s"
-            />
-            <.button
-              id="link-in-order"
-              small
-              type="submit"
-              data-confirm={
-                gettext(
-                  "Give every board, in the order listed, consecutive table numbers - and link each to that board of round %{n}?",
-                  n: @round
-                )
-              }
-            >
-              {gettext("Number in order")}
-            </.button>
+            <div class="row">
+              <label for="order-first" class="note">{gettext("Starting at")}</label>
+              <input
+                id="order-first"
+                type="number"
+                min="1"
+                name="order[first]"
+                value={@order_form[:first].value}
+                class="input num-s"
+              />
+              <.button
+                id="link-in-order"
+                type="submit"
+                data-confirm={
+                  gettext(
+                    "Give every board, in the order listed, consecutive table numbers - and link each to that board of round %{n}?",
+                    n: @round
+                  )
+                }
+              >
+                {gettext("Number in order")}
+              </.button>
+            </div>
+            <p class="note">
+              {gettext(
+                "Every board at once, in the order listed below: the order they were connected in."
+              )}
+            </p>
           </.form>
-        </:actions>
 
+          <p id="numbering-by-hand" class="note">
+            {gettext(
+              "Or type a number in the column Table. \"Show me\" on a row only helps you find that board; it gives no number."
+            )}
+          </p>
+        </div>
+      </.panel>
+
+      <.panel id="board-list" title={gettext("Connected and known boards")} flush>
         <div
           :if={@snapshots == [] and @server?}
           id="boards-empty"

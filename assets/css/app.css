@@ -1275,6 +1275,18 @@ code,
   padding: 0;
 }
 
+/* Boards: the ways to number, side by side, each with its line of what it does. */
+.numbering-ways {
+  display: grid;
+  gap: 1rem 1.5rem;
+  grid-template-columns: repeat(auto-fit, minmax(16rem, 1fr));
+  align-items: start;
+}
+
+.numbering-ways .note {
+  margin: 0;
+}
+
 .cols {
   display: grid;
   gap: 1.1rem;

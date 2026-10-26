@@ -47,11 +47,15 @@ Twelve boards look alike, and so do twelve cables. The box keeps three things ap
 
 ### Giving the table numbers {#giving-numbers}
 
-Three ways:
+Three ways, side by side in the panel "Number the boards" on the Boards page:
 
-- **Number by touching.** Press Start, then lift a piece on table 1's board, then on table 2's, and so on. Each board gets the next number the moment it feels the piece go. Undo takes the last one back, Skip leaves a number out, Stop ends it.
-- **Number all in connection order.** One click, when the boards were connected in the order of the tables.
+- **Number boards by touching them.** Press the button, then Start, then lift a piece on table 1's board, then on table 2's, and so on. Each board gets the next number the moment it feels the piece go. Undo takes the last one back, Skip leaves a number out, Stop ends it.
+- **Number in order.** One click: every board, in the order the list shows them - the order they were connected in. Handy when the boards were connected in the order of the tables.
 - **By hand.** Type the number in the column "Table".
+
+"Show me" on a row is none of these: it helps you find that board in the hall, and gives no number.
+
+The list keeps its order while you number: a board does not move up or down because it got a number, so the next row you tap is the board you meant. A table number is on one board only, and a board of the round is fed by one board: when the number you give takes one from another board, the page says which board lost what. And when a board you numbered turns out to be a board the box already knew by its serial (replugged on another port), the box keeps the number it knew it by, and the log says which number went.
 
 ### Which board is this? {#which-board-is-this}
 
@@ -63,7 +67,7 @@ Walking along the tables with a phone in your hand is easier than going back and
 
 1. Setup, Access, "Access from other machines": set a PIN, then let other machines in the hall open the site, and start Alnasl again. Do it before the hall fills up.
 2. On the box, open Boards (or Setup, Access): "Open this site on your phone" shows the address and a QR code. Point the phone's camera at it and give the PIN. (On a box with accounts, the code signs you in instead; see [Accounts, halls and roles](06-accounts-and-halls.md).)
-3. On the phone: Boards, "Number by touching", Start. The next table number fills the screen. Walk to that table and lift any piece; the phone flashes the number and the board's serial, buzzes (Android only) and beeps once "Sound off" has been tapped to "Sound on". A phone wants one tap per visit before it makes any sound, and an iPhone on silent plays none.
+3. On the phone: Boards, "Number boards by touching them", Start. The next table number fills the screen. Walk to that table and lift any piece; the phone flashes the number and the board's serial, buzzes (Android only) and beeps once "Sound off" has been tapped to "Sound on". A phone wants one tap per visit before it makes any sound, and an iPhone on silent plays none.
 4. Undo, Skip and Stop are at the bottom of the screen. If the phone loses the network between two tables, nothing is lost: the run is kept on the box.
 
 > [!WARNING] Never without the PIN

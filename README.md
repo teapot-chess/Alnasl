@@ -392,10 +392,10 @@ apart, and the Boards page shows all three:
 
 Giving the numbers:
 
-- **Number by touching** - press Start, lift a piece on table 1's board,
+- **Number boards by touching them** - press Start, lift a piece on table 1's board,
   then on table 2's, and so on. Each board gets the next number the moment
   it feels the piece go. Undo, Skip, Stop.
-- **Number all in connection order** - one click.
+- **Number in order** - one click, in the order the list shows (connection order).
 - **By hand** - type it in the Table column.
 
 And finding a board: **Which board is this?** lights up the row of the board
@@ -455,7 +455,7 @@ phone held in one hand.
 2. Boards (or Setup) on the box shows "Open this site on your phone": the
    box's address as text, and as a QR code drawn on the box itself. Point
    the camera at it, give the PIN once.
-3. Boards > *Number by touching* > Start. The next table number fills the
+3. Boards > *Number boards by touching them* > Start. The next table number fills the
    screen. Lift a piece: the phone flashes the number and the board's
    serial, buzzes, and beeps (the beep has a switch).
 4. Undo, Skip and Stop are at the bottom, under the thumb.
