@@ -19,6 +19,8 @@ section, word for word. See [docs/releasing.md](docs/releasing.md).
 
 ## [Unreleased]
 
+- [Change] **Arkab 0.4.0 inside.** Nothing a hall notices: 0.4.0's remote PIN and encrypted cookie belong to the bridge's own page, which Alnasl does not use. Bumped because the nightly pin check had started to complain, and it was right.
+
 ## [0.10.2] - 2026-10-26
 
 - [Security] **Bandit 1.14.0.** Eleven advisories against the web server's 1.13.1 arrived on one day, mostly HTTP/2 and chunked bodies made to eat memory; 1.14.0 fixes them.
