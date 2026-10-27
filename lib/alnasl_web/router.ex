@@ -85,13 +85,6 @@ defmodule AlnaslWeb.Router do
     get "/:id/fonts/:file", ThemePackController, :font
   end
 
-  # The box's own helpers asking whether a round is on (the nightly OS
-  # update). No pipeline, no PIN; the controller refuses anything that is not
-  # a connection from the loopback address.
-  scope "/local", AlnaslWeb do
-    get "/status", LocalStatusController, :show
-  end
-
   # Support uploads (`Alnasl.Support`). A box sending its diagnostics is a
   # program with no session, no CSRF token and no account: no pipeline, and
   # the controller refuses everything while support is off.
@@ -190,5 +183,12 @@ defmodule AlnaslWeb.Router do
       live "/help", HelpLive, :index
       live "/help/:chapter", HelpLive, :chapter
     end
+  end
+
+  # The box's own helpers asking whether a round is on (the nightly OS
+  # update). No pipeline, no PIN; the controller refuses anything that is not
+  # a connection from the loopback address.
+  scope "/local", AlnaslWeb do
+    get "/status", LocalStatusController, :show
   end
 end
