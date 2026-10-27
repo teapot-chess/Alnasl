@@ -184,4 +184,11 @@ defmodule AlnaslWeb.Router do
       live "/help/:chapter", HelpLive, :chapter
     end
   end
+
+  # The box's own helpers asking whether a round is on (the nightly OS
+  # update). No pipeline, no PIN; the controller refuses anything that is not
+  # a connection from the loopback address.
+  scope "/local", AlnaslWeb do
+    get "/status", LocalStatusController, :show
+  end
 end

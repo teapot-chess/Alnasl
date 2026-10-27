@@ -817,4 +817,28 @@ defmodule Alnasl.Games do
   rescue
     _error -> :error
   end
+
+  # A live game nobody has touched for this long is an abandoned one, not a game being played.
+  @stale_after_seconds 6 * 3600
+
+  @doc """
+  Is a round being played on this box right now?
+
+  Yes when some game that stays on the box (`local`) is still `"live"`, belongs
+  to the round its tournament is on, and was written to within the last six
+  hours. Boards with no game, finished games, games of earlier rounds, and live
+  games left behind and untouched for hours do not count: otherwise one
+  forgotten board would hold the nightly OS update off for ever. Asked by the
+  loopback-only `GET /local/status`.
+  """
+  def in_progress?(now \\ DateTime.utc_now()) do
+    cutoff = now |> DateTime.add(-@stale_after_seconds, :second) |> DateTime.truncate(:second)
+
+    Repo.exists?(
+      from g in Game,
+        join: t in Tournaments.Tournament,
+        on: t.id == g.tournament_id and t.round == g.round,
+        where: g.local and g.status == "live" and g.updated_at >= ^cutoff
+    )
+  end
 end
