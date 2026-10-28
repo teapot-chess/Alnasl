@@ -23,6 +23,7 @@ One action, in one place, and nobody types a key.
 2. It shows a link and the same thing as a QR code. The link is good for **one bridge and fifteen minutes**, and says until when.
 3. On the bridge's page (on the computer beside the boards, port 4050), "Join a server": paste the link, or scan the code with the camera. Press Join. (A phone that opens the link in its own browser gets a page saying the link is for a bridge, and where to paste it.)
 4. The bridge shows "Joined." and the server appears in its list. On Alnasl the bridge appears in the hall's list of bridges, with its name and "connected".
+5. Under the bridge, Alnasl lists the serial ports the bridge sees. Press **Read** beside the port the boards hang on: the bridge asks that line who is on it, and the boards appear under the bridge and on the Boards page, ready to be numbered. Boards on a bridge are never added on the Boards page itself; that page only adds boards plugged into the computer Alnasl runs on.
 
 After that the bridge has a key of its own, which it fetched itself. Nobody ever sees it, reads it aloud or copies it, and Alnasl keeps only a hash of it. If the link runs out before it was used, press "Add a bridge" again.
 
