@@ -19,6 +19,8 @@ section, word for word. See [docs/releasing.md](docs/releasing.md).
 
 ## [Unreleased]
 
+- [Security] **Bandit 1.14.1.** 1.14.0 had a published advisory about HTTP/2 eating memory it was never offered; the audit noticed before anybody else had to.
+
 ## [0.12.0] - 2026-10-28
 
 - [Feature] **Simple mode, and it is the default.** A hall needs the live boards, the boards themselves, the round, the results arriving and the manual; it was handed eleven places, two of them about PGN archaeology. Simple mode keeps Live, Boards (numbering by touch included), Halls, the basic Setup sections (wizard, Tournaments, Connections, Updates on a box) and Help in the menu. Games, Results, Log, Recordings, finding a board by phone, fair play, support, the advanced Setup sections and theme packs wait behind one switch, **Show everything**, in the account menu (and at the foot of the menu while simple mode is on). Hidden is not removed: an old bookmark to a full-mode page opens a short note with the switch, not a 404, and the page appears in place when it is pressed. Nobody's role changes, and fair play stays the hall owner's and nobody else's. The choice is kept per account where there are accounts, and for the box where there are none. New installations start simple; one that was already in use keeps every page after the update, because nobody wants to learn where Results went an hour before round one. See [docs/simple-mode.md](docs/simple-mode.md).
