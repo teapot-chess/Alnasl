@@ -270,17 +270,99 @@ defmodule Alnasl.TablesTest do
       refute Enum.any?(Boards.list(), &Tables.remapped?/1)
     end
 
-    test "the next round starts from the table numbers again" do
+    test "the next round starts from the previous round's board assignment, still editable" do
       {:ok, a} = Tables.set_table(sim("a"), 1)
       {:ok, b} = Tables.set_table(sim("b"), 2)
+      {:ok, c} = Tables.set_table(sim("c"), 3)
       Tables.swap(a, b)
       loose = sim("loose", %{round: 1, board_no: 4})
 
       Boards.move_to_round(2)
-      assert %{round: 2, board_no: 1, table_no: 1} = Boards.get!(a.id)
-      assert %{round: 2, board_no: 2, table_no: 2} = Boards.get!(b.id)
-      # A board without a sticker keeps the board number it had.
+      assert %{round: 2, board_no: 2, table_no: 1} = Boards.get!(a.id)
+      assert %{round: 2, board_no: 1, table_no: 2} = Boards.get!(b.id)
+      # A board that was not remapped follows its table; one without a table
+      # keeps the number it had.
+      assert %{round: 2, board_no: 3, table_no: 3} = Boards.get!(c.id)
       assert %{round: 2, board_no: 4, table_no: nil} = Boards.get!(loose.id)
+
+      # Beginning the same round again changes nothing, and logs nothing new.
+      linked = Enum.count(Alnasl.Log.list(), &(&1.kind == "board.linked"))
+      Boards.move_to_round(2)
+      assert %{board_no: 2} = Boards.get!(a.id)
+      assert %{board_no: 1} = Boards.get!(b.id)
+      assert Enum.count(Alnasl.Log.list(), &(&1.kind == "board.linked")) == linked
+
+      # Editable in the new round: swap back, or remap one.
+      :ok = Tables.swap(Boards.get!(a.id), Boards.get!(b.id))
+      assert %{board_no: 1} = Boards.get!(a.id)
+      {:ok, _c} = Tables.remap(Boards.get!(c.id), 9)
+
+      # And the next round carries that, not the first round's swap.
+      Boards.move_to_round(3)
+      assert %{round: 3, board_no: 1} = Boards.get!(a.id)
+      assert %{round: 3, board_no: 2} = Boards.get!(b.id)
+      assert %{round: 3, board_no: 9} = Boards.get!(c.id)
+
+      # Putting everything back returns to the table numbers.
+      Tables.clear_remaps()
+      assert %{board_no: 1} = Boards.get!(a.id)
+      assert %{board_no: 2} = Boards.get!(b.id)
+      assert %{board_no: 3} = Boards.get!(c.id)
+      refute Enum.any?(Boards.list(), &Tables.remapped?/1)
+
+      Boards.move_to_round(4)
+      assert %{board_no: 1} = Boards.get!(a.id)
+      assert %{board_no: 3} = Boards.get!(c.id)
+    end
+
+    test "a remap to a board the new round does not have is dropped, and the log says so" do
+      {:ok, a} = Tables.set_table(sim("a"), 1)
+      {:ok, b} = Tables.set_table(sim("b"), 2)
+      {:ok, c} = Tables.set_table(sim("c"), 3)
+      {:ok, _a} = Tables.remap(a, 7)
+      :ok = Tables.swap(Boards.get!(b.id), Boards.get!(c.id))
+
+      own = Alnasl.Tournaments.get!(Alnasl.Tournaments.default_id())
+
+      document =
+        Jason.encode!(%{
+          "rounds" => [
+            %{"number" => 2, "boards" => for(n <- 1..3, do: %{"board" => n})}
+          ]
+        })
+
+      Alnasl.Tournaments.update!(own, %{document: document})
+
+      Boards.move_to_round(2)
+      # Board 7 is not among round 2's pairings: a goes back to its table.
+      assert %{round: 2, board_no: 1} = Boards.get!(a.id)
+      # The swap is fine and stays.
+      assert %{round: 2, board_no: 3} = Boards.get!(b.id)
+      assert %{round: 2, board_no: 2} = Boards.get!(c.id)
+      assert [dropped] = Enum.filter(Alnasl.Log.list(), &(&1.kind == "table.remap_dropped"))
+      assert Alnasl.Log.data(dropped)["name"] == "a"
+    end
+
+    test "a remap is not carried into another tournament" do
+      other =
+        Repo.insert!(%Alnasl.Tournaments.Tournament{kind: "linked", name: "Other", hall_id: nil})
+
+      {:ok, a} = Tables.set_table(sim("a"), 1)
+      {:ok, a} = Tables.remap(a, 5)
+      assert %{round: 1, board_no: 5} = a
+
+      # The board is put in the other tournament, which gives it no board:
+      # the old mapping is not taken along.
+      {:ok, a} = Tables.assign(Boards.get!(a.id), other)
+      assert a.board_no != 5
+      Boards.move_to_round(other.id, 2)
+      refute Boards.get!(a.id).board_no == 5
+
+      # The first tournament's round, begun, does not touch it either.
+      Boards.move_to_round(2)
+      assert %{tournament_id: tid} = Boards.get!(a.id)
+      assert tid == other.id
+      refute Boards.get!(a.id).board_no == 5
     end
 
     test "numbering in connection order gives table and board in one go" do

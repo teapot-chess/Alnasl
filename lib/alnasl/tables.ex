@@ -16,7 +16,8 @@ defmodule Alnasl.Tables do
   3. **Its board of the round.** Normally the table number. For a round the
      arbiter can say otherwise - "table 7 plays board 3 today" (`remap/2`),
      swap two (`swap/2`), or put it back (`clear_remap/1`). The next round
-     starts from the table numbers again.
+     starts from that board assignment (`begin_round/3`), still editable;
+     putting everything back returns to the table numbers.
 
   ## Tables and tournaments
 
@@ -305,7 +306,74 @@ defmodule Alnasl.Tables do
     Boards.link(board, round_of(board), board_no)
   end
 
+  @doc """
+  What a board feeds when `round` begins (`Alnasl.Boards.move_to_round/2`;
+  `known` is the board numbers the round's pairings have, `[]` when they
+  are not in yet):
+
+    * `{:carry, n}` - the board was remapped in the round before; it keeps
+      feeding board `n`;
+    * `{:home, n}` - it follows its table (`nil`: it has none and no number);
+    * `:unlink` - its table is gone, so there is nothing to follow.
+
+  Only what still makes sense is carried. A remap whose table is no longer a
+  table of the tournament, or whose board is not among the pairings of the
+  new round, is dropped, and the log says so: the board goes back to its
+  table number. A board that is already on `round` is left as it is, so
+  beginning a round twice does nothing the second time. A board's tournament
+  is the one `Alnasl.Boards.move_to_round/2` is working on: a mapping made
+  in another tournament is not on a board that has been moved here (that
+  clears its round).
+  """
+  def begin_round(%Board{round: round, board_no: number}, round, _known) when number != nil,
+    do: {:home, number}
+
+  def begin_round(%Board{} = board, round, known) do
+    home = home_board(board, round)
+    previous = round - 1
+
+    cond do
+      board.round == previous and board.board_no != nil and board.table_no != nil and
+          home_board(board, previous) != board.board_no ->
+        carry_remap(board, round, known, home)
+
+      home != nil ->
+        {:home, home}
+
+      board.table_no != nil and board.board_no != nil and board.round == previous ->
+        :unlink
+
+      true ->
+        {:home, board.board_no}
+    end
+  end
+
+  defp carry_remap(board, round, known, home) do
+    cond do
+      home_board(board, board.round) == nil ->
+        dropped(board, round, :table)
+        if home == nil, do: :unlink, else: {:home, home}
+
+      known != [] and board.board_no not in known ->
+        dropped(board, round, :board)
+        {:home, home}
+
+      true ->
+        {:carry, board.board_no}
+    end
+  end
+
+  defp dropped(board, round, why) do
+    Log.add(
+      :info,
+      "table.remap_dropped",
+      %{name: board.name, table: board.table_no, board: board.board_no, round: round},
+      %{board_id: board.id, round: round, board_no: board.board_no, why: Atom.to_string(why)}
+    )
+  end
+
   @doc "Back to the board its table says; not linked when it has none."
+
   def clear_remap(%Board{} = board) do
     case home_board(board) do
       nil -> Boards.unlink(board)

@@ -99,77 +99,7 @@ defmodule AlnaslWeb.BridgeComponents do
           </p>
         </li>
         <li :for={%{bridge: b, live: live} <- @bridges} id={"bridge-#{b.id}"} class="stack">
-          <div>
-            <b>{b.name}</b>
-            <.badge :if={live} id={"bridge-#{b.id}-up"} tone="ok" icon="live">
-              {gettext("connected")}
-            </.badge>
-            <.badge :if={!live} id={"bridge-#{b.id}-down"} tone="bad" icon="offline">
-              {gettext("not connected")}
-            </.badge>
-            <span :if={b.software} class="note">{b.software}</span>
-          </div>
-
-          <%= if live do %>
-            <ul id={"bridge-#{b.id}-ports"} class="addresses">
-              <li
-                :for={{port, i} <- Enum.with_index(live.ports)}
-                id={"bridge-#{b.id}-port-#{i}"}
-              >
-                <span class="mono">{port["port"]}</span>
-                <span :if={port["description"] not in [nil, ""]} class="note">
-                  {port["description"]}
-                </span>
-                <%= if !@owner? do %>
-                  <span :if={port["read"]} class="note">{gettext("read")}</span>
-                <% else %>
-                  <%= if port["read"] do %>
-                    <.button
-                      id={"bridge-#{b.id}-rescan-#{i}"}
-                      small
-                      variant="ghost"
-                      phx-click="bridge_command"
-                      phx-value-id={b.id}
-                      phx-value-cmd="rescan"
-                      phx-value-port={port["port"]}
-                    >
-                      {gettext("Read again")}
-                    </.button>
-                    <.button
-                      id={"bridge-#{b.id}-forget-#{i}"}
-                      small
-                      variant="ghost"
-                      phx-click="bridge_command"
-                      phx-value-id={b.id}
-                      phx-value-cmd="forget_port"
-                      phx-value-port={port["port"]}
-                      data-confirm={gettext("Stop reading this port on the bridge?")}
-                    >
-                      {gettext("Forget")}
-                    </.button>
-                  <% else %>
-                    <.button
-                      id={"bridge-#{b.id}-read-#{i}"}
-                      small
-                      phx-click="bridge_command"
-                      phx-value-id={b.id}
-                      phx-value-cmd="add_port"
-                      phx-value-port={port["port"]}
-                    >
-                      {gettext("Read")}
-                    </.button>
-                  <% end %>
-                <% end %>
-              </li>
-            </ul>
-            <p :if={live.boards != []} id={"bridge-#{b.id}-boards"} class="note">
-              {ngettext("%{count} board", "%{count} boards", length(live.boards))}: {Enum.map_join(
-                live.boards,
-                ", ",
-                & &1["id"]
-              )}
-            </p>
-          <% end %>
+          <.bridge_state bridge={b} live={live} owner?={@owner?} />
 
           <div :if={@owner?} class="row">
             <.button
@@ -228,6 +158,94 @@ defmodule AlnaslWeb.BridgeComponents do
           </div>
         </li>
       </ul>
+    </div>
+    """
+  end
+
+  attr :bridge, :map, required: true
+  attr :live, :map, default: nil, doc: "what `Bridges.live/1` says, or nil when not connected"
+  attr :owner?, :boolean, default: true, doc: "may Read, Read again and Forget (the hall's owner)"
+
+  @doc """
+  One bridge as the hall sees it: its name, connected or not, the serial
+  ports it sees (with Read beside one that is not read yet), and the boards it
+  reports. The Bridges tab and the Boards page's "Add a board" both draw it;
+  the buttons send `bridge_command`, which `handle/4` answers.
+  """
+  def bridge_state(assigns) do
+    ~H"""
+    <div class="stack">
+      <div>
+        <b>{@bridge.name}</b>
+        <.badge :if={@live} id={"bridge-#{@bridge.id}-up"} tone="ok" icon="live">
+          {gettext("connected")}
+        </.badge>
+        <.badge :if={!@live} id={"bridge-#{@bridge.id}-down"} tone="bad" icon="offline">
+          {gettext("not connected")}
+        </.badge>
+        <span :if={@bridge.software} class="note">{@bridge.software}</span>
+      </div>
+
+      <%= if @live do %>
+        <ul id={"bridge-#{@bridge.id}-ports"} class="addresses">
+          <li
+            :for={{port, i} <- Enum.with_index(@live.ports)}
+            id={"bridge-#{@bridge.id}-port-#{i}"}
+          >
+            <span class="mono">{port["port"]}</span>
+            <span :if={port["description"] not in [nil, ""]} class="note">
+              {port["description"]}
+            </span>
+            <%= if !@owner? do %>
+              <span :if={port["read"]} class="note">{gettext("read")}</span>
+            <% else %>
+              <%= if port["read"] do %>
+                <.button
+                  id={"bridge-#{@bridge.id}-rescan-#{i}"}
+                  small
+                  variant="ghost"
+                  phx-click="bridge_command"
+                  phx-value-id={@bridge.id}
+                  phx-value-cmd="rescan"
+                  phx-value-port={port["port"]}
+                >
+                  {gettext("Read again")}
+                </.button>
+                <.button
+                  id={"bridge-#{@bridge.id}-forget-#{i}"}
+                  small
+                  variant="ghost"
+                  phx-click="bridge_command"
+                  phx-value-id={@bridge.id}
+                  phx-value-cmd="forget_port"
+                  phx-value-port={port["port"]}
+                  data-confirm={gettext("Stop reading this port on the bridge?")}
+                >
+                  {gettext("Forget")}
+                </.button>
+              <% else %>
+                <.button
+                  id={"bridge-#{@bridge.id}-read-#{i}"}
+                  small
+                  phx-click="bridge_command"
+                  phx-value-id={@bridge.id}
+                  phx-value-cmd="add_port"
+                  phx-value-port={port["port"]}
+                >
+                  {gettext("Read")}
+                </.button>
+              <% end %>
+            <% end %>
+          </li>
+        </ul>
+        <p :if={@live.boards != []} id={"bridge-#{@bridge.id}-boards"} class="note">
+          {ngettext("%{count} board", "%{count} boards", length(@live.boards))}: {Enum.map_join(
+            @live.boards,
+            ", ",
+            & &1["id"]
+          )}
+        </p>
+      <% end %>
     </div>
     """
   end

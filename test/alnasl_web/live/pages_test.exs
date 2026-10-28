@@ -82,8 +82,8 @@ defmodule AlnaslWeb.PagesTest do
 
       view |> form("#add-board-form", board: %{driver: "dgt_serial"}) |> render_change()
       assert has_element?(view, "#add-loop-note")
-      # Bridge boards live on the hall's Bridges tab, and this page says so.
-      assert has_element?(view, "#add-bridge-note a#add-bridge-link")
+      # The bridge panel is for the bridge kind only.
+      refute has_element?(view, "#add-bridge")
       refute has_element?(view, "#add-address")
       refute has_element?(view, "#bus-warning")
       refute render(view) =~ "not verified"
@@ -105,6 +105,60 @@ defmodule AlnaslWeb.PagesTest do
 
       eventually_html(view, fn _ -> has_element?(view, "#start-ok-#{board.id}") end)
       eventually_html(view, fn html -> html =~ "serial 12345" end)
+    end
+
+    test "On a bridge (Arkab): the hall's bridges, their ports, and Read sends the command", %{
+      conn: conn
+    } do
+      {:ok, view, _html} = live(conn, ~p"/boards")
+      refute has_element?(view, "#add-bridge")
+
+      view |> form("#add-board-form", board: %{driver: "bridge"}) |> render_change()
+      assert has_element?(view, "#add-bridge")
+      # Nothing to type or submit for a bridge.
+      refute has_element?(view, "#add-board-submit")
+      refute has_element?(view, "#add-port")
+
+      # No bridge yet: a line and the way to add one.
+      assert has_element?(view, "#add-bridge-none")
+      hall = Alnasl.Halls.own_id()
+      assert has_element?(view, ~s(#add-bridge-link[href="/halls/#{hall}/bridges"]))
+
+      {:ok, join} = Alnasl.Bridges.create_join(DateTime.utc_now(:second), hall)
+
+      {:ok, %{bridge: bridge}} =
+        Alnasl.Bridges.redeem(join.code, %{
+          "v" => 1,
+          "bridge" => "uid-boards",
+          "name" => "Hall bridge",
+          "software" => "arkab"
+        })
+
+      # Not connected: it is listed, with no ports.
+      send(view.pid, {:bridges, :changed})
+      eventually_html(view, fn _ -> has_element?(view, "#bridge-#{bridge.id}-down") end)
+      refute has_element?(view, "#add-bridge-none")
+
+      # Connected (this process stands in for its socket), with two ports,
+      # one read already.
+      {:ok, _} =
+        Registry.register(Alnasl.BridgeRegistry, bridge.id, %{
+          boards: [%{"id" => "COM3"}],
+          ports: [
+            %{"port" => "COM3", "description" => "USB", "read" => true},
+            %{"port" => "COM4", "description" => "USB", "read" => false}
+          ]
+        })
+
+      send(view.pid, {:bridges, :changed})
+      eventually_html(view, fn _ -> has_element?(view, "#bridge-#{bridge.id}-up") end)
+      assert has_element?(view, "#bridge-#{bridge.id}-port-0", "COM3")
+      assert has_element?(view, "#bridge-#{bridge.id}-boards", "COM3")
+      refute has_element?(view, "#bridge-#{bridge.id}-read-0")
+
+      view |> element("#bridge-#{bridge.id}-read-1") |> render_click()
+      assert_receive {:command, %{"cmd" => "add_port"}}
+      assert has_element?(view, "#add-bridge-message")
     end
 
     test "a port with two boards on it is a loop: one Add, a row for each, and their numbers in small print",
@@ -657,7 +711,7 @@ defmodule AlnaslWeb.PagesTest do
            repair.set_fen repair.resync repair.choose repair.paused repair.resumed pgn.attached outbox.offline
            outbox.online outbox.blocked outbox.conflict outbox.server_ahead outbox.live_game_limit outbox.discarded door.unlocked door.refused door.throttled setup.saved
            destination.offline destination.online destination.blocked destination.enabled destination.disabled
-           table.set table.cleared table.moved table.remapped table.swapped table.merged board.recognised
+           table.set table.cleared table.moved table.remapped table.remap_dropped table.swapped table.merged board.recognised
            board.other_serial board.replaced piece.unseen piece.accounted square.dead game.new game.switched move.rewritten move.out_of_turn move.illegal
            link.added link.removed link.ok link.unreachable link.unauthorized link.unsupported link.connect_failed
            tournament.added tournament.back tournament.gone tournament.tables tournament.hall_removed table.tournament
