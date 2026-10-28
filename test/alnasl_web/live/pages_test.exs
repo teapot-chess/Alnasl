@@ -82,6 +82,8 @@ defmodule AlnaslWeb.PagesTest do
 
       view |> form("#add-board-form", board: %{driver: "dgt_serial"}) |> render_change()
       assert has_element?(view, "#add-loop-note")
+      # Bridge boards live on the hall's Bridges tab, and this page says so.
+      assert has_element?(view, "#add-bridge-note a#add-bridge-link")
       refute has_element?(view, "#add-address")
       refute has_element?(view, "#bus-warning")
       refute render(view) =~ "not verified"

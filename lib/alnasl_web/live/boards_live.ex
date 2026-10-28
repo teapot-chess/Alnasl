@@ -1441,6 +1441,18 @@ defmodule AlnaslWeb.BoardsLive do
               )}
             </p>
 
+            <p id="add-bridge-note" class="note">
+              {gettext(
+                "Boards on a bridge - Arkab on another computer in the hall - are not added here: the hall's Bridges tab lists the bridge's serial ports, and Read beside a port makes the bridge read the boards on it."
+              )}
+              <.link
+                id="add-bridge-link"
+                navigate={if @hall_id, do: ~p"/halls/#{@hall_id}/bridges", else: ~p"/halls"}
+              >
+                {gettext("Open the Bridges tab")}
+              </.link>
+            </p>
+
             <div class="row">
               <.button
                 id="add-board-submit"
