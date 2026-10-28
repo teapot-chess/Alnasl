@@ -15,6 +15,8 @@ Boards, "Add a board": choose the port the board is plugged into and press Add. 
 
 The USB adapter of an RS232 board may need its maker's driver before it shows up on a Mac or Windows PC (FTDI works as it is; Prolific, CH340 and CP210x may not).
 
+Boards on a bridge (Arkab on another computer in the hall) are added the same way: under "Add a board" choose the kind "On a bridge (Arkab)". The panel then shows this hall's bridges - connected or not, the serial ports each one sees, and the boards it reports - with a Read button beside a port that is not read yet. That is the Bridges tab's panel, with the same rules: only the hall's owner can Read or Forget, others see the state. With no bridge yet there is a link to the Bridges tab to add one. See [Bridges](03-bridges.md).
+
 A simulator board is on the same list. It plays a game by itself and is there for practising: add one, and the Live page has something to show.
 
 ## Several boards on one cable {#loop}
@@ -43,7 +45,7 @@ Twelve boards look alike, and so do twelve cables. The box keeps three things ap
 
 - **Which board it is.** An electronic board tells the box its serial number (it is also on a label under the board). That is what the box knows it by, not the USB port. Unplug it, plug it in elsewhere, restart the box: it is still the same board and keeps its number. If it comes back on another port - another USB hub, another adapter (a broken one replaced), or another bridge of the same hall - add it on that port, or let the bridge report it: the box recognises the serial and brings its old row back, with its name, table number, board of the round, game, turned-round setting and history. No second row is made, whether the board had a number yet or not. Replugged so fast that the old port has not noticed yet (that takes a few seconds), the two rows become one the moment it does; until then the board is listed as seen twice. Mid-game that is safe: the game carries on in the same row. A board in another hall is that hall's: it is never moved there by itself. A board the box has never seen is marked "New board" and asks for a number.
 - **Its table number.** The sticker on the board: "this is table 7". You set it once for the hall and it stays. "Labels" on the Boards page prints a sheet of stickers with the table number and the serial.
-- **Its board of the round.** Normally the same number as the table. For one round you can say otherwise in the column "Board of round N" ("table 7 plays board 3 today"), swap two boards, or put everything back. The next round starts from the table numbers again. On the Live page the board number is the big one; "table 7 · serial 06310" is the small print.
+- **Its board of the round.** Normally the same number as the table. For one round you can say otherwise in the column "Board of round N" ("table 7 plays board 3 today"), swap two boards, or put everything back. When the next round begins, it starts from this round's assignment: what you remapped or swapped is carried over, and you can edit it again as before. Only what still makes sense is carried: a remap to a board the new round's pairings do not have, or from a table that is no longer one of the tournament's, is dropped (the Log says so) and that board follows its table number again. A board put in another tournament never takes its old mapping along. "All back to their table numbers" returns every board to its table number. On the Live page the board number is the big one; "table 7 · serial 06310" is the small print.
 
 ### Giving the table numbers {#giving-numbers}
 

@@ -144,9 +144,13 @@ defmodule Alnasl.Takeover do
   @doc false
   def put_key(key) when is_binary(key) do
     path = key_path()
-    File.write!(path, key)
-    # Readable by the service's own user only, where the system knows how.
-    _ = File.chmod(path, 0o600)
+    tmp = path <> ".new"
+    # Locked down while still empty, so the key is never readable by others,
+    # not even for the moment between writing it and remembering to chmod.
+    File.write!(tmp, "")
+    _ = File.chmod(tmp, 0o600)
+    File.write!(tmp, key)
+    File.rename!(tmp, path)
     :ok
   end
 

@@ -328,16 +328,34 @@ defmodule Alnasl.Boards do
   @doc """
   Moves every linked board of a tournament on to another round: the next
   round begins. A board with a table number feeds the board its table
-  stands for again; one without keeps the board number it had. The boards
-  of the other tournaments are not touched.
+  stands for; one without keeps the board number it had. A board the
+  arbiter had remapped in the round before keeps its remap
+  (`Alnasl.Tables.begin_round/3`). The boards of the other tournaments are
+  not touched, and beginning the same round twice changes nothing the second
+  time.
   """
   def move_to_round(tournament_id, round) do
-    # A board with a sticker goes back to its own number: "table 7 plays
-    # board 3" was said for a round, not for the tournament.
-    for board <- list(), board.tournament_id == tournament_id do
-      case Tables.home_board(board, round) || board.board_no do
-        nil -> :ok
-        number -> link(board, round, number)
+    known = tournament_id |> Tournaments.boards(round) |> Enum.map(& &1.board)
+
+    # The boards that follow their table go first, the carried remaps last:
+    # where the two meet, what the arbiter said wins.
+    {carried, homes} =
+      for board <- list(), board.tournament_id == tournament_id, reduce: {[], []} do
+        {carried, homes} ->
+          case Tables.begin_round(board, round, known) do
+            {:carry, number} -> {[{board, number} | carried], homes}
+            {:home, number} -> {carried, [{board, number} | homes]}
+            :unlink -> {carried, [{board, nil} | homes]}
+          end
+      end
+
+    for {board, number} <- Enum.reverse(homes) ++ Enum.reverse(carried) do
+      cond do
+        number == nil and board.round == round -> :ok
+        number == nil and board.table_no != nil and board.board_no != nil -> unlink(board)
+        number == nil -> :ok
+        {board.round, board.board_no} == {round, number} -> :ok
+        true -> link(board, round, number)
       end
     end
 

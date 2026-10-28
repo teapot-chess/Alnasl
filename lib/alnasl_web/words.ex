@@ -936,6 +936,16 @@ defmodule AlnaslWeb.Words do
         from: d["from"]
       )
 
+  defp log("table.remap_dropped", d),
+    do:
+      gettext(
+        "\"%{name}\" (table %{table}) fed board %{board} in the round before; that does not carry into round %{round}, and it follows its table number again.",
+        name: d["name"],
+        table: d["table"],
+        board: d["board"],
+        round: d["round"]
+      )
+
   defp log("table.remapped", d),
     do:
       gettext("\"%{name}\" (table %{table}) feeds this board for the round.",
