@@ -12,7 +12,7 @@ defmodule Alnasl.FairPlay.Report do
   `Alnasl.FairPlay.Stats.player/2` over all the player's plies, plus:
 
     * `verdict` - `:very_unusual` above a score of 5, `:closer_look` from
-      2, else `nil`. Words for the screen, not a finding: the manual says
+      3.75 (the threshold the model passed its gate at), else `nil`. Words for the screen, not a finding: the manual says
       what to do with them, and the report says on every page that this is
       not the method FIDE has approved;
     * `name`, `key`, `rating` (the player's most recent) and `games`;
@@ -46,7 +46,8 @@ defmodule Alnasl.FairPlay.Report do
 
   require Logger
 
-  @closer_look 2.0
+  # The gate's threshold, not a rounder number: the one the shipped model was tested at.
+  @closer_look Alnasl.FairPlay.Calibration.gate_threshold()
   @very_unusual 5.0
   @key_positions 8
 
@@ -134,7 +135,7 @@ defmodule Alnasl.FairPlay.Report do
     })
   end
 
-  @doc "`:very_unusual` above 5, `:closer_look` from 2, else `nil`."
+  @doc "`:very_unusual` above 5, `:closer_look` from 3.75, else `nil`."
   def verdict(score) when is_number(score) and score > @very_unusual, do: :very_unusual
   def verdict(score) when is_number(score) and score >= @closer_look, do: :closer_look
   def verdict(_score), do: nil

@@ -243,7 +243,9 @@ defmodule AlnaslWeb.FairPlayPagesTest do
     test "the verdict words begin at 2 and at 5" do
       assert Report.verdict(nil) == nil
       assert Report.verdict(1.99) == nil
-      assert Report.verdict(2.0) == :closer_look
+      assert Report.verdict(2.0) == nil
+      assert Report.verdict(3.74) == nil
+      assert Report.verdict(3.75) == :closer_look
       assert Report.verdict(5.0) == :closer_look
       assert Report.verdict(5.01) == :very_unusual
     end
