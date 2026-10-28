@@ -9,7 +9,8 @@ defmodule AlnaslWeb.Components.Tour do
     * the steps, as a hidden list (`#tour-steps`): every word is the
       server's and translated, and a test can read which steps a role gets;
     * the `.Tour` hook, which points at the step's element with a popover
-      (a panel docked above the tab bar on a phone), moves to the step's
+      (a panel docked above the tab bar on a phone, and under the top bar,
+      on the side away from the target, on a small screen), moves to the step's
       page with live navigation when it lives elsewhere, and says so when
       the element is not there yet.
 
@@ -277,10 +278,15 @@ defmodule AlnaslWeb.Components.Tour do
             if (!this.pop || !this.pop.isConnected) return
             const pop = this.pop
             const ring = this.ring
-            const docked = matchMedia(PHONE).matches
+            // A small screen (`data-compact`, set by theme.js) has its bar at
+            // the top and no room beside anything: the step goes to the side
+            // away from what it points at, under that bar.
+            const compact = document.documentElement.hasAttribute("data-compact")
+            const docked = !compact && matchMedia(PHONE).matches
             const target = this.target && this.target.isConnected ? this.target : null
             pop.classList.toggle("docked", docked)
-            pop.classList.toggle("floating", !docked && !target)
+            pop.classList.toggle("floating", !docked && !compact && !target)
+            if (compact) return this.placeCompact(target)
 
             if (!target) {
               ring.hidden = true
@@ -311,6 +317,39 @@ defmodule AlnaslWeb.Components.Tour do
               return
             } else top = Math.max(8, vh - h - 8)
             const left = Math.max(8, Math.min(r.left, vw - w - 8))
+            pop.style.top = top + "px"
+            pop.style.left = left + "px"
+          },
+
+          placeCompact(target) {
+            const pop = this.pop
+            const ring = this.ring
+            const vw = document.documentElement.clientWidth
+            const vh = document.documentElement.clientHeight
+            const bar = document.querySelector("#tab-bar")
+            const top0 = Math.max(8, (bar ? bar.getBoundingClientRect().bottom : 0) + 8)
+            const w = pop.offsetWidth
+            const h = pop.offsetHeight
+            let top = top0
+            let left = (vw - w) / 2
+            ring.hidden = !target
+            if (target) {
+              const r = target.getBoundingClientRect()
+              ring.style.top = r.top - 4 + "px"
+              ring.style.left = r.left - 4 + "px"
+              ring.style.width = r.width + 8 + "px"
+              ring.style.height = r.height + 8 + "px"
+              if (vw > vh * 1.2) {
+                // Wide: the left or right edge, level with the target.
+                left = (r.left + r.right) / 2 < vw / 2 ? vw - w - 8 : 8
+                top = r.top
+              } else {
+                // Square or upright: the top or the bottom.
+                top = (r.top + r.bottom) / 2 < (top0 + vh) / 2 ? vh - h - 8 : top0
+              }
+            }
+            top = Math.max(top0, Math.min(top, vh - h - 8))
+            left = Math.max(8, Math.min(left, vw - w - 8))
             pop.style.top = top + "px"
             pop.style.left = left + "px"
           },

@@ -412,7 +412,7 @@ defmodule AlnaslWeb.HallsLive do
 
         <div :if={@rows != []} class="panel flush">
           <div class="table-wrap">
-            <table id="halls">
+            <table id="halls" class="cards">
               <thead>
                 <tr>
                   <th>{gettext("Hall")}</th>
@@ -431,19 +431,25 @@ defmodule AlnaslWeb.HallsLive do
 
               <tbody>
                 <tr :for={row <- @rows} id={"hall-#{row.hall.id}"}>
-                  <td>
+                  <td class="lead">
                     <.link navigate={~p"/halls/#{row.hall.id}"} id={"hall-#{row.hall.id}-open"}>
                       <b>{row.hall.name}</b>
                     </.link>
                   </td>
 
-                  <td id={"hall-#{row.hall.id}-role"}>{Words.role(row.role)}</td>
+                  <td id={"hall-#{row.hall.id}-role"} data-label={gettext("Your role")}>
+                    {Words.role(row.role)}
+                  </td>
 
-                  <td id={"hall-#{row.hall.id}-boards"} class="num">
+                  <td
+                    id={"hall-#{row.hall.id}-boards"}
+                    class="num"
+                    data-label={gettext("Live boards")}
+                  >
                     {gettext("%{live} of %{count}", live: row.live, count: row.boards)}
                   </td>
 
-                  <td id={"hall-#{row.hall.id}-bridges"} class="num">
+                  <td id={"hall-#{row.hall.id}-bridges"} class="num" data-label={gettext("Bridges")}>
                     <%= if row.bridges > 0 do %>
                       {gettext("%{up} of %{count}", up: row.bridges_up, count: row.bridges)}
                     <% else %>
@@ -451,7 +457,7 @@ defmodule AlnaslWeb.HallsLive do
                     <% end %>
                   </td>
 
-                  <td>
+                  <td data-label={gettext("Attention")}>
                     <%= if row.attention != [] do %>
                       <ul id={"hall-#{row.hall.id}-attention"} class="addresses">
                         <li

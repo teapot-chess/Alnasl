@@ -4,7 +4,10 @@
 run in JavaScript and that `Phoenix.LiveViewTest` never executes. Today that
 is the guided tour (`tour_test.exs`): the offer, every stop walked from the
 first to the last across the pages it lives on, Back, Skip, and starting it
-again from the account menu. What the tour *contains* per role is
+again from the account menu; and the small-screen layout (`compact_test.exs`)
+at 800x480, 1024x600 and 720x720: nothing wider than the screen, the tour
+under the top bar and on the screen at every stop, and a game's board, clocks
+and moves in view at once. What the tour *contains* per role is
 `test/alnasl_web/live/tour_test.exs`; this is whether a person can walk it.
 
 They use [phoenix_test_playwright](https://hexdocs.pm/phoenix_test_playwright):
