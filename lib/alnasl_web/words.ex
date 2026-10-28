@@ -491,6 +491,68 @@ defmodule AlnaslWeb.Words do
   def marks(:guessed, count),
     do: ngettext("%{count} move guessed", "%{count} moves guessed", count)
 
+  def marks(:memory, count),
+    do:
+      ngettext(
+        "%{count} move from the board's memory",
+        "%{count} moves from the board's memory",
+        count
+      )
+
+  @doc "Why a board's memory was offered to the arbiter rather than added (`Alnasl.MemoryDrafts`)."
+  def draft_title("conflict"), do: gettext("The board remembers this game differently")
+  def draft_title("earlier_game"), do: gettext("The board remembers more of this game")
+
+  def draft_title("ambiguous"),
+    do: gettext("The board remembers more moves, but it is not sure of which game")
+
+  def draft_title(_unknown_start), do: gettext("The board remembers a game Alnasl cannot place")
+
+  @doc "What a draft says, in a sentence for the arbiter."
+  def draft_text(%{reason: "conflict", from_ply: from}),
+    do:
+      gettext(
+        "Its own memory, read back when it came back, goes another way from %{move} on. The game here is unchanged until you choose.",
+        move: move_number(from + 1)
+      )
+
+  def draft_text(%{reason: "earlier_game"}),
+    do:
+      gettext(
+        "The pieces were set up again since, but an older game in its memory goes on from where this one stands. It may be this game, or one played before it with the same opening."
+      )
+
+  def draft_text(%{reason: "ambiguous"}),
+    do:
+      gettext(
+        "Its memory has more than one game that begins like this one, and the newest goes on from where this one stands. The game here is unchanged until you choose."
+      )
+
+  def draft_text(_unknown_start),
+    do:
+      gettext(
+        "Its memory does not show the position this game began from, but it has a game from the starting position. Using it replaces the moves here."
+      )
+
+  @doc "The moves a draft would put in the game, numbered."
+  def draft_moves(%{moves: []}), do: gettext("No moves after the point where they part.")
+
+  def draft_moves(%{moves: moves, from_ply: from}) do
+    moves
+    |> Enum.with_index(from + 1)
+    |> Enum.map_join(" ", fn {san, ply} ->
+      cond do
+        rem(ply, 2) == 1 -> "#{div(ply + 1, 2)}. #{san}"
+        ply == from + 1 -> "#{div(ply, 2)}... #{san}"
+        true -> san
+      end
+    end)
+  end
+
+  # "12." for White's twelfth move, "12..." for Black's (`ply` 1-based).
+  defp move_number(ply) when rem(ply, 2) == 1, do: "#{div(ply + 1, 2)}."
+  defp move_number(ply), do: "#{div(ply, 2)}..."
+
   @doc """
   A move that was read as another and rewritten, in a sentence: "3. d3 was
   read; the board now says it was 3. d4". `number` is the ply (1-based).
@@ -515,6 +577,7 @@ defmodule AlnaslWeb.Words do
   def flag(:unseen), do: gettext("a piece not seen")
   def flag(:arbiter), do: gettext("by hand")
   def flag(:imported), do: gettext("from PGN")
+  def flag(:memory), do: gettext("from its memory")
   def flag(other), do: to_string(other)
 
   def driver("simulator"), do: gettext("Simulator")
@@ -533,6 +596,31 @@ defmodule AlnaslWeb.Words do
   defp log("board.removed", d), do: gettext("Board \"%{name}\" removed.", name: d["name"])
   defp log("board.connected", _d), do: gettext("The board answers.")
   defp log("board.disconnected", _d), do: gettext("The board stopped answering.")
+
+  defp log("board.history_merged", d),
+    do:
+      ngettext(
+        "%{count} move read back from the board's own memory and added to the game: %{moves}",
+        "%{count} moves read back from the board's own memory and added to the game: %{moves}",
+        d["count"] || 0,
+        moves: Enum.join(d["moves"] || [], " ")
+      )
+
+  defp log("board.history_draft", _d),
+    do:
+      gettext(
+        "The board's own memory has another version of this game. It waits on the game page for the arbiter."
+      )
+
+  defp log("board.history_failed", d),
+    do: gettext("The board's own memory could not be read: %{reason}", reason: d["reason"])
+
+  defp log("draft.accepted", _d),
+    do: gettext("Arbiter in Alnasl: the board's version of the game from its memory was used.")
+
+  defp log("draft.dismissed", _d),
+    do:
+      gettext("Arbiter in Alnasl: the board's version of the game from its memory was set aside.")
 
   defp log("board.driver_failed", d),
     do: gettext("The board could not be opened: %{reason}", reason: d["reason"])

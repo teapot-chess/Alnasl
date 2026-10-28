@@ -23,7 +23,8 @@ defmodule Alnasl.Games do
     "assumed" => :assumed,
     "unseen" => :unseen,
     "arbiter" => :arbiter,
-    "imported" => :imported
+    "imported" => :imported,
+    "memory" => :memory
   }
 
   # --- finding a game ----------------------------------------------------------
