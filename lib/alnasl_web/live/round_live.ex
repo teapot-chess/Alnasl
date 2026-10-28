@@ -469,6 +469,8 @@ defmodule AlnaslWeb.RoundLive do
       guessed: Enum.count(plies, &(:guessed in &1.flags)),
       # The pairing changed under a game that had begun: the arbiter's to settle.
       pairing_flag: game && game.pairing_flag,
+      # The board's memory has another version of the game: the game page says.
+      draft?: (snap && snap[:draft]) != nil,
       # The clock's part of the start check, while no move has been made.
       clock_problem:
         if(snap && plies == [], do: AlnaslWeb.Words.clock_problem(snap[:clock_check])),
@@ -1446,6 +1448,10 @@ defmodule AlnaslWeb.RoundLive do
 
       <div :if={@tile.pairing_flag} id={"tile-pairing-#{@tile.dom}"} class="tile-note">
         <.icon name="warning" />{gettext("Pairing changed in OpenPairings")}
+      </div>
+
+      <div :if={@tile.draft?} id={"tile-draft-#{@tile.dom}"} class="tile-note">
+        <.icon name="warning" />{gettext("The board remembers it differently")}
       </div>
 
       <div :if={@tile.alarm} id={"tile-alarm-#{@tile.dom}"} class="tile-note tile-alarm">

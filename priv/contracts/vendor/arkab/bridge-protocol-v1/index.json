@@ -21,6 +21,7 @@
     "examples/command.resend-board.json",
     "examples/dgt-serial-opening.json",
     "examples/dgt-serial-opening.no-clock.json",
+    "examples/events.history.json",
     "examples/events.json",
     "examples/events.played.json",
     "examples/hello.json",

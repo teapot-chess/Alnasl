@@ -555,6 +555,38 @@ defmodule AlnaslWeb.GameLive do
 
   def handle_event("delete_game", _params, socket), do: {:noreply, socket}
 
+  def handle_event("draft", %{"do" => action, "id" => id}, socket)
+      when action in ["accept", "dismiss"] do
+    with_board(socket, fn board ->
+      id = String.to_integer(id)
+
+      reply =
+        if action == "accept",
+          do: Boards.accept_draft(board.id, id),
+          else: Boards.dismiss_draft(board.id, id)
+
+      case {action, reply} do
+        {"accept", :ok} ->
+          {:info, gettext("The moves from the board's memory are in the game now.")}
+
+        {"dismiss", :ok} ->
+          {:info, gettext("The game stays as it was. The board's version is set aside.")}
+
+        {_action, {:error, :overtaken}} ->
+          {:error,
+           gettext(
+             "The game has changed since the board's memory was read, so this version no longer fits. Dismiss it."
+           )}
+
+        {_action, {:error, :not_running}} ->
+          {:error, :not_running}
+
+        {_action, _gone} ->
+          {:error, gettext("That version is no longer waiting: it was dealt with already.")}
+      end
+    end)
+  end
+
   def handle_event("reopen", _params, socket) do
     with_board(socket, fn board ->
       Boards.reopen(board.id)
@@ -873,6 +905,42 @@ defmodule AlnaslWeb.GameLive do
             phx-click="send_this"
             data-confirm={Words.send_this_confirm()}
           >{gettext("Send this one instead")}</.button>
+        </div>
+      </div>
+
+      <div
+        :if={@view && @view.snap[:draft]}
+        id="memory-draft"
+        class="callout warn"
+        role="status"
+      >
+        <b>{Words.draft_title(@view.snap.draft.reason)}</b>
+        <p>{Words.draft_text(@view.snap.draft)}</p>
+        <p id="memory-draft-moves" class="note">
+          {Words.draft_moves(@view.snap.draft)}
+        </p>
+
+        <div class="row">
+          <.button
+            :if={@may_arbiter}
+            id="draft-accept"
+            variant="primary"
+            phx-click="draft"
+            phx-value-do="accept"
+            phx-value-id={@view.snap.draft.id}
+            data-confirm={
+              gettext(
+                "Play the board's version into the game? The moves after the point where the two part are replaced, and the game is sent again in full."
+              )
+            }
+          >{gettext("Use the board's version")}</.button>
+          <.button
+            :if={@may_arbiter}
+            id="draft-dismiss"
+            phx-click="draft"
+            phx-value-do="dismiss"
+            phx-value-id={@view.snap.draft.id}
+          >{gettext("Keep the game as it is")}</.button>
         </div>
       </div>
 
@@ -1217,6 +1285,18 @@ defmodule AlnaslWeb.GameLive do
               :recovered,
               marked(@view.snap.plies, :recovered)
             )}: {gettext("not seen one by one, and only one line of moves fits.")}
+          </div>
+          <div
+            :if={marked(@view.snap.plies, :memory) > 0}
+            id="memory-notice"
+            class="note"
+          >
+            <span class="flag plain">{Words.flag(:memory)}</span> {Words.marks(
+              :memory,
+              marked(@view.snap.plies, :memory)
+            )}: {gettext(
+              "nobody was reading the board when they were played; it wrote them down itself and they were read back when it came back."
+            )}
           </div>
           <.choice :if={@choice} choice={@choice} line={@view.line} may_arbiter={@may_arbiter} />
           <.panel id="finish" title={gettext("This game")}>
@@ -1589,7 +1669,12 @@ defmodule AlnaslWeb.GameLive do
       <.figurine san={@move.san} />
       <span
         :for={flag <- @flags}
-        class={["flag", flag == :guessed && "guess", flag == :recovered && "rec"]}
+        class={[
+          "flag",
+          flag == :guessed && "guess",
+          flag == :recovered && "rec",
+          flag == :memory && "plain"
+        ]}
       >{Words.flag(flag)}</span>
       <span
         :if={@read}

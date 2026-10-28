@@ -48,6 +48,16 @@ The tile and the Boards list count them. Tap a guessed move, or "Check them" on 
 
 The results site and Lichess get these moves like any other, without the mark. A correction replaces the game there. The count of reconstructed and guessed moves travels with the game to OpenPairings, so the arbiter there can see how much of a game was read and how much was worked out.
 
+## Moves from the board's own memory {#board-memory}
+
+An electronic board writes down every move it feels, whether anybody is listening or not. When a board comes back (plugged in again, switched on again, or seen for the first time) Alnasl reads that memory and holds it up against the game it has for the board.
+
+- **The memory carries the game on.** The moves Alnasl missed while the board was away are added, each marked **from its memory**, with the clock times the board wrote down. They are sent like any other move, and the log says how many came back. A memory read twice adds nothing the second time.
+- **The memory says something else.** It went another way, the pieces were set up again since, or it has two games that both fit. Alnasl changes nothing. The board's tile says "The board remembers it differently", and the board's page shows the board's version with the moves it would put in. **Use the board's version** plays them in from where the two part and sends the game again in full; **Keep the game as it is** sets the board's version aside for good.
+- **The memory makes no sense of this game.** Nothing happens.
+
+Alnasl never writes to a board's memory and never clears it. A board that was switched off in the middle of a game may still have only half of what was played: what it never felt, it cannot remember.
+
 ## Alarms that say what they saw {#alarms}
 
 Some alarms name what the board shows:
