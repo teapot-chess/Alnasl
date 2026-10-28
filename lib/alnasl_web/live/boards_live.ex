@@ -11,7 +11,7 @@ defmodule AlnaslWeb.BoardsLive do
   use AlnaslWeb, :live_view
 
   alias Alnasl.{Boards, Finder, Tables, Tournaments}
-  alias AlnaslWeb.{Access, Scope, TableWords, Words}
+  alias AlnaslWeb.{Access, BridgeComponents, Scope, TableWords, Words}
 
   # How long a touched board stays lit.
   @found_ms 6_000
@@ -36,6 +36,7 @@ defmodule AlnaslWeb.BoardsLive do
     if connected?(socket) do
       Boards.subscribe()
       Finder.subscribe()
+      Alnasl.Bridges.subscribe()
     end
 
     # The page is about one tournament at a time: the first one shown, until
@@ -47,6 +48,7 @@ defmodule AlnaslWeb.BoardsLive do
      |> assign(
        page_title: gettext("Boards"),
        refresh_due?: false,
+       bridge_message: nil,
        server?: Alnasl.Accounts.server?(),
        tid: first.id,
        round: first.round,
@@ -98,10 +100,57 @@ defmodule AlnaslWeb.BoardsLive do
         Map.new(everyone, &{&1.id, Tournaments.title(&1) || gettext("The hall's own tournament")}),
       by_id: Map.new(everyone, &{&1.id, &1}),
       hall_id: Alnasl.Accounts.Scope.hall_id(scope),
+      bridge_hall_id: bridge_hall(scope),
       hall_bridges: hall_bridges(scope),
+      bridges: BridgeComponents.list(bridge_hall(scope)),
       refresh_due?: false
     )
   end
+
+  attr :bridges, :list, required: true
+  attr :message, :string, default: nil
+  attr :owner?, :boolean, required: true
+  attr :hall_id, :integer, required: true
+
+  # The hall's bridges inside "Add a board": the same state as the Bridges tab
+  # (connected or not, ports with Read, boards), and the same commands.
+  defp bridge_panel(assigns) do
+    ~H"""
+    <div id="add-bridge" class="stack">
+      <p class="note">
+        {gettext(
+          "Boards on a bridge - Arkab on another computer in the hall - are read there. Read beside a port makes the bridge read the boards on it; they appear in the list below."
+        )}
+      </p>
+
+      <p :if={@message} id="add-bridge-message" class="note" role="status">{@message}</p>
+
+      <div :if={@bridges == []} id="add-bridge-none" class="empty">
+        <b>{gettext("This hall has no bridge yet")}</b>
+        <p>
+          <.link id="add-bridge-link" navigate={~p"/halls/#{@hall_id}/bridges"}>
+            {gettext("Add a bridge on the Bridges tab")}
+          </.link>
+        </p>
+      </div>
+
+      <ul :if={@bridges != []} id="add-bridge-list" class="dests">
+        <li :for={%{bridge: b, live: live} <- @bridges} id={"add-bridge-#{b.id}"}>
+          <BridgeComponents.bridge_state bridge={b} live={live} owner?={@owner?} />
+        </li>
+      </ul>
+
+      <p :if={@bridges != []}>
+        <.link id="add-bridge-link" navigate={~p"/halls/#{@hall_id}/bridges"}>
+          {gettext("Open the Bridges tab")}
+        </.link>
+      </p>
+    </div>
+    """
+  end
+
+  # The hall whose bridges the page lists: the account's, or the box's own.
+  defp bridge_hall(scope), do: Alnasl.Accounts.Scope.hall_id(scope) || Alnasl.Halls.own_id()
 
   # This hall's bridges, for the server's empty state: name, whether one is
   # connected, how many boards it reports.
@@ -175,6 +224,27 @@ defmodule AlnaslWeb.BoardsLive do
   def handle_event(event, _params, %{assigns: %{server?: true}} = socket)
       when event in ~w(change_add add read_as_loop rescan),
       do: {:noreply, socket}
+
+  # Read, Read again and Forget on a bridge's port, as on the hall's Bridges
+  # tab: the hall's owner only; the rest see the state.
+  def handle_event("bridge_command", params, socket) do
+    scope = socket.assigns.current_scope
+    hall = bridge_hall(scope)
+
+    if Alnasl.Accounts.Scope.can?(scope, :owner, hall) do
+      {:noreply, BridgeComponents.handle("bridge_command", params, socket, hall)}
+    else
+      {:noreply,
+       put_flash(
+         socket,
+         :error,
+         gettext("Your role in this hall does not let you do that.")
+       )}
+    end
+  end
+
+  def handle_event("add", %{"board" => %{"driver" => "bridge"}}, socket),
+    do: {:noreply, socket}
 
   def handle_event("change_add", %{"board" => params}, socket),
     do: {:noreply, assign(socket, add_form: add_form(params))}
@@ -572,6 +642,16 @@ defmodule AlnaslWeb.BoardsLive do
   end
 
   def handle_info(:refresh, socket), do: {:noreply, load(socket)}
+
+  def handle_info({:bridges, {:reply, _bridge, _id, true, _error}}, socket),
+    do: {:noreply, assign(socket, bridge_message: gettext("The bridge did it."))}
+
+  def handle_info({:bridges, {:reply, _bridge, _id, false, error}}, socket),
+    do:
+      {:noreply,
+       assign(socket, bridge_message: gettext("The bridge said no: %{why}.", why: error))}
+
+  def handle_info({:bridges, _what}, socket), do: {:noreply, load(socket)}
 
   def handle_info({:finder, {:touch, id, at}}, %{assigns: %{seeking: seeking}} = socket)
       when seeking != nil do
@@ -1358,8 +1438,9 @@ defmodule AlnaslWeb.BoardsLive do
           />
         </.panel>
 
-        <.panel :if={not @server? and @may_arbiter} id="add-board" title={gettext("Add a board")}>
+        <.panel :if={@may_arbiter} id="add-board" title={gettext("Add a board")}>
           <.form
+            :if={not @server?}
             for={@add_form}
             id="add-board-form"
             phx-change="change_add"
@@ -1374,86 +1455,87 @@ defmodule AlnaslWeb.BoardsLive do
                 label={gettext("Kind")}
                 options={[
                   {gettext("Simulator (no hardware)"), "simulator"},
-                  {gettext("Electronic board, or several on a loop (serial port)"), "dgt_serial"}
+                  {gettext("Electronic board, or several on a loop (serial port)"), "dgt_serial"},
+                  {gettext("On a bridge (Arkab)"), "bridge"}
                 ]}
               />
-              <.input
-                field={@add_form[:name]}
-                id="add-name"
-                label={gettext("Name")}
-                placeholder={gettext("optional")}
-              />
-              <%= if @add_form[:driver].value == "simulator" do %>
+              <%= if @add_form[:driver].value != "bridge" do %>
                 <.input
-                  field={@add_form[:game]}
-                  id="add-game"
-                  type="number"
-                  min="1"
-                  max={@found.games}
-                  label={gettext("Game to play (1-%{n})", n: @found.games)}
+                  field={@add_form[:name]}
+                  id="add-name"
+                  label={gettext("Name")}
+                  placeholder={gettext("optional")}
                 />
-                <.input
-                  field={@add_form[:speed]}
-                  id="add-speed"
-                  type="number"
-                  min="1"
-                  max="2000"
-                  label={gettext("Times faster than life")}
-                />
-                <.input
-                  field={@add_form[:faults]}
-                  id="add-faults"
-                  type="select"
-                  label={gettext("Hands")}
-                  options={[
-                    {gettext("Perfect"), "none"},
-                    {gettext("Ordinary (lifts, slides, a takeback)"), "mild"},
-                    {gettext("Rough (knocks, swaps, missed moves)"), "rough"},
-                    {gettext("Bullet (a move a second, slammed and knocked-over pieces)"), "bullet"}
-                  ]}
-                />
-              <% else %>
-                <.input
-                  field={@add_form[:port]}
-                  id="add-port"
-                  type="select"
-                  label={gettext("Serial port")}
-                  prompt={gettext("choose...")}
-                  options={
-                    for p <- @found.ports,
-                        do:
-                          {if(p.description != "", do: "#{p.port} - #{p.description}", else: p.port),
-                           p.port}
-                  }
-                />
+                <%= if @add_form[:driver].value == "simulator" do %>
+                  <.input
+                    field={@add_form[:game]}
+                    id="add-game"
+                    type="number"
+                    min="1"
+                    max={@found.games}
+                    label={gettext("Game to play (1-%{n})", n: @found.games)}
+                  />
+                  <.input
+                    field={@add_form[:speed]}
+                    id="add-speed"
+                    type="number"
+                    min="1"
+                    max="2000"
+                    label={gettext("Times faster than life")}
+                  />
+                  <.input
+                    field={@add_form[:faults]}
+                    id="add-faults"
+                    type="select"
+                    label={gettext("Hands")}
+                    options={[
+                      {gettext("Perfect"), "none"},
+                      {gettext("Ordinary (lifts, slides, a takeback)"), "mild"},
+                      {gettext("Rough (knocks, swaps, missed moves)"), "rough"},
+                      {gettext("Bullet (a move a second, slammed and knocked-over pieces)"), "bullet"}
+                    ]}
+                  />
+                <% else %>
+                  <.input
+                    field={@add_form[:port]}
+                    id="add-port"
+                    type="select"
+                    label={gettext("Serial port")}
+                    prompt={gettext("choose...")}
+                    options={
+                      for p <- @found.ports,
+                          do:
+                            {if(p.description != "",
+                               do: "#{p.port} - #{p.description}",
+                               else: p.port
+                             ), p.port}
+                    }
+                  />
+                <% end %>
               <% end %>
             </div>
 
-            <p :if={@add_form[:driver].value != "simulator"} id="add-loop-note" class="note">
+            <p
+              :if={@add_form[:driver].value not in ["simulator", "bridge"]}
+              id="add-loop-note"
+              class="note"
+            >
               {gettext(
                 "One board or a loop of them: the box asks the port who is on it, which takes a few seconds, and gives every board that answers a row of its own."
               )}
             </p>
 
-            <p :if={@add_form[:driver].value != "simulator"} id="add-known-note" class="note">
+            <p
+              :if={@add_form[:driver].value not in ["simulator", "bridge"]}
+              id="add-known-note"
+              class="note"
+            >
               {gettext(
                 "A board the box already knows is recognised by its own serial number, wherever it is plugged in now - another port, hub, adapter or bridge of this hall: its old row comes back, with its table number and its game."
               )}
             </p>
 
-            <p id="add-bridge-note" class="note">
-              {gettext(
-                "Boards on a bridge - Arkab on another computer in the hall - are not added here: the hall's Bridges tab lists the bridge's serial ports, and Read beside a port makes the bridge read the boards on it."
-              )}
-              <.link
-                id="add-bridge-link"
-                navigate={if @hall_id, do: ~p"/halls/#{@hall_id}/bridges", else: ~p"/halls"}
-              >
-                {gettext("Open the Bridges tab")}
-              </.link>
-            </p>
-
-            <div class="row">
+            <div :if={@add_form[:driver].value != "bridge"} class="row">
               <.button
                 id="add-board-submit"
                 variant="primary"
@@ -1462,6 +1544,14 @@ defmodule AlnaslWeb.BoardsLive do
               >{gettext("Add and connect")}</.button>
             </div>
           </.form>
+
+          <.bridge_panel
+            :if={@server? or @add_form[:driver].value == "bridge"}
+            bridges={@bridges}
+            message={@bridge_message}
+            owner?={@may_owner}
+            hall_id={@bridge_hall_id}
+          />
         </.panel>
 
         <.panel :if={not @server?} id="ports" title={gettext("Serial ports on this machine")}>

@@ -65,6 +65,40 @@ defmodule AlnaslWeb.EditionTest do
       %{conn: log_in(conn, owner), owner: owner}
     end
 
+    test "an arbiter sees the bridge's ports in Add a board but may not Read them", %{conn: conn} do
+      hall = Alnasl.Halls.own()
+      {:ok, join} = Alnasl.Bridges.create_join(DateTime.utc_now(:second), hall.id)
+
+      {:ok, %{bridge: bridge}} =
+        Alnasl.Bridges.redeem(join.code, %{
+          "v" => 1,
+          "bridge" => "uid-arbiter",
+          "name" => "Hall B bridge",
+          "software" => "arkab"
+        })
+
+      {:ok, _} =
+        Registry.register(Alnasl.BridgeRegistry, bridge.id, %{
+          boards: [],
+          ports: [%{"port" => "COM5", "description" => "USB", "read" => false}]
+        })
+
+      arbiter = member(hall, user_fixture("arbiter@example.org"), "arbiter")
+      {:ok, view, _html} = live(log_in(conn, arbiter, hall), ~p"/boards")
+      assert has_element?(view, "#add-bridge-#{bridge.id}")
+      assert has_element?(view, "#bridge-#{bridge.id}-port-0", "COM5")
+      refute has_element?(view, "#bridge-#{bridge.id}-read-0")
+
+      # Even sent by hand, the command goes nowhere.
+      render_hook(view, "bridge_command", %{
+        "id" => to_string(bridge.id),
+        "cmd" => "add_port",
+        "port" => "COM5"
+      })
+
+      refute_receive {:command, _}, 100
+    end
+
     test "Setup draws none of the box's panels, and names itself", %{conn: conn} do
       {:ok, view, _html} = live(conn, ~p"/setup/this-box")
       assert has_element?(view, "#about-edition", "Server")
@@ -115,7 +149,9 @@ defmodule AlnaslWeb.EditionTest do
 
     test "Boards has no Add a board, no serial ports, and refuses both", %{conn: conn} do
       {:ok, view, _html} = live(conn, ~p"/boards")
-      refute has_element?(view, "#add-board")
+      # "Add a board" is there for bridges only: no form, no serial ports.
+      assert has_element?(view, "#add-board #add-bridge")
+      assert has_element?(view, "#add-bridge-none")
       refute has_element?(view, "#add-board-form")
       refute has_element?(view, "#ports")
       assert has_element?(view, "#phone")
@@ -170,6 +206,7 @@ defmodule AlnaslWeb.EditionTest do
       {:ok, view, _html} = live(conn, ~p"/boards")
       assert has_element?(view, "#boards-empty-bridges", "Hall A bridge")
       assert has_element?(view, "#boards-empty-bridges", "offline")
+      assert has_element?(view, "#add-bridge-list", "Hall A bridge")
       refute has_element?(view, "#boards-empty-no-bridges")
       assert has_element?(view, ~s(#boards-empty-bridges-link[href="/halls/#{hall.id}/bridges"]))
     end
