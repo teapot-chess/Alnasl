@@ -35,6 +35,8 @@ defmodule AlnaslWeb.Status do
   def build(link, scope \\ nil) do
     %{
       heads: heads(link, scope),
+      # The box's line to the cloud and its spare (`Alnasl.Takeover`), or nil.
+      takeover: AlnaslWeb.TakeoverWords.line(),
       live: live_by_hall(scope),
       # Putting a board in a tournament is an arbiter's: a viewer is not offered it.
       seating:

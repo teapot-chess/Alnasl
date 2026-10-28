@@ -155,6 +155,7 @@ defmodule AlnaslWeb.Hall do
           Settings.subscribe()
           Updates.subscribe()
           Tournaments.subscribe()
+          Alnasl.Takeover.subscribe()
         end
 
         socket =
@@ -280,6 +281,23 @@ defmodule AlnaslWeb.Hall do
   # A tournament, a code or a board's place changed: which boards are
   # outside, what is asked, what the badges say.
   defp info({:tournament, _id}, socket), do: {:cont, refresh(socket)}
+
+  # The box's line to the cloud changed: its status line, and nothing else.
+  # Only the two pages about it hear of it as well.
+  defp info({:takeover, _what}, socket) do
+    socket =
+      case socket.assigns[:hall] do
+        %{} = hall ->
+          assign(socket, hall: Map.put(hall, :takeover, AlnaslWeb.TakeoverWords.line()))
+
+        _none ->
+          socket
+      end
+
+    if socket.view in [AlnaslWeb.SpareLive, AlnaslWeb.HallsLive],
+      do: {:cont, socket},
+      else: {:halt, socket}
+  end
 
   defp info(:update_changed, socket),
     do:

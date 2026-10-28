@@ -630,6 +630,7 @@ defmodule Alnasl.Games do
     |> Repo.update!()
     |> tap(&write_pgn/1)
     |> tap(&fair_play(&1, changes))
+    |> tap(&Alnasl.Takeover.Stream.game_saved(game, &1))
   end
 
   # Fair-play screening is told that the moves or the result changed. A

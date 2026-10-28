@@ -131,7 +131,13 @@ defmodule Alnasl.Boards do
 
   def start(%Board{} = board), do: start_server(board)
 
+  # A spare box, or one another box took over from, reads no boards
+  # (`Alnasl.Takeover`): the hall is somebody else's to run.
   defp start_server(%Board{} = board) do
+    if Alnasl.Takeover.driving?(), do: start_child(board), else: {:error, :standing_by}
+  end
+
+  defp start_child(board) do
     case DynamicSupervisor.start_child(Alnasl.BoardSupervisor, {BoardServer, board}) do
       {:ok, pid} -> {:ok, pid}
       {:error, {:already_started, pid}} -> {:ok, pid}

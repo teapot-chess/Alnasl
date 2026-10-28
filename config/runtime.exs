@@ -73,6 +73,38 @@ config :alnasl,
   fair_play_engines: positive_int.("ALNASL_FAIR_PLAY_ENGINES"),
   fair_play_retention_days: positive_int.("ALNASL_FAIR_PLAY_RETENTION_DAYS")
 
+# A spare box takes over a hall (`Alnasl.Takeover`, docs/takeover.md).
+#
+# On a box: ALNASL_TAKEOVER_ROLE=active|spare is the role it starts with
+# until it has one of its own (a spare that took over stays active across a
+# restart); ALNASL_TAKEOVER_SERVER the cloud a bare pairing code is for;
+# ALNASL_TAKEOVER_QUEUE_CAP how many events it queues while offline.
+#
+# On the cloud: ALNASL_TAKEOVER_LEASE_SECONDS how long the active box may be
+# silent before a spare takes over (45). ALNASL_TAKEOVER_CLOUD=1 makes an
+# Alnasl that is not the hosted server a cloud for boxes too.
+takeover_role = System.get_env("ALNASL_TAKEOVER_ROLE")
+
+if takeover_role in ~w(active spare) do
+  config :alnasl, takeover_role: takeover_role
+end
+
+if server = System.get_env("ALNASL_TAKEOVER_SERVER") do
+  config :alnasl, takeover_server: String.trim_trailing(String.trim(server), "/")
+end
+
+if cap = positive_int.("ALNASL_TAKEOVER_QUEUE_CAP") do
+  config :alnasl, takeover_queue_cap: cap
+end
+
+if lease = positive_int.("ALNASL_TAKEOVER_LEASE_SECONDS") do
+  config :alnasl, takeover_lease_seconds: max(lease, 15)
+end
+
+if System.get_env("ALNASL_TAKEOVER_CLOUD") in ~w(1 true yes) do
+  config :alnasl, takeover_cloud: true
+end
+
 # Who is an admin of this installation - everything, every hall - without
 # a row saying so: the addresses here, comma-separated. On the server they
 # are the people who may invite others, and who may sign in with 02cloud

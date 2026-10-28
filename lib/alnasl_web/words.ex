@@ -1024,6 +1024,60 @@ defmodule AlnaslWeb.Words do
         name: d["name"]
       )
 
+  # A spare box taking over (`Alnasl.Takeover`).
+  defp log("takeover.box_paired", d),
+    do: gettext("The box \"%{name}\" was paired with this hall.", name: d["name"])
+
+  defp log("takeover.box_removed", d),
+    do:
+      gettext("The box \"%{name}\" was removed from its hall; its key no longer works.",
+        name: d["name"]
+      )
+
+  defp log("takeover.taken_over", d),
+    do: gettext("The box \"%{name}\" took its hall over.", name: d["name"])
+
+  defp log("takeover.handed_over", d),
+    do: gettext("The hall was handed to the box \"%{name}\".", name: d["name"])
+
+  defp log("takeover.paired", d),
+    do: gettext("This box was paired with the hall \"%{hall}\" in the cloud.", hall: d["hall"])
+
+  defp log("takeover.standing_by", _d), do: gettext("This box stands by as a spare.")
+  defp log("takeover.left", _d), do: gettext("This box left its hall in the cloud.")
+
+  defp log("takeover.handed_over_here", _d),
+    do: gettext("The cloud handed the hall to this box.")
+
+  defp log("takeover.silent_taken", _d),
+    do: gettext("The active box went silent; this spare took the hall.")
+
+  defp log("takeover.took_over", d),
+    do:
+      gettext("This box took the hall over: %{games} games and %{boards} boards copied.",
+        games: d["games"],
+        boards: d["boards"]
+      )
+
+  defp log("takeover.restore_failed", d),
+    do:
+      gettext("Copying the hall from the cloud failed (%{why}); this box stays a spare.",
+        why: d["why"]
+      )
+
+  defp log("takeover.superseded", _d),
+    do: gettext("Another box runs this hall now. This box stopped reading the boards.")
+
+  defp log("takeover.revoked", _d),
+    do: gettext("This box was removed from its hall in the cloud and runs on its own.")
+
+  defp log("takeover.queue_full", d),
+    do:
+      gettext(
+        "The queue for the cloud is full (%{cap} events); the whole state goes up when the line is back.",
+        cap: d["cap"]
+      )
+
   defp log("hall.created", d), do: gettext("A hall was made: %{name}.", name: d["name"])
   defp log("hall.deleted", d), do: gettext("A hall was deleted: %{name}.", name: d["name"])
 
