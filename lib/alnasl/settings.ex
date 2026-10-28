@@ -24,7 +24,11 @@ defmodule Alnasl.Settings do
     "new_game_on_setup" => "unpaired",
     "clock_heartbeat_s" => 20,
     "capture_cap_mb" => 500,
-    "tracker" => %{}
+    "tracker" => %{},
+    # Simple mode (`AlnaslWeb.Mode`): what a new installation starts with.
+    # One that was in use before simple mode existed was given "full" when
+    # it was upgraded (the `ui_mode` migration).
+    "ui_mode" => "simple"
   }
 
   @topic "settings"

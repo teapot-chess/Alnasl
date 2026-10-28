@@ -18,6 +18,9 @@ defmodule Alnasl.Accounts.Scope do
   * `tour` - the guided tour on this page, `%{state, run}`, put here by
     `AlnaslWeb.Hall` (`AlnaslWeb.Tour`): what became of it, and how often
     it was started on this page. `nil` outside the site's pages.
+  * `mode` - "simple" or "full": which pages the person sees, put here by
+    `AlnaslWeb.Hall` (`AlnaslWeb.Mode`). `nil` outside the site's pages,
+    where `AlnaslWeb.Mode` works it out when asked.
   """
 
   alias Alnasl.Halls.Hall
@@ -29,7 +32,8 @@ defmodule Alnasl.Accounts.Scope do
             halls: [],
             hall: nil,
             fair_play_shared?: false,
-            tour: nil
+            tour: nil,
+            mode: nil
 
   @rank %{"viewer" => 1, "arbiter" => 2, "owner" => 3}
 

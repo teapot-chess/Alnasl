@@ -7,7 +7,7 @@ defmodule AlnaslWeb.Tour do
   ## The steps
 
   `steps/1` is a pure function of who is asking (`%{role, fair_play?,
-  hall_id}`), so a test can ask it what a viewer is shown without drawing a
+  simple?, hall_id}`), so a test can ask it what a viewer is shown without drawing a
   page. A step a role cannot use is not in the list, rather than shown and
   refused: a viewer is not walked to the bridges it may not add, and fair
   play is shown to the hall's owner and to nobody else
@@ -48,7 +48,13 @@ defmodule AlnaslWeb.Tour do
   fair_play?: boolean, hall_id: integer | nil}`.
   """
   def steps(%{} = who) do
-    for step <- all(who.hall_id), allowed?(step.need, who), do: Map.delete(step, :need)
+    # Simple mode (`AlnaslWeb.Mode`) walks the pages it shows, and no others.
+    simple? = Map.get(who, :simple?, false)
+
+    for step <- all(who.hall_id),
+        allowed?(step.need, who),
+        not (simple? and AlnaslWeb.Mode.full_only?(step.path)),
+        do: Map.delete(step, :need)
   end
 
   @doc "The keys of `steps/1`, in order: what a test compares."
@@ -61,6 +67,7 @@ defmodule AlnaslWeb.Tour do
     %{
       role: Scope.role(scope, hall_id),
       fair_play?: Alnasl.FairPlay.Access.owner?(scope, hall_id),
+      simple?: AlnaslWeb.Mode.simple?(scope),
       hall_id: hall_id
     }
   end

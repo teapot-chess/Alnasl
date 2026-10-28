@@ -23,6 +23,8 @@ Je werkt ermee in een browser, op het kastje zelf of op je laptop in de zaal. De
 | Terugkijken | Opnames | Alles wat de borden zeiden, ruw, om nog eens te bekijken |
 | | Help | Deze handleiding |
 
+Dat zijn alle pagina's, zoals de volledige modus ze toont. Een nieuwe installatie start in de eenvoudige modus, die de basis in het menu houdt en de rest één schakelaar verder: zie [Eenvoudig of alles](#simple-mode).
+
 Bovenaan de balk: de naam van het kastje (op de server: "server") en, als je meer dan één zaal hebt, de zaalkiezer. Onderaan: de accountknop, met je taal, het kleurthema en Afmelden.
 
 Op een telefoon wordt de balk een strook bovenaan (de naam, de zaalkiezer en de accountknop) en staan de pagina's in een strook onderaan: Live, Borden, Resultaten en Meer, met de rest. Op een telefoon ontbreekt niets; het is één tik verder.
@@ -117,11 +119,31 @@ Wie niets koos, leest de standaardtaal van Alnasl. Een beheerder stelt die in bi
 
 De kleuren komen in dezelfde thema's als OpenResults: Papier, Nacht, Bord, Leisteen en Hoog contrast, en Volg het toestel, dat het toestel volgt. Kies in het accountmenu, bij Kleurthema; dat is de enige plek. De keuze geldt alleen voor die browser. Hoog contrast is voor een projector achteraan de zaal.
 
-Er kunnen meer thema's bij als themapakketten: een map per thema, in de map `themes` binnen de gegevensmap. Bij de volgende keer laden staan ze na de ingebouwde thema's. Een pakket dat Alnasl niet wil laden, staat in het grijs in de lijst, met de reden.
+Er kunnen meer thema's bij als themapakketten: een map per thema, in de map `themes` binnen de gegevensmap. Bij de volgende keer laden staan ze na de ingebouwde thema's. Ze staan er alleen in de volledige modus ([Eenvoudig of alles](#simple-mode)); een pakket dat je eerder koos, blijft in de eenvoudige modus werken. Een pakket dat Alnasl niet wil laden, staat in het grijs in de lijst, met de reden.
+
+## Eenvoudig of alles {#simple-mode}
+
+Alnasl start in de **eenvoudige modus**: de basis om een zaal te draaien, en verder niets in het menu. Dat is Live (de borden en hun partijen), Borden (wat er aangesloten is, de tafelnummers, nummeren door de borden aan te raken, "Klaar voor ronde N?"), Zalen (mensen en bruggen), Instellingen met de wizard, Toernooien, Koppelingen en, op een kastje, Updates, en deze handleiding. De verbindingsbadges in de balk zeggen nog steeds of de resultaten de uitslagensite bereiken.
+
+De rest staat één schakelaar verder: **Alles tonen**, in het accountmenu (en onderaan de balk, of onder Meer op een telefoon, zolang de eenvoudige modus aan staat). Daarmee komen Partijen (PGN), Resultaten (wat verstuurd is en wat wacht), Logboek, Opnames, de telefoonpagina om een bord te vinden, fair play voor de eigenaar van de zaal, de andere onderdelen van Instellingen (Uitslagen en Lichess, Dit kastje, Toegang, Geavanceerd) en de themapakketten in het kleurmenu erbij. Zet je hem weer uit, dan verdwijnen ze uit het menu.
+
+In de eenvoudige modus wordt niets verwijderd en verandert niemands rechten: een link naar een pagina die alleen in de volledige modus staat, opent een korte melding die dat zegt, met de schakelaar erop. Druk erop en de pagina is er.
+
+Waar de keuze bewaard wordt: met een account bij het account, dus iedereen heeft de zijne; een account dat nooit koos, volgt het kastje. Op een kastje zonder accounts wordt ze voor het kastje bewaard, dus elke browser in de zaal volgt ze.
+
+Een kastje of server die al in gebruik was voor de eenvoudige modus bestond, houdt na de update elke pagina: die start in de volledige modus. Een nieuwe installatie start in de eenvoudige modus.
+
+## Kleine schermen {#small-screens}
+
+Op een scherm van 4 tot 7 inch (800x480, 1024x600, 720x720) tekent Alnasl vanzelf een compacte indeling: één strook bovenaan met de pagina's links en de zaal en het account rechts, geen balk opzij, grotere knoppen, en kleinere tegels op Live met het bordnummer, de toestand, de spelers, de klokken en de laatste zet of het resultaat. Het stellingsdiagram wacht op een groter scherm; de eigen pagina van het bord heeft het nog.
+
+Alnasl beslist op de grootte van het venster. Een klein scherm met veel pixels lijkt daardoor op een monitor: kies **Klein scherm** in het accountmenu, bij Scherm, en de compacte indeling blijft aan op dat scherm. **Groot scherm** houdt ze uit, **Automatisch** laat het venster weer beslissen. De keuze geldt alleen voor die browser.
+
+De eenvoudige modus en de compacte indeling staan los van elkaar: een grote tv kan de eenvoudige modus tonen, een klein scherm kan alles tonen.
 
 ## De rondleiding {#the-tour}
 
-De eerste keer dat je de site opent (met accounts: de eerste keer dat je aanmeldt), biedt een kaartje in de hoek een rondleiding aan. Ze loopt door de pagina's in de volgorde waarin je een zaal inricht en speelt: de plaatsen, de installatiewizard, bruggen, OpenPairings koppelen, toernooien en hun tafels, de borden en hun nummers, de controle voor de ronde, Live, Resultaten en fair play. Elke stap wijst aan waar het over gaat, zegt in een zin of twee waarvoor het dient, en linkt naar het stuk van deze handleiding dat de rest vertelt. Een stap op een andere pagina brengt je daarheen.
+De eerste keer dat je de site opent (met accounts: de eerste keer dat je aanmeldt), biedt een kaartje in de hoek een rondleiding aan. Ze loopt door de pagina's in de volgorde waarin je een zaal inricht en speelt: de plaatsen, de installatiewizard, bruggen, OpenPairings koppelen, toernooien en hun tafels, de borden en hun nummers, de controle voor de ronde, Live, Resultaten en fair play. In de eenvoudige modus slaat de rondleiding de pagina's over die alleen in de volledige modus staan. Elke stap wijst aan waar het over gaat, zegt in een zin of twee waarvoor het dient, en linkt naar het stuk van deze handleiding dat de rest vertelt. Een stap op een andere pagina brengt je daarheen.
 
 Je ziet alleen de stappen voor wat je rol je laat gebruiken: een kijker krijgt de installatiewizard en de bruggen niet te zien, en fair play alleen de eigenaar van de zaal. Waar een pagina nog niets heeft om aan te wijzen (geen borden, geen toernooien), zegt de stap wat er zal verschijnen.
 

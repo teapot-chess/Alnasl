@@ -10,6 +10,12 @@ defmodule AlnaslWeb.Layouts do
   Boards, Results and More, which holds the rest. Nothing the desk has is
   missing on the phone; it is one tap further.
 
+  In simple mode (`AlnaslWeb.Mode`) the places that are full mode's are not
+  in the rail, the tab bar or More, and a page that is full mode's draws
+  `full_mode_notice/1` in place of itself. On a small screen
+  (`data-compact`, see `screen_picker/1`) the tab bar and the account
+  button share one bar along the top, and there is no rail.
+
   Above the page: the notices (the results site cannot be reached, a board
   plays outside, a question about tables, a new version), at most two in
   sight and the rest folded behind "N more notices". Then the bar with the
@@ -20,7 +26,7 @@ defmodule AlnaslWeb.Layouts do
 
   alias Alnasl.Accounts.Scope
   alias Alnasl.ThemePacks
-  alias AlnaslWeb.SeatingComponents
+  alias AlnaslWeb.{Mode, SeatingComponents}
 
   embed_templates "layouts/*"
 
@@ -65,6 +71,8 @@ defmodule AlnaslWeb.Layouts do
       assigns
       |> assign(:notices, notices(assigns))
       |> assign(:waiting, waiting(assigns))
+      |> assign(:simple?, Mode.simple?(assigns.scope))
+      |> assign(:full_only?, Mode.hidden?(assigns.scope, assigns.path))
 
     ~H"""
     <a class="skip" href="#main">{gettext("Skip to the page")}</a>
@@ -97,10 +105,20 @@ defmodule AlnaslWeb.Layouts do
               {item.label}
             </.nav_item>
           </div>
+          <button
+            :if={@simple?}
+            id="nav-show-everything"
+            type="button"
+            class="nav-mode"
+            phx-click="ui_mode"
+            phx-value-mode="full"
+          >
+            <.icon name="more" /> <span>{gettext("Show everything")}</span>
+          </button>
         </nav>
 
         <div class="rail-foot">
-          <.account_menu scope={@scope} locale={@locale} path={@path} />
+          <.account_menu scope={@scope} locale={@locale} path={@path} simple?={@simple?} />
         </div>
       </aside>
 
@@ -113,6 +131,7 @@ defmodule AlnaslWeb.Layouts do
             update={@update}
             hall={@hall}
             nav={@nav}
+            simple?={@simple?}
           />
           <%= if length(@notices) > 2 do %>
             <button
@@ -140,6 +159,7 @@ defmodule AlnaslWeb.Layouts do
                 update={@update}
                 hall={@hall}
                 nav={@nav}
+                simple?={@simple?}
               />
             </div>
           <% end %>
@@ -150,17 +170,21 @@ defmodule AlnaslWeb.Layouts do
             {@title}<span :if={@subtitle} class="sub">{@subtitle}</span>
             <AlnaslWeb.Components.ManualLink.manual_link :if={@help} topic={@help} />
           </h1>
-          {render_slot(@actions)} <.live_pill />
+          {if !@full_only?, do: render_slot(@actions)} <.live_pill />
           <span id="link-state" class="heads">
             <%= if @hall && is_list(@hall.heads) do %>
-              <.link
-                :for={head <- @hall.heads}
-                id={head.id}
-                navigate={head.to}
-                class="head-link"
-              >
-                <.badge tone={head.tone} icon={head.icon}>{head.text}</.badge>
-              </.link>
+              <%= for head <- @hall.heads do %>
+                <%!-- In simple mode a badge whose page is full mode's is only a badge. --%>
+                <%= if @simple? and Mode.full_only?(head.to) do %>
+                  <span id={head.id} class="head-link">
+                    <.badge tone={head.tone} icon={head.icon}>{head.text}</.badge>
+                  </span>
+                <% else %>
+                  <.link id={head.id} navigate={head.to} class="head-link">
+                    <.badge tone={head.tone} icon={head.icon}>{head.text}</.badge>
+                  </.link>
+                <% end %>
+              <% end %>
 
               <a
                 :for={head <- @hall.heads}
@@ -175,7 +199,8 @@ defmodule AlnaslWeb.Layouts do
                 <span class="head-open-text">{gettext("Live boards")}</span> <.icon name="external" />
               </a>
             <% else %>
-              <.link navigate={~p"/outbox"} class="head-link">
+              <span :if={@simple?} class="head-link"><.link_state link={@link} /></span>
+              <.link :if={!@simple?} navigate={~p"/outbox"} class="head-link">
                 <.link_state link={@link} />
               </.link>
             <% end %>
@@ -183,7 +208,11 @@ defmodule AlnaslWeb.Layouts do
         </header>
 
         <main id="main" class="page">
-          {render_slot(@inner_block)}
+          <%= if @full_only? do %>
+            <.full_mode_notice />
+          <% else %>
+            {render_slot(@inner_block)}
+          <% end %>
         </main>
       </div>
       <.tab_bar nav={@nav} alarms={@alarms} waiting={@waiting} scope={@scope} />
@@ -210,8 +239,18 @@ defmodule AlnaslWeb.Layouts do
   defp waiting(_assigns), do: 0
 
   # The places, in their groups: `{id, label, [item]}`. Help stands alone,
-  # at the end, without a heading.
+  # at the end, without a heading. In simple mode the places that are full
+  # mode's are left out (`AlnaslWeb.Mode`), and a group left empty with them.
   defp groups(alarms, waiting, scope) do
+    simple? = Mode.simple?(scope)
+
+    for {group, label, items} <- all_groups(alarms, waiting, scope),
+        items = Enum.reject(items, &(simple? and Mode.full_only?(&1.to))),
+        items != [],
+        do: {group, label, items}
+  end
+
+  defp all_groups(alarms, waiting, scope) do
     [
       {"play", gettext("Play"),
        [
@@ -268,9 +307,11 @@ defmodule AlnaslWeb.Layouts do
     items =
       assigns.alarms |> groups(assigns.waiting, assigns.scope) |> Enum.flat_map(&elem(&1, 2))
 
+    # Simple mode has no Results tab: its place is not in the menu there.
     assigns =
       assign(assigns,
-        tabs: Enum.map(@tabs, fn key -> Enum.find(items, &(&1.key == key)) end),
+        tabs:
+          @tabs |> Enum.map(fn key -> Enum.find(items, &(&1.key == key)) end) |> Enum.filter(& &1),
         rest: Enum.reject(items, &(&1.key in @tabs))
       )
 
@@ -317,6 +358,16 @@ defmodule AlnaslWeb.Layouts do
             <.icon name={item.icon} /> <span>{item.label}</span>
             <span :if={item.count > 0} class="count">{item.count}</span>
           </.link>
+
+          <button
+            :if={Mode.simple?(@scope)}
+            id="tab-show-everything"
+            type="button"
+            class="menu-item"
+            phx-click={close_menu("tab-more") |> JS.push("ui_mode", value: %{mode: "full"})}
+          >
+            <.icon name="more" /> <span>{gettext("Show everything")}</span>
+          </button>
         </div>
       </div>
     </nav>
@@ -360,6 +411,7 @@ defmodule AlnaslWeb.Layouts do
   attr :update, :any, default: nil
   attr :hall, :map, default: nil
   attr :nav, :atom, default: nil
+  attr :simple?, :boolean, default: false
 
   defp notice(%{key: :offline} = assigns) do
     ~H"""
@@ -376,7 +428,7 @@ defmodule AlnaslWeb.Layouts do
           )}
         <% end %>
       </span>
-      <.link navigate={~p"/outbox"}>{gettext("What is waiting")}</.link>
+      <.link :if={!@simple?} navigate={~p"/outbox"}>{gettext("What is waiting")}</.link>
     </div>
     """
   end
@@ -548,6 +600,7 @@ defmodule AlnaslWeb.Layouts do
   attr :scope, :any, default: nil
   attr :locale, :string, default: "en"
   attr :path, :string, default: "/"
+  attr :simple?, :boolean, default: false
 
   def account_menu(assigns) do
     user = assigns.scope && assigns.scope.user
@@ -641,9 +694,49 @@ defmodule AlnaslWeb.Layouts do
           </p>
         </div>
 
+        <div class="menu-section" id="mode-section">
+          <button
+            id="mode-switch"
+            type="button"
+            class="mode-switch"
+            role="switch"
+            aria-checked={to_string(!@simple?)}
+            phx-click={
+              close_menu("account") |> JS.push("ui_mode", value: %{mode: other_mode(@simple?)})
+            }
+          >
+            <span class="mode-switch-text">
+              <b>{gettext("Show everything")}</b>
+              <span class="hint">
+                <%= if @simple? do %>
+                  {gettext("Off: simple mode, the basics only.")}
+                <% else %>
+                  {gettext("On: every page is in the menu.")}
+                <% end %>
+              </span>
+            </span>
+            <span class="mode-switch-knob" aria-hidden="true"></span>
+          </button>
+
+          <p class="hint">
+            <%= if @user do %>
+              {gettext("Kept with your account.")}
+            <% else %>
+              {gettext("Kept for every browser of this box.")}
+            <% end %>
+          </p>
+        </div>
+
         <div class="menu-section">
           <span class="menu-label"><.icon name="theme" /> {gettext("Colour theme")}</span>
-          <.theme_picker id="theme-picker" />
+          <.theme_picker id="theme-picker" packs?={!@simple?} />
+        </div>
+
+        <div class="menu-section">
+          <span class="menu-label" id="screen-label">
+            <.icon name="grid" /> {gettext("Screen")}
+          </span>
+          <.screen_picker id="screen-picker" />
         </div>
 
         <button
@@ -666,6 +759,85 @@ defmodule AlnaslWeb.Layouts do
 
   defp initial(email), do: email |> String.first() |> String.upcase()
 
+  defp other_mode(true = _simple?), do: "full"
+  defp other_mode(false), do: "simple"
+
+  @doc """
+  The compact layout for a small screen (4 to 7 inches, 800x480, 1024x600,
+  720x720), chosen on the device like the colour theme: Automatic (by the
+  size of the window), Small screen, or Large screen. `assets/js/theme.js`
+  does the work and puts `data-compact` on `<html>`; nothing is sent to the
+  box. Small screen is there for the panel that is small but has many
+  pixels, which the window's size cannot tell from a monitor.
+  """
+  attr :id, :string, required: true
+
+  def screen_picker(assigns) do
+    ~H"""
+    <div
+      id={@id}
+      class="seg screen-picker"
+      role="group"
+      aria-labelledby="screen-label"
+      phx-update="ignore"
+    >
+      <button
+        :for={
+          {key, label} <- [
+            {"auto", gettext("Automatic")},
+            {"on", gettext("Small screen")},
+            {"off", gettext("Large screen")}
+          ]
+        }
+        type="button"
+        id={"#{@id}-#{key}"}
+        data-compact-opt={key}
+        aria-pressed="false"
+      >
+        {label}
+      </button>
+    </div>
+    """
+  end
+
+  @doc """
+  What a page that is full mode's shows in simple mode, in place of the
+  page (`AlnaslWeb.Mode`): what it is, and the switch. The page itself is
+  there, mounted, and shows once the switch is pressed.
+  """
+  def full_mode_notice(assigns) do
+    ~H"""
+    <section id="full-mode-notice" class="panel full-mode-notice" aria-labelledby="full-mode-title">
+      <div class="empty">
+        <b id="full-mode-title">{gettext("This page is part of full mode")}</b>
+        <p>
+          {gettext(
+            "Simple mode keeps to the basics: the live boards, the boards themselves, the round and the manual. This page is one of the tools beyond those. Nothing on it is lost; it is only out of the menu."
+          )}
+        </p>
+        <p class="hint">
+          {gettext(
+            "Switch back to simple mode whenever you like: Show everything, in the account menu."
+          )}
+        </p>
+
+        <div class="row">
+          <.button
+            id="full-mode-switch"
+            variant="primary"
+            phx-click="ui_mode"
+            phx-value-mode="full"
+          >
+            {gettext("Show everything")}
+          </.button>
+
+          <.button id="full-mode-back" navigate={~p"/"}>{gettext("Back to the live boards")}</.button>
+        </div>
+      </div>
+    </section>
+    """
+  end
+
   @doc """
   The colour theme, chosen on the device (`assets/js/theme.js` does the work;
   the choice is kept in this browser and nothing is sent to the box). It
@@ -674,9 +846,11 @@ defmodule AlnaslWeb.Layouts do
   Installed theme packs (`Alnasl.ThemePacks`) follow the built-in themes, each
   with its swatch; a pack that was refused is listed under them, greyed, with
   the reason, so whoever installed it finds out here rather than in a log.
-  Their ids are prefixed with the picker's own.
+  Their ids are prefixed with the picker's own. Simple mode shows the
+  built-in themes only (`packs?` false); a pack chosen before keeps working.
   """
   attr :id, :string, required: true
+  attr :packs?, :boolean, default: true
 
   def theme_picker(assigns) do
     assigns = assign_packs(assigns)
@@ -695,6 +869,8 @@ defmodule AlnaslWeb.Layouts do
     </div>
     """
   end
+
+  defp assign_packs(%{packs?: false} = assigns), do: assign(assigns, packs: [], refused: [])
 
   defp assign_packs(assigns) do
     locale = Gettext.get_locale(AlnaslWeb.Gettext)

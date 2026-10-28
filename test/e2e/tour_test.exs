@@ -10,7 +10,14 @@ defmodule AlnaslWeb.E2E.TourTest do
 
   alias Alnasl.Settings
 
-  # A box without accounts gets every stop (AlnaslWeb.TourTest says so).
+  # A box without accounts in full mode gets every stop (AlnaslWeb.TourTest
+  # says so); simple mode, where a new box starts, skips Results and fair
+  # play (`AlnaslWeb.Mode`).
+  setup do
+    Settings.put("ui_mode", "full")
+    :ok
+  end
+
   @stops [
     {"places", "/"},
     {"wizard", "/setup/wizard"},

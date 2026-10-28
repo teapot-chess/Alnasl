@@ -27,6 +27,9 @@ defmodule Alnasl.Accounts.User do
     field :locale, :string
     # The guided tour (`AlnaslWeb.Tour`): nil until offered and answered.
     field :tour, :string
+    # Simple mode or everything (`AlnaslWeb.Mode`): nil until the person
+    # chooses, and then the installation's word counts.
+    field :ui_mode, :string
     timestamps(type: :utc_datetime)
   end
 
@@ -60,6 +63,13 @@ defmodule Alnasl.Accounts.User do
     user
     |> cast(attrs, [:tour])
     |> validate_inclusion(:tour, ~w(started dismissed finished))
+  end
+
+  @doc "Simple mode or everything: the account's own choice (`AlnaslWeb.Mode`)."
+  def ui_mode_changeset(user, attrs) do
+    user
+    |> cast(attrs, [:ui_mode])
+    |> validate_inclusion(:ui_mode, ~w(simple full))
   end
 
   @doc "A new password, chosen by the account's holder."
