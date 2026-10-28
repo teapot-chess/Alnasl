@@ -48,6 +48,16 @@ De tegel en de lijst Borden tellen ze. Tik op een geraden zet, of op "Kijk ze na
 
 De uitslagensite en Lichess krijgen deze zetten als alle andere, zonder markering. Een correctie vervangt de partij daar. Het aantal afgeleide en geraden zetten reist met de partij mee naar OpenPairings, zodat de arbiter daar ziet hoeveel van een partij gelezen is en hoeveel afgeleid.
 
+## Zetten uit het eigen geheugen van het bord {#board-memory}
+
+Een elektronisch bord schrijft elke zet op die het voelt, of er nu iemand meeleest of niet. Komt een bord terug (opnieuw ingestoken, opnieuw aangezet, of voor het eerst gezien), dan leest Alnasl dat geheugen en legt het naast de partij die het voor dat bord heeft.
+
+- **Het geheugen zet de partij voort.** De zetten die Alnasl miste terwijl het bord weg was, worden toegevoegd, elk gemarkeerd **uit zijn geheugen**, met de kloktijden die het bord opschreef. Ze worden verstuurd als elke andere zet, en het logboek zegt hoeveel er terugkwamen. Een geheugen dat twee keer gelezen wordt, voegt de tweede keer niets toe.
+- **Het geheugen zegt iets anders.** Het ging een andere kant op, de stukken zijn sindsdien opnieuw opgesteld, of het heeft twee partijen die allebei passen. Alnasl verandert niets. De tegel van het bord zegt "Het bord herinnert het zich anders", en de pagina van het bord toont de versie van het bord met de zetten die ze zou invullen. **Gebruik de versie van het bord** vult ze in vanaf het punt waar de twee uiteengaan en verstuurt de partij opnieuw volledig; **Laat de partij zoals ze is** zet de versie van het bord voorgoed opzij.
+- **Het geheugen past op geen enkele manier bij deze partij.** Er gebeurt niets.
+
+Alnasl schrijft nooit in het geheugen van een bord en wist het nooit. Een bord dat midden in een partij uitgezet werd, heeft misschien maar de helft van wat gespeeld is: wat het nooit voelde, kan het niet onthouden.
+
 ## Meldingen die zeggen wat ze zagen {#alarms}
 
 Sommige meldingen noemen wat het bord toont:

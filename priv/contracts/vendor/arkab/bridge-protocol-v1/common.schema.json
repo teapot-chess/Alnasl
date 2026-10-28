@@ -59,7 +59,8 @@
         { "$ref": "#/definitions/event_status" },
         { "$ref": "#/definitions/event_poll_ok" },
         { "$ref": "#/definitions/event_poll_missed" },
-        { "$ref": "#/definitions/event_info" }
+        { "$ref": "#/definitions/event_info" },
+        { "$ref": "#/definitions/event_history" }
       ]
     },
     "event_position": {
@@ -121,6 +122,53 @@
         "v": { "const": "missed" }
       },
       "required": ["k", "v"],
+      "additionalProperties": false
+    },
+    "event_history": {
+      "description": "What a board wrote down in its own memory, read back (Arkab.Dgt.Bus.history/1): when it is met, comes back, or says it was switched on. Not news: what went on while nobody read the board, oldest first, for the server to compare with the game it has. At most 20000 items. Each item is one of: a square that changed (\"f\" the square, 0 = a8 as in a position, 63 = h1; \"p\" what stands on it now, a letter as in a position or \".\"), a clock time the board wrote when the lever went over (\"c\" the side, \"ms\" its time left), or a mark (\"m\"). A server takes the history whole or not at all.",
+      "type": "object",
+      "properties": {
+        "k": { "const": "hist" },
+        "h": {
+          "type": "array",
+          "maxItems": 20000,
+          "items": {
+            "oneOf": [
+              {
+                "type": "object",
+                "properties": {
+                  "f": { "type": "integer", "minimum": 0, "maximum": 63 },
+                  "p": { "type": "string", "pattern": "^[.PNBRQKpnbrqk]$" }
+                },
+                "required": ["f", "p"],
+                "additionalProperties": false
+              },
+              {
+                "type": "object",
+                "properties": {
+                  "c": { "$ref": "#/definitions/side" },
+                  "ms": { "type": "integer", "minimum": 0 }
+                },
+                "required": ["c", "ms"],
+                "additionalProperties": false
+              },
+              {
+                "type": "object",
+                "properties": {
+                  "m": {
+                    "description": "power_up: switched on (every piece found follows); start_position: the starting position stood; start_position_rotated: the same, the other way round; start_mark: a start-of-game mark; restarted: the board restarted itself; empty_board: it stood empty; end_of_data: the end of what it holds.",
+                    "type": "string",
+                    "enum": ["power_up", "start_position", "start_position_rotated", "start_mark", "restarted", "empty_board", "end_of_data"]
+                  }
+                },
+                "required": ["m"],
+                "additionalProperties": false
+              }
+            ]
+          }
+        }
+      },
+      "required": ["k", "h"],
       "additionalProperties": false
     },
     "event_info": {

@@ -369,6 +369,12 @@ defmodule Alnasl.Boards do
   def pause(id, paused?), do: call(id, {:repair, :pause, paused?})
   def reopen(id), do: call(id, {:repair, :reopen, nil})
 
+  @doc "Plays the board's memory's version of the game into it (`Alnasl.MemoryDrafts`)."
+  def accept_draft(id, draft_id), do: call(id, {:repair, :accept_draft, draft_id})
+
+  @doc "Leaves the game as it is and the board's memory's version unused."
+  def dismiss_draft(id, draft_id), do: call(id, {:repair, :dismiss_draft, draft_id})
+
   @doc """
   A new game on that board, in the same round: the game there is closed
   (without a result, if it had none) and kept, and the board begins again.

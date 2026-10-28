@@ -32,6 +32,16 @@ defmodule Alnasl.BoardServer do
   has the functions). Each is applied to the tracker, saved like any other
   change, sent to the server as a replacement of the game, and logged with
   who did it: the box has no accounts, so "the arbiter at the box".
+
+  ## The board's memory
+
+  A board that comes back - plugged in again, switched on again, or met for
+  the first time - may have its own memory read by the driver and sent as
+  `{:history, events}`. It is held up against the game (`Alnasl.BoardHistory`):
+  moves that simply carry the game on are added, marked `:memory`, logged and
+  sent like any others; anything else becomes a draft beside the game
+  (`Alnasl.MemoryDrafts`) for the arbiter to accept or dismiss. The game is
+  never overwritten by a memory on its own say-so.
   """
 
   use GenServer, restart: :transient
@@ -42,6 +52,7 @@ defmodule Alnasl.BoardServer do
     Driver,
     Games,
     Log,
+    MemoryDrafts,
     Outbox,
     Position,
     Recorder,
@@ -102,6 +113,9 @@ defmodule Alnasl.BoardServer do
       clock: Clock.new(),
       game: nil,
       session: nil,
+      # What the board's memory offers the arbiter for this game, if
+      # anything (`MemoryDrafts.summary/1`).
+      draft: nil,
       time: {0, System.monotonic_time(:millisecond), 1.0, nil},
       last_t: 0,
       warning: nil,
@@ -155,13 +169,20 @@ defmodule Alnasl.BoardServer do
 
     session = Session.restore(opts, Games.plies(game))
     Recorder.record(state.board.id, {:cfg, cfg(state.board, game)})
-    %{state | game: game, session: session, warning: nil}
+    with_draft(%{state | game: game, session: session, warning: nil})
   end
 
   defp load_game(state) do
     Recorder.record(state.board.id, {:cfg, cfg(state.board, nil)})
-    %{state | game: nil, session: nil, warning: nil}
+    %{state | game: nil, session: nil, warning: nil, draft: nil}
   end
+
+  # The draft waiting on this game, read again after anything that may
+  # have changed it.
+  defp with_draft(%{game: %{id: id}} = state),
+    do: %{state | draft: MemoryDrafts.summary(MemoryDrafts.pending(id))}
+
+  defp with_draft(state), do: %{state | draft: nil}
 
   defp cfg(board, game) do
     %{
@@ -348,7 +369,80 @@ defmodule Alnasl.BoardServer do
     state
   end
 
+  # The board's own memory. Whatever is wrong with it, this process goes on
+  # and the game stays as it was.
+  defp driver_event(state, {:history, events}, _t) when is_list(events) do
+    recover(state, events)
+  rescue
+    error ->
+      Log.add(:error, "board.history_failed", %{reason: Exception.message(error)}, ref(state))
+      state
+  end
+
   defp driver_event(state, _other, _t), do: state
+
+  # A memory is for the game under way; a finished game has its moves, and
+  # a board with no game has nothing to hold it up against.
+  defp recover(%{session: nil} = state, _events), do: state
+  defp recover(%{game: %{status: "finished"}} = state, _events), do: state
+
+  defp recover(state, events) do
+    game = state.game
+
+    result =
+      Alnasl.BoardHistory.merge(events,
+        start_fen: game.start_fen,
+        plies: Games.plies(game),
+        flipped?: state.board.flipped,
+        tracker: Settings.tracker_opts()
+      )
+
+    case result do
+      {:extend, plies} ->
+        {game, _} = Games.apply_event(game, {:moves, plies}, System.os_time(:millisecond))
+        sans = Enum.map(plies, & &1.san)
+        Log.add(:warn, "board.history_merged", %{moves: sans, count: length(sans)}, ref(state))
+
+        state
+        |> resume(game)
+        |> enqueue(now(state), false)
+        |> refeed()
+        |> dirty()
+
+      {:draft, reason, draft} ->
+        case MemoryDrafts.offer(game.id, state.board.serial, reason, draft) do
+          {:new, _draft} ->
+            Log.add(
+              :warn,
+              "board.history_draft",
+              %{reason: to_string(reason), count: length(draft.plies) - draft.from_ply},
+              ref(state)
+            )
+
+            state |> with_draft() |> dirty()
+
+          {:known, _draft} ->
+            state
+        end
+
+      _nothing_or_unmatched ->
+        state
+    end
+  end
+
+  # The game as it is saved now, with a tracker caught up with it.
+  defp resume(state, game) do
+    late? = state.session.tracker.opts.late_start
+
+    opts =
+      Settings.tracker_opts()
+      |> Keyword.put(:start_fen, game.start_fen)
+      |> Keyword.put(:late_start, late?)
+
+    # The clock goes on as it was: the memory changed the moves, not the time.
+    session = %{Session.restore(opts, Games.plies(game)) | clock: state.session.clock}
+    %{state | game: game, session: session}
+  end
 
   # Two or more boards answered a single board's questions: it is a loop.
   # There is nothing to ask anybody about that, so it is read as one at
@@ -490,7 +584,16 @@ defmodule Alnasl.BoardServer do
       |> Keyword.put(:late_start, false)
 
     Recorder.record(state.board.id, {:cfg, cfg(state.board, game)})
-    state = %{state | game: game, session: Session.new(opts), warning: nil, queued_at: nil}
+
+    state = %{
+      state
+      | game: game,
+        session: Session.new(opts),
+        warning: nil,
+        queued_at: nil,
+        draft: nil
+    }
+
     # Every place that holds the game before it is told this is the game now.
     if kind == :replace, do: enqueue(state, now(state), true), else: state
   end
@@ -954,7 +1057,16 @@ defmodule Alnasl.BoardServer do
       |> Keyword.put(:late_start, false)
 
     Recorder.record(board.id, {:cfg, cfg(board, game)})
-    state = %{state | game: game, session: Session.new(opts), warning: nil, queued_at: nil}
+
+    state = %{
+      state
+      | game: game,
+        session: Session.new(opts),
+        warning: nil,
+        queued_at: nil,
+        draft: nil
+    }
+
     {:ok, state |> enqueue(t, true) |> refeed()}
   end
 
@@ -971,7 +1083,66 @@ defmodule Alnasl.BoardServer do
     {:ok, if(paused?, do: state, else: enqueue(state, t, true))}
   end
 
+  # The board's memory had another version of this game, and the arbiter
+  # takes it. From where the two part; from the start when the memory's game
+  # began somewhere else. Only while the game still begins the way it did
+  # when the draft was made: a draft that has been overtaken is not played
+  # over moves it never saw.
+  defp repair(state, :accept_draft, id, t) do
+    with %MemoryDrafts.Draft{status: "pending"} = draft <- MemoryDrafts.get(id),
+         true <- draft.game_id == state.game.id,
+         plies = MemoryDrafts.plies(draft),
+         {:ok, events} <- draft_events(state.game, draft, plies) do
+      state = apply_events_as_arbiter(state, events)
+      MemoryDrafts.settle(draft, "accepted")
+
+      Log.add(
+        :info,
+        "draft.accepted",
+        %{from: draft.from_ply, count: length(plies) - draft.from_ply, by: "arbiter"},
+        ref(state)
+      )
+
+      state = state |> resume(state.game) |> with_draft()
+      {:ok, state |> enqueue(t, true) |> refeed()}
+    else
+      {:error, why} -> {{:error, why}, state}
+      _gone_or_settled -> {{:error, :no_draft}, with_draft(state)}
+    end
+  end
+
+  defp repair(state, :dismiss_draft, id, _t) do
+    case MemoryDrafts.get(id) do
+      %MemoryDrafts.Draft{status: "pending", game_id: game_id} = draft
+      when game_id == state.game.id ->
+        MemoryDrafts.settle(draft, "dismissed")
+        Log.add(:info, "draft.dismissed", %{by: "arbiter"}, ref(state))
+        {:ok, with_draft(state)}
+
+      _gone_or_settled ->
+        {{:error, :no_draft}, with_draft(state)}
+    end
+  end
+
   defp repair(state, _unknown, _args, _t), do: {{:error, :unknown}, state}
+
+  defp draft_events(game, draft, plies) do
+    own = Games.sans(game)
+    from = draft.from_ply
+    same_start? = draft.start_fen == (game.start_fen || Chess.start_fen())
+
+    cond do
+      not same_start? ->
+        {:ok, [{:restart, draft.start_fen}, {:moves, plies}]}
+
+      Enum.take(own, from) == plies |> Enum.take(from) |> Enum.map(& &1.san) and
+          length(own) >= from ->
+        {:ok, [{:correction, from, Enum.drop(plies, from), :memory}]}
+
+      true ->
+        {:error, :overtaken}
+    end
+  end
 
   # Applies a tracker operation, saves and queues what it changed (always as
   # a replacement: the arbiter has spoken), and logs who did it.
@@ -1105,6 +1276,7 @@ defmodule Alnasl.BoardServer do
         game_no: game.game_no,
         local: game.local,
         pairing_flag: game.pairing_flag,
+        draft: state.draft,
         problems:
           if(tracker.plies == [] and state.seen,
             do: Position.problems(start_board(tracker), state.seen),
@@ -1122,6 +1294,7 @@ defmodule Alnasl.BoardServer do
         clock: nil,
         clock_check: Clock.start_check(state.clock),
         clock_alarm: nil,
+        draft: nil,
         problems: if(state.seen, do: Position.problems(Position.start(), state.seen), else: [])
       })
     end
