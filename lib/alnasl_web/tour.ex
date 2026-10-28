@@ -92,7 +92,7 @@ defmodule AlnaslWeb.Tour do
         title: gettext("The places"),
         body:
           gettext(
-            "Every page is here, in the order a round asks for them: play, send, manage, look back. On a phone they are in the bar along the bottom, and More holds the rest."
+            "Every page is here, in the order a round asks for them: play, send, manage, look back. On a phone they are in the bar along the bottom, on a small screen in the bar along the top, and More holds the rest."
           ),
         empty: nil,
         manual: "/help/getting-started#what-alnasl-does"
