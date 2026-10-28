@@ -122,6 +122,11 @@ defmodule Alnasl.Accounts do
     user |> User.tour_changeset(%{tour: state}) |> Repo.update()
   end
 
+  @doc "Notes whether the account sees simple mode or everything (`AlnaslWeb.Mode`)."
+  def set_ui_mode(%User{} = user, mode) when mode in ~w(simple full) do
+    user |> User.ui_mode_changeset(%{ui_mode: mode}) |> Repo.update()
+  end
+
   def change_user_password(%User{} = user, attrs \\ %{}),
     do: User.password_changeset(user, attrs)
 

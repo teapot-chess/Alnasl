@@ -1,5 +1,6 @@
-// The colour theme. Loaded in <head> without defer, so the choice is on <html>
-// before the first paint (no flash of the wrong theme), and it keeps working
+// The colour theme, and the compact layout (at the end). Loaded in <head>
+// without defer, so the choice is on <html> before the first paint (no flash
+// of the wrong theme), and it keeps working
 // across LiveView navigations because it listens on the document.
 //
 // "system" is the absence of a choice: no data-theme attribute, and the
@@ -114,3 +115,63 @@ window.addEventListener("storage", (event) => {
 
 document.addEventListener("DOMContentLoaded", mark)
 window.addEventListener("phx:page-loading-stop", mark)
+
+// The compact layout for a small screen (4 to 7 inches: 800x480, 1024x600,
+// 720x720). `data-compact` on <html>, before the first paint like the theme,
+// so app.css draws the one-bar frame and the smaller tiles from the start.
+// Automatic follows the window's size; "on" (Small screen) and "off" (Large
+// screen) are for a panel whose pixels do not say how big it is - a 7-inch
+// panel with a desktop's resolution. Kept in this browser only, because it
+// is about this screen and nobody else's.
+const COMPACT_KEY = "alnasl-compact"
+const SMALL = window.matchMedia(
+  "(max-height: 620px), (max-width: 760px) and (max-height: 760px) and (min-aspect-ratio: 3/4)"
+)
+
+const readCompact = () => {
+  try { return localStorage.getItem(COMPACT_KEY) } catch (_e) { return null }
+}
+
+const compactChoice = () => {
+  const stored = readCompact()
+  return stored === "on" || stored === "off" ? stored : "auto"
+}
+
+const applyCompact = () => {
+  const choice = compactChoice()
+  const on = choice === "on" || (choice === "auto" && SMALL.matches)
+  if (on) root.setAttribute("data-compact", "")
+  else root.removeAttribute("data-compact")
+}
+
+const markCompact = () => {
+  const now = compactChoice()
+  document.querySelectorAll("[data-compact-opt]").forEach((option) => {
+    option.setAttribute("aria-pressed", String(option.dataset.compactOpt === now))
+  })
+}
+
+applyCompact()
+SMALL.addEventListener("change", applyCompact)
+
+document.addEventListener("click", (event) => {
+  const button = event.target.closest("[data-compact-opt]")
+  if (!button) return
+
+  const value = button.dataset.compactOpt
+  try {
+    if (value === "on" || value === "off") localStorage.setItem(COMPACT_KEY, value)
+    else localStorage.removeItem(COMPACT_KEY)
+  } catch (_e) { /* not kept: this page still changes */ }
+  if (value === "on") root.setAttribute("data-compact", "")
+  else if (value === "off") root.removeAttribute("data-compact")
+  else applyCompact()
+  markCompact()
+})
+
+window.addEventListener("storage", (event) => {
+  if (event.key === COMPACT_KEY) { applyCompact(); markCompact() }
+})
+
+document.addEventListener("DOMContentLoaded", markCompact)
+window.addEventListener("phx:page-loading-stop", markCompact)

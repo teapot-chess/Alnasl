@@ -38,6 +38,17 @@ defmodule Alnasl.DataCase do
   def setup_sandbox(tags) do
     pid = Ecto.Adapters.SQL.Sandbox.start_owner!(Alnasl.Repo, shared: not tags[:async])
     on_exit(fn -> Ecto.Adapters.SQL.Sandbox.stop_owner(pid) end)
+
+    # The tests of the pages were written for every page, as an installation
+    # that was in use before simple mode came along sees them. A test about
+    # simple mode itself, which a new installation starts in, says so with
+    # `@tag :simple_mode` (`AlnaslWeb.Mode`). Written without telling the
+    # pages: nothing is listening yet.
+    unless tags[:simple_mode] do
+      Alnasl.Repo.insert!(%Alnasl.Settings.Setting{key: "ui_mode", value: ~s("full")})
+    end
+
+    :ok
   end
 
   @doc "The box's own tournament: where a test's results page, round and Lichess round are kept."

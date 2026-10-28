@@ -693,7 +693,7 @@ defmodule AlnaslWeb.BoardsLive do
             "The board that feels it lights up here for a few seconds. With several boards touched, the last one wins."
           )}
         </span>
-        <.link navigate={~p"/boards/find"}>{gettext("Open this on a phone-sized page")}</.link>
+        <.link :if={!@simple?} navigate={~p"/boards/find"}>{gettext("Open this on a phone-sized page")}</.link>
       </div>
 
       <div :if={@seeking} id="seeking-banner" class="callout" role="status">

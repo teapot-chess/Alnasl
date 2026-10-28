@@ -11,6 +11,7 @@ defmodule Alnasl.MigrationTest do
   alias Alnasl.{Repo, Tournaments}
 
   @tournaments 20_261_012_200_000
+  @ui_mode 20_261_028_064_807
   @path Path.expand("../../priv/repo/migrations", __DIR__)
   @now "2026-10-12T09:00:00Z"
 
@@ -153,8 +154,12 @@ defmodule Alnasl.MigrationTest do
 
     assert Alnasl.Outbox.pending_by_tournament() == %{own.id => 1}
 
-    # The settings that moved are gone from where they were; the rest stay.
-    assert settings() == ["box_name"]
+    # The settings that moved are gone from where they were; the rest stay,
+    # and a box that was in use keeps every page (`AlnaslWeb.Mode`).
+    assert settings() == ["box_name", "ui_mode"]
+
+    assert %{rows: [[~s("full")]]} =
+             Repo.query!("SELECT value FROM settings WHERE key = 'ui_mode'")
   end
 
   test "a box that only had a results page, and one that had nothing, each get their own tournament",
@@ -179,6 +184,31 @@ defmodule Alnasl.MigrationTest do
 
     refute Tournaments.openresults_configured?(own)
     assert Tournaments.active() == [own]
+
+    # Nothing was in use, so nothing is kept: a new box starts in simple mode.
+    assert settings() == []
+  end
+
+  test "a box that was only in use for its boards keeps every page after the upgrade",
+       %{pid: pid} do
+    Ecto.Migrator.run(Repo, @path, :up,
+      to_exclusive: @ui_mode,
+      dynamic_repo: pid,
+      log: false
+    )
+
+    Repo.query!(
+      "INSERT INTO boards (name, driver, inserted_at, updated_at) VALUES (?, ?, ?, ?)",
+      ["Board 1", "simulator", @now, @now]
+    )
+
+    upgrade(pid)
+
+    assert %{rows: [[~s("full")]]} =
+             Repo.query!("SELECT value FROM settings WHERE key = 'ui_mode'")
+
+    # An account's own choice starts empty: the installation's word counts.
+    assert %{rows: []} = Repo.query!("SELECT ui_mode FROM users")
   end
 
   test "going back puts the settings where the version before looks for them", %{pid: pid} do

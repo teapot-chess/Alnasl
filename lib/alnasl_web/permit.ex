@@ -53,9 +53,10 @@ defmodule AlnaslWeb.Permit do
   }
 
   # About the person, not the hall: the guided tour (`AlnaslWeb.Tour`) - what
-  # they have seen. Whoever has the page may answer it, whatever the page is
+  # they have seen - and simple mode (`AlnaslWeb.Mode`) - what they are
+  # shown. Whoever has the page may answer it, whatever the page is
   # about; nothing of a hall, a tournament or a board is named or changed.
-  @personal ~w(tour_start tour_dismiss tour_finish)
+  @personal ~w(tour_start tour_dismiss tour_finish ui_mode)
 
   @levels %{
     RoundLive => %{

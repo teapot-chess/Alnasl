@@ -23,6 +23,8 @@ You work with it in a browser, on the box itself or on your laptop in the hall. 
 | Look back | Recordings | Everything the boards said, raw, for looking at again |
 | | Help | This manual |
 
+That is every page, as full mode shows them. A new installation starts in simple mode, which keeps the basics in the menu and the rest one switch away: see [Simple mode and everything](#simple-mode).
+
 At the top of the rail: the box's name (on the server, "server") and, when you have more than one hall, the hall picker. At its foot: the account button, with your language, the colour theme and Sign out.
 
 On a phone the rail becomes a bar along the top (the name, the hall picker and the account button) and the places a bar along the bottom: Live, Boards, Results and More, which holds the rest. Nothing is missing on a phone; it is one tap further.
@@ -117,11 +119,31 @@ Whoever has chosen nothing reads Alnasl's default language. An admin sets it und
 
 The colours come in the same themes as OpenResults: Paper, Night, Board, Slate and High contrast, and Match device, which follows the phone or computer. Choose in the account menu, under Colour theme; it is the only place. The choice is kept in that browser only. High contrast is the one for a projector at the back of the hall.
 
-More themes can be added as theme packs: one folder per theme, in the folder `themes` inside the data folder. On the next page load they are offered after the built-in ones. A pack Alnasl will not load is listed in grey, with the reason.
+More themes can be added as theme packs: one folder per theme, in the folder `themes` inside the data folder. On the next page load they are offered after the built-in ones. They are offered in full mode only ([Simple mode and everything](#simple-mode)); a pack chosen before keeps working in simple mode. A pack Alnasl will not load is listed in grey, with the reason.
+
+## Simple mode and everything {#simple-mode}
+
+Alnasl starts in **simple mode**: the basics for running a hall, and nothing else in the menu. That is Live (the boards and their games), Boards (what is plugged in, the table numbers, numbering by touching the boards, "Ready for round N?"), Halls (people and bridges), Setup with the wizard, Tournaments, Connections and, on a box, Updates, and this manual. The connection badges in the bar still say whether the results reach the results site.
+
+The rest is one switch away: **Show everything**, in the account menu (and at the foot of the rail, or under More on a phone, while simple mode is on). It adds Games (PGN), Results (what was sent and what waits), Log, Recordings, the phone page for finding a board, fair play for the hall's owner, the other sections of Setup (Results and Lichess, This box, Access, Advanced) and the theme packs in the colour menu. Switch it off again and they leave the menu.
+
+Nothing is removed in simple mode, and nobody's rights change: a link to a page that is in full mode only opens a short note that says so, with the switch on it. Press it and the page is there.
+
+Where the choice is kept: with an account, on the account, so each person has their own; an account that never chose follows the box. On a box without accounts it is kept for the box, so every browser in the hall follows it.
+
+A box or server that was in use before simple mode existed keeps every page after the update: it starts in full mode. A new installation starts in simple mode.
+
+## Small screens {#small-screens}
+
+On a screen of 4 to 7 inches (800x480, 1024x600, 720x720) Alnasl draws a compact layout by itself: one bar along the top with the places on the left and the hall and the account on the right, no rail, bigger buttons, and smaller tiles on Live with the board number, the state, the players, the clocks and the last move or the result. The position diagram waits for a larger screen; the board's own page still has it.
+
+Alnasl decides by the size of the window. A small panel with many pixels looks like a monitor to it: choose **Small screen** in the account menu, under Screen, and the compact layout stays on that screen. **Large screen** keeps it off, **Automatic** lets the window decide again. The choice is kept in that browser only.
+
+Simple mode and the compact layout are separate: a large TV can show simple mode, a small screen can show everything.
 
 ## The tour {#the-tour}
 
-The first time you open the site (with accounts: the first time you sign in), a small card in the corner offers a tour. It walks through the pages in the order a hall is set up and played: the places, the setup wizard, bridges, connecting OpenPairings, tournaments and their tables, the boards and their numbers, the check before the round, Live, Results, and fair play. Each step points at the thing it is about, says what it is for in a sentence or two, and links to the section of this manual that says the rest. A step on another page takes you there.
+The first time you open the site (with accounts: the first time you sign in), a small card in the corner offers a tour. It walks through the pages in the order a hall is set up and played: the places, the setup wizard, bridges, connecting OpenPairings, tournaments and their tables, the boards and their numbers, the check before the round, Live, Results, and fair play. In simple mode the tour skips the pages that are in full mode only. Each step points at the thing it is about, says what it is for in a sentence or two, and links to the section of this manual that says the rest. A step on another page takes you there.
 
 You only see the steps for what your role lets you use: a viewer is not shown the setup wizard or the bridges, and fair play is shown to the hall's owner only. Where a page has nothing to point at yet (no boards, no tournaments), the step says what will appear there.
 

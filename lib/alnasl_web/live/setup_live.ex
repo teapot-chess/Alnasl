@@ -1652,7 +1652,10 @@ defmodule AlnaslWeb.SetupLive do
     assigns =
       assign(assigns,
         groups: tournament_groups(assigns),
-        sections: sections(assigns),
+        # Simple mode lists the basic sections only; the others still open by
+        # their address, where the frame offers the switch (`AlnaslWeb.Mode`).
+        sections:
+          Enum.filter(sections(assigns), &AlnaslWeb.Mode.section?(assigns.current_scope, &1.slug)),
         search_from: @search_from,
         quiet_total: Enum.count(assigns.tournaments, &quiet?/1)
       )

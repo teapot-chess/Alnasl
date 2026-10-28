@@ -1201,7 +1201,9 @@ code,
     bottom: 0;
     z-index: 30;
     display: grid;
-    grid-template-columns: repeat(4, minmax(0, 1fr));
+    /* Four places, or three in simple mode (no Results tab). */
+    grid-auto-flow: column;
+    grid-auto-columns: minmax(0, 1fr);
     padding-bottom: env(safe-area-inset-bottom, 0px);
     background: var(--panel);
     border-top: 1px solid var(--rule);
@@ -4683,3 +4685,365 @@ button.menu-item {
 .release-body h1, .release-body h2, .release-body h3 { font-size: 1rem; margin: 14px 0 6px; }
 .release-body ul, .release-body ol { padding-left: 1.3em; }
 .release-body li { margin: 6px 0; }
+
+/* --- simple mode: the switch, and the page that is full mode's ------------- */
+
+.nav-mode {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  min-height: 2.75rem;
+  margin-top: auto;
+  padding: 0 0.7rem;
+  border: 1px dashed var(--rule);
+  border-radius: var(--radius);
+  background: transparent;
+  color: var(--quiet);
+  font: inherit;
+  font-weight: 500;
+  text-align: left;
+  cursor: pointer;
+  transition: background-color 120ms ease, color 120ms ease, border-color 120ms ease;
+}
+
+.nav-mode:hover {
+  background: var(--sunken);
+  color: var(--ink);
+  border-color: var(--quiet);
+}
+
+.nav-mode svg {
+  width: 1.15rem;
+  height: 1.15rem;
+  flex: none;
+}
+
+.mode-switch {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  min-height: 2.75rem;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--ink);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.mode-switch-text {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-width: 0;
+}
+
+.mode-switch-knob {
+  position: relative;
+  flex: none;
+  width: 2.75rem;
+  height: 1.5rem;
+  border-radius: 999px;
+  background: var(--idle-bg);
+  border: 1px solid var(--rule);
+  transition: background-color 150ms ease;
+}
+
+.mode-switch-knob::after {
+  content: "";
+  position: absolute;
+  top: 0.15rem;
+  left: 0.15rem;
+  width: 1.1rem;
+  height: 1.1rem;
+  border-radius: 50%;
+  background: var(--panel);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+  transition: transform 150ms ease;
+}
+
+.mode-switch[aria-checked="true"] .mode-switch-knob {
+  background: var(--accent);
+  border-color: var(--accent);
+}
+
+.mode-switch[aria-checked="true"] .mode-switch-knob::after {
+  transform: translateX(1.25rem);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .mode-switch-knob,
+  .mode-switch-knob::after {
+    transition: none;
+  }
+}
+
+.full-mode-notice .row {
+  justify-content: center;
+  flex-wrap: wrap;
+  margin-top: 0.8rem;
+}
+
+.screen-picker {
+  align-self: flex-start;
+}
+
+/* --- compact: a 4 to 7 inch screen (800x480, 1024x600, 720x720) -----------
+
+   `data-compact` on <html> is put there by assets/js/theme.js, before the
+   first paint: by the window's size, or by the choice in the account menu
+   (Small screen / Large screen) for a panel whose pixels say otherwise.
+   One bar along the top - the places on the left, the hall and the account
+   on the right - and the page under it; no rail, no bar along the bottom.
+   Everything that is tapped is 44 px or more. */
+
+:root[data-compact] body {
+  font-size: 1rem;
+}
+
+:root[data-compact] .frame {
+  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-rows: auto minmax(0, 1fr);
+  min-height: 100vh;
+  min-height: 100dvh;
+}
+
+:root[data-compact] .tab-bar {
+  grid-row: 1;
+  grid-column: 1;
+  position: sticky;
+  top: 0;
+  left: auto;
+  right: auto;
+  bottom: auto;
+  z-index: 30;
+  display: flex;
+  align-items: stretch;
+  gap: 0.15rem;
+  min-width: 0;
+  padding: 0 0.25rem;
+  background: var(--panel);
+  border-top: 0;
+  border-bottom: 1px solid var(--rule);
+}
+
+:root[data-compact] .tab {
+  position: relative;
+  min-height: 2.75rem;
+  width: auto;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  padding: 0 0.75rem;
+  background: none;
+  border: 0;
+  color: var(--quiet);
+  font: inherit;
+  font-size: 0.9375rem;
+  font-weight: 650;
+  text-decoration: none;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+:root[data-compact] .tab svg {
+  width: 1.25rem;
+  height: 1.25rem;
+}
+
+:root[data-compact] .tab[aria-current="page"] {
+  color: var(--accent);
+  box-shadow: inset 0 -3px 0 var(--accent);
+}
+
+:root[data-compact] .tab .count {
+  position: static;
+  min-width: 1.4rem;
+  padding: 0 0.3rem;
+  border-radius: 999px;
+  background: var(--warn-bg);
+  color: var(--warn);
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-align: center;
+}
+
+:root[data-compact] .more-sheet {
+  position: fixed;
+  top: 3rem;
+  left: 0.4rem;
+  right: auto;
+  bottom: auto;
+  width: min(18rem, calc(100vw - 0.8rem));
+  min-width: 0;
+  max-height: calc(100vh - 3.5rem);
+}
+
+:root[data-compact] .rail {
+  grid-row: 1;
+  grid-column: 2;
+  position: sticky;
+  top: 0;
+  z-index: 31;
+  height: auto;
+  flex-direction: row;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0 0.4rem;
+  border-right: 0;
+  border-bottom: 1px solid var(--rule);
+}
+
+:root[data-compact] .brand,
+:root[data-compact] .nav {
+  display: none;
+}
+
+:root[data-compact] .hall-picker {
+  padding: 0;
+  min-width: 0;
+}
+
+:root[data-compact] .hall-picker .menu-button {
+  border: 0;
+  background: transparent;
+}
+
+:root[data-compact] .hall-picker .menu-button-text {
+  max-width: 9rem;
+}
+
+:root[data-compact] .hall-picker .menu-button-text .hint,
+:root[data-compact] .hall-picker .live-count {
+  display: none;
+}
+
+:root[data-compact] .rail-foot {
+  padding: 0;
+  border-top: 0;
+}
+
+:root[data-compact] .account-button {
+  width: auto;
+  min-width: 2.75rem;
+  border: 0;
+  padding: 0.25rem;
+  background: transparent;
+  justify-content: center;
+}
+
+:root[data-compact] .account-button .account-name,
+:root[data-compact] .account-button > svg:last-child {
+  display: none;
+}
+
+:root[data-compact] .hall-picker .menu-panel,
+:root[data-compact] .account-panel {
+  position: fixed;
+  top: 3rem;
+  right: 0.4rem;
+  left: auto;
+  bottom: auto;
+  width: min(20rem, calc(100vw - 0.8rem));
+  min-width: 0;
+  max-height: calc(100vh - 3.5rem);
+}
+
+:root[data-compact] .main {
+  grid-row: 2;
+  grid-column: 1 / -1;
+  padding-bottom: 0;
+}
+
+:root[data-compact] .banner {
+  padding: 0.35rem 0.75rem;
+  font-size: 0.875rem;
+}
+
+:root[data-compact] .bar {
+  position: static;
+  gap: 0.5rem;
+  padding: 0.3rem 0.75rem;
+}
+
+:root[data-compact] .bar h1 {
+  font-size: 1.125rem;
+}
+
+:root[data-compact] .bar .sub,
+:root[data-compact] .live-ms,
+:root[data-compact] .head-open-text {
+  display: none;
+}
+
+:root[data-compact] .seg a,
+:root[data-compact] .seg button,
+:root[data-compact] .btn,
+:root[data-compact] .btn.small {
+  min-height: 2.75rem;
+  font-size: 0.9375rem;
+}
+
+:root[data-compact] .page {
+  padding: 0.5rem 0.6rem 1rem;
+  gap: 0.6rem;
+}
+
+/* The live boards: fewer, larger tiles with what a tile is for - the board
+   number, its state, the players, the clock and the last move or result.
+   The position diagram and the counts by state wait for a larger screen.
+   So does the "Finish game" fold under each tile: the board's own page,
+   one tap on the tile, has the result buttons. */
+
+:root[data-compact] .summary,
+:root[data-compact] .tile-board,
+:root[data-compact] .tile-menu,
+:root[data-compact] .tile-marks,
+:root[data-compact] .tile-head .flag.plain {
+  display: none;
+}
+
+:root[data-compact] .tiles,
+:root[data-compact] .tiles.few,
+:root[data-compact] .tiles.many {
+  --tile: 14rem;
+  gap: 0.5rem;
+}
+
+:root[data-compact] .tile:hover {
+  transform: none;
+}
+
+:root[data-compact] .tile-no {
+  font-size: 1.6rem;
+}
+
+:root[data-compact] .side {
+  font-size: 1rem;
+  padding: 0.2rem 0.6rem;
+}
+
+:root[data-compact] .side .clock {
+  font-size: 1rem;
+}
+
+:root[data-compact] .tile-foot {
+  min-height: 2.75rem;
+  font-size: 0.9375rem;
+}
+
+:root[data-compact] .tile-foot .last {
+  font-size: 1.125rem;
+}
+
+:root[data-compact] .board-list td {
+  height: 2.75rem;
+  font-size: 1rem;
+}
+
+:root[data-compact] .board-list .row-clock {
+  display: none;
+}

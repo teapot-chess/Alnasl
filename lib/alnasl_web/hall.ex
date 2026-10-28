@@ -148,6 +148,8 @@ defmodule AlnaslWeb.Hall do
         {:halt, redirect(socket, to: "/halls")}
 
       {:ok, scope} ->
+        scope = AlnaslWeb.Mode.mount(scope)
+
         if connected?(socket) do
           Outbox.subscribe()
           Settings.subscribe()
@@ -159,6 +161,9 @@ defmodule AlnaslWeb.Hall do
           socket
           |> assign(
             current_scope: AlnaslWeb.Tour.mount(scope),
+            # Simple mode or everything (`AlnaslWeb.Mode`), for pages that
+            # leave out a link to a page simple mode does not show.
+            simple?: AlnaslWeb.Mode.simple?(scope),
             # What this role may do in this hall, for pages to hide the rest
             # (the server refuses it anyway: `AlnaslWeb.Permit`).
             may_arbiter: Scope.can?(scope, :arbiter),
@@ -183,6 +188,8 @@ defmodule AlnaslWeb.Hall do
           |> attach_hook(:hall_phone, :handle_event, &phone_event/3)
           # The guided tour's start, skip and finish (`AlnaslWeb.Tour`).
           |> attach_hook(:tour, :handle_event, &AlnaslWeb.Tour.event/3)
+          # Simple mode and everything (`AlnaslWeb.Mode`).
+          |> attach_hook(:mode, :handle_event, &AlnaslWeb.Mode.event/3)
 
         {:cont, socket}
 
@@ -266,6 +273,9 @@ defmodule AlnaslWeb.Hall do
        box: Settings.get("box_name") || "Alnasl"
      )}
   end
+
+  # Another browser of a box without accounts switched simple mode.
+  defp info({:setting, "ui_mode"}, socket), do: {:cont, AlnaslWeb.Mode.follow(socket)}
 
   # A tournament, a code or a board's place changed: which boards are
   # outside, what is asked, what the badges say.
