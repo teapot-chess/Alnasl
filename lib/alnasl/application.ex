@@ -51,14 +51,17 @@ defmodule Alnasl.Application do
       {Registry, keys: :unique, name: Alnasl.RemoteRegistry},
       {Task.Supervisor, name: Alnasl.TaskSupervisor},
       Alnasl.Recorder,
-      Alnasl.DoorGuard
+      Alnasl.DoorGuard,
+      # The cloud's count of who asks how often (`Alnasl.Takeover`).
+      Alnasl.Takeover.RateLimit
     ] ++
       if(Alnasl.FairPlay.Live.enabled?(), do: [Alnasl.FairPlay.Live], else: []) ++
       if(local?,
-        do: [
-          {Alnasl.Updates.Checker, timer: Application.get_env(:alnasl, :updates_timer, true)},
-          Arkab.Drivers
-        ],
+        do:
+          [
+            {Alnasl.Updates.Checker, timer: Application.get_env(:alnasl, :updates_timer, true)},
+            Arkab.Drivers
+          ] ++ takeover_link(),
         else: []
       ) ++
       [
@@ -74,6 +77,15 @@ defmodule Alnasl.Application do
         else: []
       ) ++
       [AlnaslWeb.Endpoint]
+  end
+
+  # A box paired with a hall in the cloud streams it there, or stands by as
+  # its spare (`Alnasl.Takeover.Link`). Not in the tests, which step it by
+  # hand.
+  defp takeover_link do
+    if Application.get_env(:alnasl, :takeover_link, true),
+      do: [Alnasl.Takeover.Link],
+      else: []
   end
 
   @impl true

@@ -26,6 +26,7 @@ and get out of the menu.
 | The numbering run (`/boards/number`) | Touch the boards in table order and each gets its number. This is how boards get connected to tables, so it counts as connecting boards even though it lives in the walk module (`WalkLive`); the setup wizard sends people there |
 | Halls (`/halls`, its tabs) | On the server boards arrive through bridges, which are a hall's tab; an account in no hall is sent to `/halls` and must find it |
 | Setup: wizard, Tournaments, Connections, Updates (a box) | What gets a tournament onto the boards; Updates because the new-version notice links there and a box that cannot update is a support call |
+| Cloud and spare (`/spare`, a box) | When the box dies the arbiter needs Take over on the spare, not a switch to find it first; the status line in the bar links there (docs/takeover.md) |
 | Help | The manual |
 | The frame | Hall picker, account menu (language, colour theme, sign out, the switch), the connection badges, the notices |
 

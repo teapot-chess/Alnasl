@@ -96,6 +96,18 @@ defmodule AlnaslWeb.Permit do
       "cancel_attach" => :viewer
     },
     OutboxLive => %{"dest_toggle" => :admin, "prune" => :admin},
+    # The box's pairing with a hall in the cloud is the box's own business
+    # (`Alnasl.Takeover`): pairing, leaving, taking over by itself. Taking
+    # the hall over now, or standing by, is what an arbiter does in a hall
+    # whose box died.
+    AlnaslWeb.SpareLive => %{
+      "pair" => :admin,
+      "leave" => :admin,
+      "auto" => :admin,
+      "take_over" => :arbiter,
+      "stand_by" => :arbiter,
+      "step" => :arbiter
+    },
     SetupLive => %{
       "pick_lichess" => :viewer,
       "goto_section" => :viewer,

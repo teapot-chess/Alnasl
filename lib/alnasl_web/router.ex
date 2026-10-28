@@ -76,6 +76,24 @@ defmodule AlnaslWeb.Router do
     post "/:code", JoinController, :redeem
   end
 
+  # Hall boxes and their spares (`Alnasl.Takeover`, docs/takeover.md): a
+  # program with no session, no CSRF token and no PIN. Pairing takes a code;
+  # everything else the box's own key. The controller answers 404 on an
+  # Alnasl that is not a cloud.
+  pipeline :takeover_api do
+    plug :accepts, ["json"]
+  end
+
+  scope "/takeover", AlnaslWeb do
+    pipe_through :takeover_api
+
+    post "/join/:code", TakeoverController, :join
+    post "/lease", TakeoverController, :lease
+    post "/events", TakeoverController, :events
+    put "/state", TakeoverController, :state
+    get "/restore", TakeoverController, :restore
+  end
+
   # Installed theme packs' stylesheets and fonts (`Alnasl.ThemePacks`). No
   # pipeline and no PIN: the PIN page wears the theme as well, and the
   # controller answers 404 to everything that is not a file of an accepted
@@ -165,6 +183,7 @@ defmodule AlnaslWeb.Router do
       live "/log", LogLive, :index
       live "/setup", SetupLive, :index
       live "/setup/:section", SetupLive, :section
+      live "/spare", SpareLive, :index
       live "/halls", HallsLive, :index
       live "/halls/:id", HallsLive, :show
       # Fair-play screening: the hall owner's and nobody else's, which the

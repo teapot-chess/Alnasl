@@ -140,7 +140,9 @@ defmodule Alnasl.Destination.Sender do
   end
 
   defp start_batch(%{destination: destination} = s) do
-    if Destination.enabled?(destination) do
+    # A spare box sends nothing: the results are the active box's to send
+    # (`Alnasl.Takeover`).
+    if Destination.enabled?(destination) and Alnasl.Takeover.driving?() do
       task =
         Task.Supervisor.async_nolink(Alnasl.TaskSupervisor, fn ->
           try do

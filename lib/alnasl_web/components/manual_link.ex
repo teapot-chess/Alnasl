@@ -30,7 +30,8 @@ defmodule AlnaslWeb.Components.ManualLink do
     lichess: {"openpairings-and-openresults", "lichess"},
     fair_play: {"fair-play", "what-the-numbers-mean"},
     accounts: {"accounts-and-halls", "open-until-the-first-account"},
-    wizard: {"getting-started", "setup-wizard"}
+    wizard: {"getting-started", "setup-wizard"},
+    spare: {"spare-box", "a-spare-box"}
   }
 
   @doc "Every topic, as `topic => {chapter slug, heading id}`."

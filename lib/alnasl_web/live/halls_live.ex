@@ -16,7 +16,8 @@ defmodule AlnaslWeb.HallsLive do
 
   use AlnaslWeb, :live_view
 
-  alias Alnasl.{Accounts, Boards, Bridges, Halls}
+  alias Alnasl.{Accounts, Boards, Bridges, Halls, Takeover}
+  alias Alnasl.Takeover.Cloud
   alias Alnasl.Accounts.Scope
   alias AlnaslWeb.{BridgeComponents, Words}
 
@@ -26,12 +27,20 @@ defmodule AlnaslWeb.HallsLive do
       Halls.subscribe()
       Bridges.subscribe()
       Boards.subscribe()
+      Cloud.subscribe()
     end
 
     {:ok,
      socket
      |> assign(page_title: gettext("Halls"), base_url: nil, shown: nil)
      |> assign(bridge_join: nil, bridge_message: nil, bridges: [])
+     |> assign(
+       box_join: nil,
+       box_message: nil,
+       boxes: [],
+       lease: nil,
+       now: DateTime.utc_now(:second)
+     )
      |> assign(invite_link: nil, temporary: nil, deleting: false, delete_typed: "")
      |> assign(new_form: to_form(%{"name" => ""}, as: :hall))
      |> assign(invite_form: invite_form())}
@@ -54,7 +63,7 @@ defmodule AlnaslWeb.HallsLive do
            |> assign(shown: hall, page_title: hall.name, invite_link: nil, temporary: nil)
            |> assign(tab: pick_tab(socket.assigns.current_scope, hall, params["tab"]))
            |> assign(deleting: false, delete_typed: "")
-           |> assign(bridge_join: nil, bridge_message: nil)
+           |> assign(bridge_join: nil, bridge_message: nil, box_join: nil, box_message: nil)
            |> assign(name_form: to_form(%{"name" => hall.name}, as: :hall))
            |> load_show()}
         else
@@ -68,11 +77,17 @@ defmodule AlnaslWeb.HallsLive do
   end
 
   # The tabs of a hall, in order; what a scope may not use is not offered.
-  @tabs ~w(people invitations bridges settings)
+  @tabs ~w(people invitations bridges boxes settings)
 
+  # Boxes (a hall box and its spares, `Alnasl.Takeover`) only where this
+  # Alnasl is a cloud for them.
   defp tabs(scope, hall) do
     owner? = Scope.can?(scope, :owner, hall.id) and not scope.open?
-    Enum.filter(@tabs, &(&1 in ~w(people bridges) or owner?))
+
+    Enum.filter(@tabs, fn
+      "boxes" -> Takeover.cloud?()
+      tab -> tab in ~w(people bridges) or owner?
+    end)
   end
 
   defp pick_tab(scope, hall, wanted) do
@@ -85,6 +100,7 @@ defmodule AlnaslWeb.HallsLive do
   defp tab_label("people"), do: gettext("People")
   defp tab_label("invitations"), do: gettext("Invitations")
   defp tab_label("bridges"), do: gettext("Bridges")
+  defp tab_label("boxes"), do: gettext("Boxes")
   defp tab_label("settings"), do: gettext("Settings")
 
   defp invite_form, do: to_form(%{"email" => "", "role" => "arbiter"}, as: :invite)
@@ -134,6 +150,9 @@ defmodule AlnaslWeb.HallsLive do
       invitations:
         if(Scope.can?(scope, :owner, hall.id), do: Accounts.open_invitations(hall), else: []),
       bridges: BridgeComponents.list(hall.id),
+      boxes: if(Takeover.cloud?(), do: Cloud.boxes(hall.id), else: []),
+      lease: if(Takeover.cloud?(), do: Cloud.peek_lease(hall.id)),
+      now: DateTime.utc_now(:second),
       owner?: Scope.can?(scope, :owner, hall.id),
       admin?: Scope.can?(scope, :admin),
       all_halls: if(Scope.can?(scope, :admin), do: Halls.list(), else: [])
@@ -315,7 +334,58 @@ defmodule AlnaslWeb.HallsLive do
     end
   end
 
+  # The Boxes tab (`Alnasl.Takeover.Cloud`): pairing a box and "Take over"
+  # are an arbiter's - the people who are in the hall when its box dies -
+  # and removing a box the owner's.
+  def handle_event(event, params, socket) when event in ~w(pair_box hand_over remove_box) do
+    hall = socket.assigns.shown
+    need = if event == "remove_box", do: :owner, else: :arbiter
+
+    if Takeover.cloud?() and Scope.can?(socket.assigns.current_scope, need, hall.id),
+      do: {:noreply, box_event(event, params, socket, hall)},
+      else: {:noreply, refuse(socket)}
+  end
+
   def handle_event(_event, _params, socket), do: {:noreply, socket}
+
+  defp box_event("pair_box", _params, socket, hall) do
+    {:ok, join} = Cloud.create_join(hall.id)
+    base = socket.assigns.base_url || AlnaslWeb.Endpoint.url()
+    url = base <> "/takeover/join/" <> join.code
+
+    assign(socket,
+      box_join: %{code: join.code, url: url, expires_at: join.expires_at},
+      box_message: nil
+    )
+  end
+
+  defp box_event("hand_over", %{"box" => id}, socket, hall) do
+    with {id, ""} <- Integer.parse(to_string(id)),
+         {:granted, _lease, _previous} <- Cloud.hand_over(hall.id, id) do
+      socket
+      |> assign(
+        box_message:
+          gettext(
+            "Handed over. The spare starts at its next word with the cloud, within seconds; the box that ran the hall stops at its own."
+          )
+      )
+      |> load_show()
+    else
+      _not_here -> assign(socket, box_message: gettext("That box is not in this hall."))
+    end
+  end
+
+  defp box_event("remove_box", %{"box" => id}, socket, hall) do
+    with {id, ""} <- Integer.parse(to_string(id)),
+         %{hall_id: hall_id} = box when hall_id == hall.id <- Cloud.get_box(id),
+         {:ok, _box} <- Cloud.revoke(box) do
+      socket |> assign(box_message: gettext("Removed.")) |> load_show()
+    else
+      _not_here -> assign(socket, box_message: gettext("That box is not in this hall."))
+    end
+  end
+
+  defp box_event(_event, _params, socket, _hall), do: socket
 
   # "2 bridges and 1 tournament - remove them first"
   defp not_empty_message(left) do
@@ -360,7 +430,7 @@ defmodule AlnaslWeb.HallsLive do
       {:noreply,
        assign(socket, bridge_message: gettext("The bridge said no: %{why}.", why: error))}
 
-  def handle_info({tag, _what}, socket) when tag in [:bridges, :halls, :board],
+  def handle_info({tag, _what}, socket) when tag in [:bridges, :halls, :board, :takeover_cloud],
     do: {:noreply, reload(socket)}
 
   def handle_info(_other, socket), do: {:noreply, socket}
@@ -771,10 +841,152 @@ defmodule AlnaslWeb.HallsLive do
             halls={@all_halls}
           />
         </.panel>
+
+        <.panel :if={@tab == "boxes"} id="hall-boxes" title={gettext("Boxes")}>
+          <:actions><AlnaslWeb.Components.ManualLink.manual_link topic={:spare} /></:actions>
+          <.boxes
+            boxes={@boxes}
+            lease={@lease}
+            join={@box_join}
+            message={@box_message}
+            now={@now}
+            arbiter?={Scope.can?(@current_scope, :arbiter, @shown.id)}
+            owner?={@owner?}
+          />
+        </.panel>
       </div>
     </Layouts.app>
     """
   end
+
+  attr :boxes, :list, required: true
+  attr :lease, :any, required: true
+  attr :join, :map, default: nil
+  attr :message, :string, default: nil
+  attr :now, :any, required: true
+  attr :arbiter?, :boolean, default: false
+  attr :owner?, :boolean, default: false
+
+  # The hall's box and its spares: which one runs the hall (the lease), when
+  # each was last heard from, "Take over" for each spare, and pairing.
+  defp boxes(assigns) do
+    ~H"""
+    <div id="boxes" class="stack">
+      <p class="note">
+        {gettext(
+          "A box in the hall sends everything to this hall as it happens. A second box, paired here as a spare, stands by; when the first has been silent for %{seconds} seconds, or somebody presses Take over, it starts from what is here and runs the hall.",
+          seconds: div(Alnasl.Takeover.lease_ms(), 1000)
+        )}
+      </p>
+
+      <div :if={@join} id="box-join" class="stack">
+        <p>{gettext("On the box: Cloud and spare, then paste this link or type the code.")}</p>
+        <p id="box-join-code" class="mono"><b>{@join.code}</b></p>
+        <p id="box-join-link" class="addresses mono">{@join.url}</p>
+        <p id="box-join-expiry" class="note">
+          {gettext("Good for one box, until %{time} (UTC).",
+            time: Calendar.strftime(@join.expires_at, "%H:%M")
+          )}
+        </p>
+      </div>
+
+      <div :if={@arbiter?}>
+        <.button id="box-pair" phx-click="pair_box" icon="send">{gettext("Pair a box")}</.button>
+      </div>
+
+      <p :if={@message} id="box-message" class="note" role="status">{@message}</p>
+
+      <ul id="box-list" class="dests">
+        <li :if={@boxes == []} id="box-none" class="empty">
+          <b>{gettext("No boxes yet")}</b>
+          <p>{gettext("Pair the box that runs the hall first, then a spare.")}</p>
+        </li>
+        <li :for={b <- @boxes} id={"box-#{b.id}"} class="stack">
+          <div>
+            <b>{b.name}</b>
+            <.badge
+              :if={holder?(@lease, b, @now)}
+              id={"box-#{b.id}-active"}
+              tone="ok"
+              icon="live"
+            >
+              {gettext("runs the hall")}
+            </.badge>
+            <.badge :if={silent?(@lease, b, @now)} id={"box-#{b.id}-silent"} tone="bad" icon="offline">
+              {gettext("silent")}
+            </.badge>
+            <.badge
+              :if={!holder?(@lease, b, @now) and !silent?(@lease, b, @now)}
+              id={"box-#{b.id}-role"}
+              tone={if(b.role == "superseded", do: "warn")}
+              icon="waiting"
+            >
+              {AlnaslWeb.TakeoverWords.role(if(b.role == "active", do: "superseded", else: b.role))}
+            </.badge>
+            <span :if={b.software} class="note">{b.software}</span>
+          </div>
+          <p id={"box-#{b.id}-seen"} class="note">
+            <%= if b.last_seen_at do %>
+              {gettext("Last heard from %{seconds} s ago",
+                seconds: max(DateTime.diff(@now, b.last_seen_at), 0)
+              )}
+              <span :if={b.queued > 0}>
+                - {ngettext("%{count} event waiting", "%{count} events waiting", b.queued)}
+              </span>
+            <% else %>
+              {gettext("Not heard from yet")}
+            <% end %>
+          </p>
+          <div class="row">
+            <.button
+              :if={@arbiter? and not holder?(@lease, b, @now)}
+              id={"box-#{b.id}-take-over"}
+              small
+              variant="primary"
+              phx-click="hand_over"
+              phx-value-box={b.id}
+              data-confirm={
+                gettext(
+                  "Let %{name} run the hall? The box that runs it now stops at its next word with the cloud.",
+                  name: b.name
+                )
+              }
+            >
+              {gettext("Take over")}
+            </.button>
+            <.button
+              :if={@owner?}
+              id={"box-#{b.id}-remove"}
+              small
+              variant="danger"
+              phx-click="remove_box"
+              phx-value-box={b.id}
+              data-confirm={gettext("Remove this box from the hall? Its key stops working at once.")}
+            >
+              {gettext("Remove")}
+            </.button>
+          </div>
+        </li>
+      </ul>
+
+      <p :if={@lease && @lease.epoch > 0} id="box-epoch" class="note">
+        {gettext("Lease %{epoch}", epoch: @lease.epoch)}
+      </p>
+    </div>
+    """
+  end
+
+  # Whether the box holds the lease (and is not silent): it runs the hall.
+  defp holder?(%{box_id: id} = lease, %{id: id}, now) when not is_nil(id),
+    do: Cloud.live?(lease, now)
+
+  defp holder?(_lease, _box, _now), do: false
+
+  # The lease is the box's, and has run out: it went silent.
+  defp silent?(%{box_id: id} = lease, %{id: id}, now) when not is_nil(id),
+    do: not Cloud.live?(lease, now)
+
+  defp silent?(_lease, _box, _now), do: false
 
   defp role_options, do: Enum.map(Alnasl.Halls.Member.roles(), &{Words.role(&1), &1})
 end

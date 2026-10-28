@@ -172,6 +172,17 @@ defmodule AlnaslWeb.Layouts do
           </h1>
           {if !@full_only?, do: render_slot(@actions)} <.live_pill />
           <span id="link-state" class="heads">
+            <%!-- A box paired with a hall in the cloud: streaming, offline, a spare, or stepped down. --%>
+            <.link
+              :if={@hall && @hall[:takeover]}
+              id="takeover-line"
+              navigate={~p"/spare"}
+              class="head-link"
+            >
+              <.badge tone={@hall.takeover.tone} icon={@hall.takeover.icon}>
+                {@hall.takeover.text}
+              </.badge>
+            </.link>
             <%= if @hall && is_list(@hall.heads) do %>
               <%= for head <- @hall.heads do %>
                 <%!-- In simple mode a badge whose page is full mode's is only a badge. --%>
@@ -264,7 +275,7 @@ defmodule AlnaslWeb.Layouts do
        [
          item(:halls, ~p"/halls", "hall", gettext("Halls")),
          item(:setup, ~p"/setup", "setup", gettext("Setup"))
-       ] ++ fair_play_item(scope) ++ support_item(scope)},
+       ] ++ spare_item() ++ fair_play_item(scope) ++ support_item(scope)},
       {"back", gettext("Look back"),
        [
          item(:log, ~p"/log", "log", gettext("Log")),
@@ -272,6 +283,14 @@ defmodule AlnaslWeb.Layouts do
        ]},
       {"help", nil, [item(:help, ~p"/help", "help", gettext("Help"))]}
     ]
+  end
+
+  # A box's line to its hall in the cloud and its spare (`Alnasl.Takeover`).
+  # On a box only: the cloud keeps its side on each hall's Boxes tab.
+  defp spare_item do
+    if Alnasl.edition() == :box,
+      do: [item(:spare, ~p"/spare", "share", gettext("Cloud and spare"))],
+      else: []
   end
 
   # Fair play is the hall owner's and nobody else's, so it is in

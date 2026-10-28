@@ -56,7 +56,10 @@ config :alnasl,
   release_notes_on_open: false,
   install_kind: :manual,
   autostart_cmd: &Alnasl.NoReg.cmd/3,
-  skip_migrations: true
+  skip_migrations: true,
+  # The box's line to the cloud (`Alnasl.Takeover.Link`): the tests start
+  # their own, and step it by hand.
+  takeover_link: false
 
 config :logger, level: :warning
 
