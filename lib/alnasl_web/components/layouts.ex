@@ -295,8 +295,10 @@ defmodule AlnaslWeb.Layouts do
   defp item(key, to, icon, label, count \\ 0),
     do: %{key: key, to: to, icon: icon, label: label, count: count}
 
-  # The tab bar keeps three places in reach of a thumb; More has the rest.
-  @tabs [:round, :boards, :outbox]
+  # The tab bar keeps the places in reach of a thumb; More has the rest.
+  # Full mode has three; simple mode two, because Results is full mode's
+  # (`AlnaslWeb.Mode`) and a tab for a page that only says so is a tab too many.
+  @tabs %{full: [:round, :boards, :outbox], simple: [:round, :boards]}
 
   attr :nav, :atom, required: true
   attr :alarms, :integer, default: 0
@@ -307,12 +309,14 @@ defmodule AlnaslWeb.Layouts do
     items =
       assigns.alarms |> groups(assigns.waiting, assigns.scope) |> Enum.flat_map(&elem(&1, 2))
 
-    # Simple mode has no Results tab: its place is not in the menu there.
+    keys = if Mode.simple?(assigns.scope), do: @tabs.simple, else: @tabs.full
+
+    # A tab only for a place the menu has, so the two cannot disagree.
     assigns =
       assign(assigns,
         tabs:
-          @tabs |> Enum.map(fn key -> Enum.find(items, &(&1.key == key)) end) |> Enum.filter(& &1),
-        rest: Enum.reject(items, &(&1.key in @tabs))
+          keys |> Enum.map(fn key -> Enum.find(items, &(&1.key == key)) end) |> Enum.filter(& &1),
+        rest: Enum.reject(items, &(&1.key in keys))
       )
 
     ~H"""

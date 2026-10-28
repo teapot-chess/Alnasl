@@ -137,6 +137,8 @@ A box or server that was in use before simple mode existed keeps every page afte
 
 On a screen of 4 to 7 inches (800x480, 1024x600, 720x720) Alnasl draws a compact layout by itself: one bar along the top with the places on the left and the hall and the account on the right, no rail, bigger buttons, and smaller tiles on Live with the board number, the state, the players, the clocks and the last move or the result. The position diagram waits for a larger screen; the board's own page still has it.
 
+The other pages follow. A board's own page shows the board with the names and clocks beside it and the moves in a column next to them, all on one screen; only the move list scrolls. When the game stays in Alnasl, that note shrinks to one line with its button; a changed pairing keeps its full text and comes first. Setup and Halls are one column with larger text and fields, and the list of halls shows each hall as a card. The tour puts its steps under the top bar, on the side away from what they point at.
+
 Alnasl decides by the size of the window. A small panel with many pixels looks like a monitor to it: choose **Small screen** in the account menu, under Screen, and the compact layout stays on that screen. **Large screen** keeps it off, **Automatic** lets the window decide again. The choice is kept in that browser only.
 
 Simple mode and the compact layout are separate: a large TV can show simple mode, a small screen can show everything.

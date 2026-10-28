@@ -5047,3 +5047,352 @@ button.menu-item {
 :root[data-compact] .board-list .row-clock {
   display: none;
 }
+
+/* --- compact: the pages, not only the frame --------------------------------
+
+   Setup, Halls and the rest read at arm's length: one column, text a size
+   up, and every field, box and button 44 px high. Nothing here is hidden;
+   it is only made big enough to hit with a finger. */
+
+:root[data-compact] .note,
+:root[data-compact] .field .hint,
+:root[data-compact] .trow-meta,
+:root[data-compact] table {
+  font-size: 0.9375rem;
+}
+
+:root[data-compact] .field > label,
+:root[data-compact] .field > .label {
+  font-size: 0.9375rem;
+}
+
+:root[data-compact] .input,
+:root[data-compact] .field input[type="text"],
+:root[data-compact] .field input[type="url"],
+:root[data-compact] .field input[type="email"],
+:root[data-compact] .field input[type="password"],
+:root[data-compact] .field input[type="number"],
+:root[data-compact] .field select,
+:root[data-compact] .page select {
+  min-height: 2.75rem;
+  font-size: 1rem;
+}
+
+:root[data-compact] .check {
+  min-height: 2.75rem;
+  align-items: center;
+  font-size: 0.9375rem;
+}
+
+:root[data-compact] .check input {
+  width: 1.4rem;
+  height: 1.4rem;
+  margin: 0;
+}
+
+:root[data-compact] .form-grid,
+:root[data-compact] .cols,
+:root[data-compact] .numbering-ways {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+:root[data-compact] .panel > header {
+  padding: 0.5rem 0.75rem;
+}
+
+:root[data-compact] .panel > .body {
+  padding: 0.75rem;
+}
+
+:root[data-compact] .setup-nav-link,
+:root[data-compact] .trow-toggle,
+:root[data-compact] .menu-item {
+  min-height: 2.75rem;
+}
+
+:root[data-compact] .kv {
+  grid-template-columns: minmax(0, 1fr);
+  gap: 0 0;
+}
+
+:root[data-compact] .kv dd {
+  margin-bottom: 0.4rem;
+}
+
+/* A table that is a list of things (`table.cards`): on a small screen each
+   row is a card, each cell a line with its heading in front. */
+
+:root[data-compact] table.cards thead {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+}
+
+:root[data-compact] table.cards,
+:root[data-compact] table.cards tbody,
+:root[data-compact] table.cards tr,
+:root[data-compact] table.cards td {
+  display: block;
+}
+
+:root[data-compact] table.cards tr {
+  padding: 0.5rem 0.75rem;
+  border-bottom: 1px solid var(--rule);
+}
+
+:root[data-compact] table.cards tr:last-child {
+  border-bottom: 0;
+}
+
+:root[data-compact] table.cards td {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0.25rem 0;
+  border: 0;
+  text-align: right;
+  background: none;
+}
+
+:root[data-compact] table.cards td[data-label]::before {
+  content: attr(data-label);
+  color: var(--quiet);
+  text-align: left;
+  flex: none;
+}
+
+:root[data-compact] table.cards td.lead {
+  text-align: left;
+  font-size: 1.125rem;
+}
+
+:root[data-compact] table.cards td.lead a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 2.75rem;
+}
+
+:root[data-compact] table.cards td.act {
+  display: block;
+  padding-top: 0.4rem;
+}
+
+:root[data-compact] table.cards td.act .btn {
+  width: 100%;
+  justify-content: center;
+}
+
+/* One game: the board as high as the screen allows, the names and clocks
+   beside it, the moves in the next column with their own scrolling - so
+   board, clocks and moves are in view at once, without the page moving.
+   "This game stays in Alnasl" shrinks to its one line and its button, and
+   the board gives it the room; a changed pairing keeps all its words and
+   may push the board down - it is the first thing to read. */
+
+:root[data-compact] #game-local {
+  flex-wrap: nowrap;
+  gap: 0.75rem;
+  padding: 0.3rem 0.4rem 0.3rem 0.75rem;
+  margin-bottom: 0;
+  font-size: 0.9375rem;
+}
+
+:root[data-compact] #game-local > p {
+  display: none;
+}
+
+:root[data-compact] #game-local > .row {
+  margin-left: auto;
+  flex: none;
+}
+
+:root[data-compact] .page:has(#game-local) .game {
+  --chrome: 4rem;
+}
+
+:root[data-compact] .game {
+  --bd: min(calc(100dvh - 9.5rem - var(--chrome, 0rem)), calc(100vw - 30rem));
+  grid-template-columns: auto minmax(13rem, 1fr);
+  gap: 0.6rem;
+}
+
+:root[data-compact] .game > .stack {
+  gap: 0.6rem;
+  min-width: 0;
+}
+
+:root[data-compact] #position > .body {
+  display: grid;
+  grid-template-columns: var(--bd) 12.25rem;
+  grid-template-rows: auto auto minmax(0, 1fr) auto auto auto;
+  gap: 0.3rem 0.75rem;
+  padding: 0.6rem;
+}
+
+:root[data-compact] #position > .body > * {
+  grid-column: 2;
+  margin: 0;
+  min-width: 0;
+}
+
+:root[data-compact] #position > .body > .solo,
+:root[data-compact] #position > .body > .twin {
+  grid-column: 1;
+  grid-row: 1 / -1;
+  align-self: start;
+}
+
+:root[data-compact] #position > .body > .row {
+  grid-row: 1;
+  align-items: flex-start;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+
+/* The board's name and driver are on the Boards page; here the column is
+   for the players. */
+:root[data-compact] #position > .body > .row > .note {
+  display: none;
+}
+
+:root[data-compact] #position > .body > .side:has(.dot.black) {
+  grid-row: 2;
+}
+
+:root[data-compact] #position > .body > #move-nav {
+  grid-row: 4;
+}
+
+:root[data-compact] #position > .body > p.note {
+  grid-row: 5;
+}
+
+:root[data-compact] #position > .body > .side:has(.dot.white) {
+  grid-row: 6;
+}
+
+:root[data-compact] #position .side {
+  flex-wrap: wrap;
+  align-items: center;
+  padding: 0.2rem 0;
+  font-size: 1rem;
+}
+
+:root[data-compact] #position .side .clock {
+  flex-basis: 100%;
+  font-size: 1.4rem;
+  font-weight: 650;
+  padding: 0.1rem 0.4rem;
+}
+
+:root[data-compact] .move-nav {
+  flex-wrap: wrap;
+  justify-content: flex-start;
+  gap: 0.2rem;
+}
+
+:root[data-compact] .move-nav #nav-at {
+  flex-basis: 100%;
+  order: -1;
+}
+
+:root[data-compact] #move-list {
+  max-height: calc(100dvh - 12.5rem - var(--chrome, 0rem));
+  font-size: 1rem;
+}
+
+:root[data-compact] .moves {
+  grid-template-columns: 2.2rem minmax(0, 1fr) minmax(0, 1fr);
+}
+
+:root[data-compact] .moves .ply {
+  display: flex;
+  align-items: center;
+  min-height: 2.75rem;
+  padding: 0 0.4rem;
+}
+
+:root[data-compact] .moves .num {
+  align-self: center;
+}
+
+:root[data-compact] .tools {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+/* Square and upright small screens: the board and its column on top, the
+   moves under them, as high as what is left. */
+@media (max-aspect-ratio: 4/3) {
+  :root[data-compact] .game {
+    --bd: min(calc(100vw - 15rem), calc(100dvh - 22rem - var(--chrome, 0rem)));
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  :root[data-compact] #move-list {
+    max-height: max(6rem, calc(100dvh - var(--bd) - 14rem - var(--chrome, 0rem)));
+  }
+}
+
+/* The tour on a small screen: the offer in the corner under the page, not
+   over the bar at the top; a step docks on the side away from what it
+   points at, under the top bar and inside the screen (the `.Tour` hook in
+   AlnaslWeb.Components.Tour places it). */
+
+:root[data-compact] .tour-offer {
+  left: auto;
+  right: 0.5rem;
+  bottom: 0.5rem;
+  width: min(26rem, calc(100vw - 1rem));
+  max-height: calc(100dvh - 3.75rem);
+  overflow-y: auto;
+  padding: 0.6rem 0.75rem;
+}
+
+:root[data-compact] .tour-pop {
+  width: min(22rem, calc(100vw - 1rem));
+  max-height: calc(100dvh - 3.75rem);
+  overflow-y: auto;
+  gap: 0.35rem;
+  padding: 0.6rem 0.8rem 0.7rem;
+  transform: none;
+}
+
+:root[data-compact] .tour-pop-x,
+:root[data-compact] .tour-pop-skip {
+  min-width: 2.75rem;
+  min-height: 2.75rem;
+}
+
+:root[data-compact] .tour-pop p {
+  font-size: 0.9375rem;
+}
+
+:root[data-compact] .page .btn {
+  max-width: 100%;
+  white-space: normal;
+  text-align: center;
+}
+
+:root[data-compact] .games-here li {
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.2rem 0.8rem;
+}
+
+:root[data-compact] .games-here li > a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 2.75rem;
+  min-width: 2.75rem;
+}
+
+/* The manual's "?" keeps its size to the eye and gets a finger's worth of
+   room around it, without pushing the heading about. */
+:root[data-compact] .manual-help-link {
+  width: 2.75rem;
+  height: 2.75rem;
+  margin: -0.5rem -0.5rem -0.5rem 0;
+}

@@ -121,6 +121,31 @@ defmodule AlnaslWeb.SimpleModeTest do
 
       refute has_element?(view, "#link-state a[href='/outbox']")
     end
+
+    test "the tab bar follows the mode: Results only in full mode", %{conn: conn} do
+      {:ok, view, _html} = live(conn, ~p"/")
+
+      assert has_element?(view, "#tab-bar > #tab-round")
+      assert has_element?(view, "#tab-bar > #tab-boards")
+      refute has_element?(view, "#tab-bar #tab-outbox")
+
+      render_click(view, "ui_mode", %{"mode" => "full"})
+      assert has_element?(view, "#tab-bar > #tab-outbox")
+    end
+  end
+
+  # The small screen's layout is CSS (test/e2e/compact_test.exs measures
+  # it); what it needs from the page is said here.
+  describe "for the small-screen layout" do
+    test "the list of halls carries its headings into each cell, for the cards", %{conn: conn} do
+      id = Halls.own_id()
+      {:ok, view, _html} = live(conn, ~p"/halls")
+
+      assert has_element?(view, "#halls.cards")
+      assert has_element?(view, "#hall-#{id}-role[data-label='Your role']")
+      assert has_element?(view, "#hall-#{id}-boards[data-label='Live boards']")
+      assert has_element?(view, "#hall-#{id}-bridges[data-label='Bridges']")
+    end
   end
 
   describe "with accounts" do

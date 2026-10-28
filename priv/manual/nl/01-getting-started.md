@@ -137,6 +137,8 @@ Een kastje of server die al in gebruik was voor de eenvoudige modus bestond, hou
 
 Op een scherm van 4 tot 7 inch (800x480, 1024x600, 720x720) tekent Alnasl vanzelf een compacte indeling: één strook bovenaan met de pagina's links en de zaal en het account rechts, geen balk opzij, grotere knoppen, en kleinere tegels op Live met het bordnummer, de toestand, de spelers, de klokken en de laatste zet of het resultaat. Het stellingsdiagram wacht op een groter scherm; de eigen pagina van het bord heeft het nog.
 
+De andere pagina's volgen. De eigen pagina van een bord toont het bord met de namen en klokken ernaast en de zetten in een kolom daarnaast, alles op één scherm; alleen de zettenlijst schuift. Blijft de partij in Alnasl, dan krimpt die melding tot één regel met haar knop; een gewijzigde paring houdt haar volledige tekst en staat bovenaan. Instellingen en Zalen staan in één kolom met grotere tekst en velden, en de lijst van zalen toont elke zaal als een kaart. De rondleiding zet haar stappen onder de strook bovenaan, aan de kant weg van waar ze naar wijzen.
+
 Alnasl beslist op de grootte van het venster. Een klein scherm met veel pixels lijkt daardoor op een monitor: kies **Klein scherm** in het accountmenu, bij Scherm, en de compacte indeling blijft aan op dat scherm. **Groot scherm** houdt ze uit, **Automatisch** laat het venster weer beslissen. De keuze geldt alleen voor die browser.
 
 De eenvoudige modus en de compacte indeling staan los van elkaar: een grote tv kan de eenvoudige modus tonen, een klein scherm kan alles tonen.
