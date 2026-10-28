@@ -19,6 +19,8 @@ section, word for word. See [docs/releasing.md](docs/releasing.md).
 
 ## [Unreleased]
 
+## [0.11.0] - 2026-10-28
+
 - [Change] **"Worth a closer look" now starts at 3.75, not 2.** The fair-play report used to call two players in every hundred worth a closer look, which is a lot of closer looks for a hall of honest people. It now speaks up at the threshold the shipped model was actually tested at: of 7,914 honest player-events it had never seen, none got there. "Statistically very unusual" stays above 5, and the rarity line beside a score of 2 or more stays too; it is information, not an accusation.
 
 - [Feature] **The box can say whether a round is on.** `GET /local/status` answers `{"round_in_progress": true}` while a game of its tournament's current round is still live on the box, and false otherwise: no boards, finished games, earlier rounds and live games nobody has touched for six hours do not count, so one forgotten board cannot hold things off for ever. It answers only connections from the loopback address, and refuses with 403 anything that carries a forwarding header, since those are written by whoever reaches the port. Nothing in Alnasl uses it yet; the nightly OS update of the Pi image asks it before it touches anything.
