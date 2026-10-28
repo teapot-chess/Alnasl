@@ -8956,8 +8956,8 @@ msgstr "Elk bord dat de zaal kent, hier aangesloten of binnengekomen via een bru
 
 #: lib/alnasl_web/tour.ex:94
 #, elixir-autogen, elixir-format
-msgid "Every page is here, in the order a round asks for them: play, send, manage, look back. On a phone they are in the bar along the bottom, and More holds the rest."
-msgstr "Elke pagina staat hier, in de volgorde waarin een ronde erom vraagt: spelen, versturen, beheren, terugkijken. Op een telefoon staan ze in de balk onderaan, en Meer heeft de rest."
+msgid "Every page is here, in the order a round asks for them: play, send, manage, look back. On a phone they are in the bar along the bottom, on a small screen in the bar along the top, and More holds the rest."
+msgstr "Elke pagina staat hier, in de volgorde waarin een ronde erom vraagt: spelen, versturen, beheren, terugkijken. Op een telefoon staan ze in de balk onderaan, op een klein scherm in de balk bovenaan, en Meer heeft de rest."
 
 #: lib/alnasl_web/components/tour.ex:75
 #, elixir-autogen, elixir-format
