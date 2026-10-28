@@ -19,6 +19,10 @@ section, word for word. See [docs/releasing.md](docs/releasing.md).
 
 ## [Unreleased]
 
+## [0.13.0] - 2026-10-28
+
+- [Change] **Arkab 0.5.0 inside.** The bridge now reads a board's own memory when it first sees it, when it comes back, and when it reports being switched on, so the board-memory recovery above stops being a feature in waiting.
+
 - [Feature] **Boards, "Add a board", has a kind "On a bridge (Arkab)".** Choose it and the panel shows this hall's bridges where you are looking: connected or not, the serial ports each one sees, a Read button beside a port that is not read yet, and the boards each bridge reports. It is the Bridges tab's own panel, so the rules are the same: the hall's owner reads and forgets, everyone else sees the state. With no bridge yet there is a line and a link to the tab that makes one. On a server, where there is no form, the panel is simply there. This replaces the paragraph that only pointed at the Bridges tab, which a tester rightly found a roundabout way of saying "yes, here".
 - [Change] **A new round starts from the previous round's boards, not from the table numbers.** Whatever the arbiter remapped or swapped is carried into the next round, and stays editable; "All back to their table numbers" still puts everything back. Only what still makes sense goes along: a remap to a board the new round's pairings do not have, or from a table that is no longer one of the tournament's, is dropped and the Log says which, and that board follows its table again. A mapping is never carried into another tournament, and beginning the same round twice changes nothing the second time. Before this, a hall that had untangled its boards in round 2 was asked to do it again in round 3, and did.
 
