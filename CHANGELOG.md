@@ -19,6 +19,8 @@ section, word for word. See [docs/releasing.md](docs/releasing.md).
 
 ## [Unreleased]
 
+- [Docs] **Bridges, "Wireless in one hall".** The manual said a bridge was for the next room or another town, which undersold it: one bridge per group of tables on the hall's Wi-Fi, all joined to the same hall, keeps the cables off the floor. A tester pointed out the obvious; the manual now says it, in English and Dutch.
+
 ## [0.13.0] - 2026-10-28
 
 - [Change] **Arkab 0.5.0 inside.** The bridge now reads a board's own memory when it first sees it, when it comes back, and when it reports being switched on, so the board-memory recovery above stops being a feature in waiting.

@@ -1,12 +1,20 @@
 # Bruggen
 
-Een brug is voor borden die ergens anders staan dan de computer waarop Alnasl draait: een Raspberry Pi in de kamer ernaast, of in een zaal in een andere stad. Het brugprogramma heet Arkab. Het leest de borden en stuurt ze via internet naar Alnasl. Dit hoofdstuk gaat over de kant van Alnasl. De brug heeft zelf een kleine pagina (poort 4050 op de brug) met een eigen korte help.
+Een brug is voor borden die ergens anders staan dan de computer waarop Alnasl draait: een Raspberry Pi achteraan in de zaal, in de kamer ernaast, of in een zaal in een andere stad. Het brugprogramma heet Arkab. Het leest de borden en stuurt ze via internet naar Alnasl. Dit hoofdstuk gaat over de kant van Alnasl. De brug heeft zelf een kleine pagina (poort 4050 op de brug) met een eigen korte help.
 
 ## Waarvoor een brug dient {#what-a-bridge-is}
 
-De gehoste server heeft geen eigen borden, dus elk bord daar komt via een brug binnen. Een kastje in een zaal kan ook bruggen aannemen, voor een tweede zaal.
+De gehoste server heeft geen eigen borden, dus elk bord daar komt via een brug binnen. Een kastje in een zaal kan ook bruggen aannemen: voor een tweede zaal, of voor tafels in dezelfde zaal waar geen kabel tot komt.
 
 De brug belt zelf naar Alnasl. In het netwerk van de zaal hoeft niets open te staan: geen poort doorsturen, geen vast adres. Haar borden verschijnen tussen de andere, met de naam van de brug voor de poort, en worden genummerd, gepaard en hersteld zoals elk bord.
+
+## Draadloos in één zaal {#wireless-tables}
+
+Een brug hoeft niet ver weg te staan. Zet een kleine computer (een Raspberry Pi volstaat) bij een groep tafels, steek de borden van die groep erin, en laat hem via de wifi van de zaal bij Alnasl komen. Eén brug per groep tafels, zoveel bruggen als de zaal nodig heeft, allemaal gekoppeld aan dezelfde zaal: hun borden verschijnen samen op de pagina Borden, elk met de naam van zijn brug voor de poort. Geen kabel dwars door de zaal, en niemand die erover struikelt.
+
+- **Hoeveel borden per brug:** zoveel als zijn seriële poorten dragen - een lus houdt er tot twaalf, en een brug kan meerdere lussen lezen.
+- **Als de wifi wegvalt:** de brug bewaart elke zet tot Alnasl hem heeft, en stuurt alles door zodra de lijn terug is (zie [Als de lijn wegvalt](#line-drops)). Een korte onderbreking kost niets; een lange betekent alleen dat de zetten later aankomen.
+- **Niets open te zetten:** elke brug belt zelf naar Alnasl, dus het netwerk van de zaal heeft geen poort doorsturen nodig, net als voor een brug in een andere stad.
 
 ## Arkab, het brugprogramma {#arkab}
 
