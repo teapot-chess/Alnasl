@@ -1,12 +1,20 @@
 # Bridges
 
-A bridge is for boards that are somewhere other than the computer that runs Alnasl: a Raspberry Pi in the next room, or in a hall in another town. The bridge program is called Arkab. It reads the boards and sends them to Alnasl over the internet. This chapter is about the Alnasl side. The bridge has a small page of its own (port 4050 on the bridge) with a short help of its own.
+A bridge is for boards that are somewhere other than the computer that runs Alnasl: a Raspberry Pi at the far end of the hall, in the next room, or in a hall in another town. The bridge program is called Arkab. It reads the boards and sends them to Alnasl over the internet. This chapter is about the Alnasl side. The bridge has a small page of its own (port 4050 on the bridge) with a short help of its own.
 
 ## What a bridge is for {#what-a-bridge-is}
 
-The hosted server has no boards of its own, so every board on it arrives through a bridge. A box in a hall can take bridges as well, for a second room.
+The hosted server has no boards of its own, so every board on it arrives through a bridge. A box in a hall can take bridges as well: for a second room, or for tables in the same hall that a cable will not reach.
 
 The bridge dials out to Alnasl. Nothing has to be opened in the hall's network: no port forwarding, no fixed address. Its boards appear among the others, with the bridge's name in front of the port, and are numbered, paired and repaired like any board.
+
+## Wireless in one hall {#wireless-tables}
+
+A bridge does not have to be far away. Put a small computer (a Raspberry Pi will do) at a group of tables, plug that group's boards into it, and let it reach Alnasl over the hall's Wi-Fi. One bridge per group of tables, as many bridges as the hall needs, all joined to the same hall: their boards appear together on the Boards page, each with its bridge's name in front of the port. No cable runs across the hall, and nobody trips over one.
+
+- **How many boards per bridge:** whatever its serial ports carry - a loop holds up to twelve, and a bridge can read several loops.
+- **When the Wi-Fi drops:** the bridge keeps every move until Alnasl has it, and sends the lot when the line is back (see [When the line drops](#line-drops)). A short dropout costs nothing; a long one only means the moves arrive late.
+- **Nothing to open:** each bridge dials out to Alnasl, so the hall's network needs no port forwarding, the same as for a bridge in another town.
 
 ## Arkab, the bridge program {#arkab}
 
