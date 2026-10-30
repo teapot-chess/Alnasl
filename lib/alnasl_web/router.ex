@@ -210,4 +210,10 @@ defmodule AlnaslWeb.Router do
   scope "/local", AlnaslWeb do
     get "/status", LocalStatusController, :show
   end
+
+  # The start screen asking whether the program is up (`rel/start/start.html`).
+  # No pipeline, no PIN: it has to answer before anything else is ready to.
+  scope "/", AlnaslWeb do
+    get "/_ready", ReadyController, :show
+  end
 end

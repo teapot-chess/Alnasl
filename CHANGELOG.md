@@ -19,6 +19,8 @@ section, word for word. See [docs/releasing.md](docs/releasing.md).
 
 ## [Unreleased]
 
+- [Feature] **A start screen (trial).** Double-click Alnasl and the browser used to appear when the server was ready, which on a first start meant ten seconds of a small grey window and a growing suspicion that nothing had happened. Now the browser opens at once on a page with the mark, a calm bar and a plain line saying what is going on (English or Dutch, light or dark, still for those who asked for less motion), and walks into the program the moment it answers. First start: it says the database is being made. Too slow: it says where the log is. Dead: it says so, instead of waiting politely forever. One file with nothing fetched from anywhere; the server gained `/_ready` for it to ask.
+
 - [Docs] **Bridges, "Wireless in one hall".** The manual said a bridge was for the next room or another town, which undersold it: one bridge per group of tables on the hall's Wi-Fi, all joined to the same hall, keeps the cables off the floor. A tester pointed out the obvious; the manual now says it, in English and Dutch.
 
 ## [0.13.0] - 2026-10-28
