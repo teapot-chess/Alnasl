@@ -5596,3 +5596,110 @@ button.menu-item {
   height: 2.75rem;
   margin: -0.5rem -0.5rem -0.5rem 0;
 }
+
+/* ==== compact-480: 3.5 inch panels (480x320 landscape, 320x480 portrait).
+   Inside this media query only; the 4 to 7 inch layout above is untouched.
+   The window is too small for a second column of anything, so the game's
+   column of tools drops under the board and gets the whole width: the
+   repair board and the arrows are as wide as the screen, not as wide as
+   half of it. ==== */
+@media (max-width: 520px), (max-height: 360px) {
+  :root[data-compact] .game {
+    grid-template-columns: minmax(0, 1fr);
+    --bd: min(calc(100dvh - 9.5rem - var(--chrome, 0rem)), calc(100vw - 14.5rem));
+  }
+
+  :root[data-compact] .play-board,
+  :root[data-compact] .choice-arrows {
+    max-width: none;
+  }
+
+  :root[data-compact] #move-list {
+    max-height: none;
+  }
+
+  /* A link in a line of text: the line stays as it is, the finger gets 44 px. */
+  :root[data-compact] :is(.page, .bar, .banner) a:not(.btn):not(.tab):not(.manual-help-link) {
+    padding: 0.8rem 0.25rem;
+    margin: -0.8rem -0.25rem;
+  }
+
+  :root[data-compact] .manual-search-input {
+    height: 44px;
+  }
+
+  /* A table that scrolls on its own keeps its hidden words with it. */
+  :root[data-compact] .table-wrap {
+    position: relative;
+  }
+
+  /* A number in a table is a link as wide as a thumb. */
+  :root[data-compact] .page td > a:not(.btn) {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 2.75rem;
+    min-height: 2.75rem;
+    padding: 0;
+    margin: 0;
+  }
+
+  :root[data-compact] .page summary {
+    display: flex;
+    align-items: center;
+    min-height: 2.75rem;
+  }
+
+  :root[data-compact] .pager .btn {
+    min-height: 2.75rem;
+  }
+}
+
+/* Upright and narrow: the board over its column, as wide as the panel. */
+@media (max-width: 520px) and (max-aspect-ratio: 4/3) {
+  :root[data-compact] #position > .body {
+    display: flex;
+    flex-direction: column;
+    gap: 0.3rem;
+  }
+
+  :root[data-compact] #position > .body > .row { order: 1; }
+  :root[data-compact] #position > .body > .side:has(.dot.black) { order: 2; }
+  :root[data-compact] #position > .body > .solo,
+  :root[data-compact] #position > .body > .twin { order: 3; }
+  :root[data-compact] #position > .body > #move-nav { order: 4; }
+  :root[data-compact] #position > .body > p.note { order: 5; }
+  :root[data-compact] #position > .body > .side:has(.dot.white) { order: 6; }
+}
+
+/* 320 px across: five things in a bar do not fit with their words, so the
+   places keep their icons, and the page you are on keeps its word too. */
+@media (max-width: 400px) {
+  :root[data-compact] .tab {
+    padding: 0 0.5rem;
+    min-width: 2.75rem;
+  }
+
+  :root[data-compact] .tab > span:not(.count) {
+    display: none;
+  }
+
+  :root[data-compact] .tab[aria-current="page"] > span:not(.count) {
+    display: inline;
+  }
+
+  :root[data-compact] .tab-bar {
+    gap: 0;
+    padding: 0;
+  }
+
+  :root[data-compact] .rail {
+    padding: 0 0.2rem;
+    gap: 0;
+  }
+
+  :root[data-compact] .hall-picker .menu-button-text {
+    max-width: 4rem;
+  }
+}
+/* ==== end compact-480 ==== */

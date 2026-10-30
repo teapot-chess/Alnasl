@@ -345,6 +345,7 @@ defmodule AlnaslWeb.Layouts do
         navigate={tab.to}
         id={"tab-#{tab.key}"}
         class="tab"
+        aria-label={tab.label}
         aria-current={if @nav == tab.key, do: "page"}
       >
         <.icon name={tab.icon} /> <span>{tab.label}</span>
@@ -361,6 +362,7 @@ defmodule AlnaslWeb.Layouts do
           id="tab-more-button"
           type="button"
           class="tab"
+          aria-label={gettext("More")}
           aria-haspopup="true"
           aria-expanded="false"
           aria-controls="tab-more-menu"
