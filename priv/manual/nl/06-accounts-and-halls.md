@@ -83,6 +83,8 @@ Een zaal die nog bruggen, toernooien of een koppeling met OpenPairings heeft, wo
 
 ## Aanmelden {#signing-in}
 
+Tien foute wachtwoorden in een kwartier, vanaf één adres of voor één account, en de aanmeldpagina zegt "Te veel foute wachtwoorden" en hoeveel minuten je moet wachten; tot dan wacht ook het juiste wachtwoord. Aanmelden met 02cloud of de QR-code wordt niet opgehouden.
+
 ### Met 02cloud {#sign-in-with-02cloud}
 
 Waar de uitrol het ingesteld heeft, heeft de aanmeldpagina een knop "Aanmelden met 02cloud". Hij meldt het account met hetzelfde geverifieerde adres aan en koppelt de twee de eerste keer. Hij maakt zelf geen account.

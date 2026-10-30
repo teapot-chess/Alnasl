@@ -71,7 +71,7 @@ defmodule Alnasl.Bridges do
   end
 
   defp code do
-    chars = for _ <- 1..7, do: Enum.random(@alphabet)
+    chars = Alnasl.SecretCode.chars(@alphabet, 7)
     {first, last} = Enum.split(chars, 3)
     List.to_string(first) <> "-" <> List.to_string(last)
   end

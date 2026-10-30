@@ -720,7 +720,7 @@ defmodule AlnaslWeb.PagesTest do
            pairing.set_aside destination.forced update.requested loop.read loop.joined
            seating.joined seating.undone table.game_carried table.game_fresh table.game_left
            bridge.joined bridge.removed bridge.renamed bridge.moved game.deleted hall.created hall.deleted account.first account.invited
-           account.joined account.made account.temporary_password account.refused
+           account.joined account.made account.temporary_password account.refused account.throttled
            board.history_merged board.history_draft board.history_failed draft.accepted draft.dismissed
            takeover.box_paired takeover.box_removed takeover.taken_over takeover.handed_over
            takeover.paired takeover.standing_by takeover.left takeover.handed_over_here
@@ -787,6 +787,28 @@ defmodule AlnaslWeb.PagesTest do
       assert redirected_to(get(locked, ~p"/help")) == ~p"/unlock"
       kinds = Enum.map(Log.list(), & &1.kind)
       assert "door.unlocked" in kinds and "door.refused" in kinds
+    end
+
+    test "loopback under a stranger's name, or through a proxy, is not the box itself", %{
+      conn: conn
+    } do
+      Settings.set_pin("2468")
+
+      # DNS rebinding: a page's own name pointed at 127.0.0.1.
+      rebound = %{conn | host: "evil.example"}
+      assert redirected_to(get(rebound, ~p"/help")) == ~p"/unlock"
+      assert {:error, {:redirect, %{to: "/unlock"}}} = live(rebound, ~p"/help")
+
+      proxied = put_req_header(conn, "cf-connecting-ip", "203.0.113.9")
+      assert redirected_to(get(proxied, ~p"/help")) == ~p"/unlock"
+
+      for host <- ["localhost", "127.0.0.1", "[::1]"] do
+        assert %{conn | host: host} |> get(~p"/help") |> html_response(200)
+      end
+
+      assert AlnaslWeb.Hall.own_host?("::1")
+      refute AlnaslWeb.Hall.own_host?("127.0.0.1.evil.example")
+      refute AlnaslWeb.Hall.own_host?(nil)
     end
 
     test "the language is this browser's, by a form, and the box's stays", %{conn: conn} do

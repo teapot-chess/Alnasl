@@ -224,7 +224,7 @@ defmodule Alnasl.Accounts do
   # Readable off a screen and typed on a phone: no 0/O, no 1/l/I.
   defp temporary_password do
     alphabet = ~c"abcdefghjkmnpqrstuvwxyz23456789"
-    groups = for _ <- 1..4, do: for(_ <- 1..4, into: "", do: <<Enum.random(alphabet)>>)
+    groups = for _ <- 1..4, do: alphabet |> Alnasl.SecretCode.chars(4) |> List.to_string()
     Enum.join(groups, "-")
   end
 
