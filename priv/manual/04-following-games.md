@@ -37,6 +37,14 @@ The position large, the move list, and the tools. The Left and Right arrow keys,
 
 When board and game have parted ways, the page shows what the board reads beside what is certain. One case is named: the board stands in the starting position while the game already has moves. That is nearly always a new game set up on a board still linked to the old one; start a new game with "New game", or put the position back if the pieces were knocked over.
 
+## Names on a box without OpenPairings {#names}
+
+A box without OpenPairings plays its boards in the box's own tournament, so nothing there fills in the players. Type them on the board's page: open the board (click it on Live or on Boards), and in the panel "This game", under "Players", fill in "White" and "Black" and press "Save the names". Only an arbiter or the owner sees the panel. On a box without accounts everybody does, whatever the "Show advanced features" switch says. The game then carries those names everywhere it goes: the results site, Lichess and the PGN.
+
+The other way is to attach a PGN to the board: its White and Black tags give the names.
+
+In a tournament linked to OpenPairings the names form is not there. The names come from the pairing.
+
 ## Moves Alnasl worked out {#reconstructed}
 
 When Alnasl did not see every move, it works them out from the position, so that the board keeps up. Each such move is marked in the list:
