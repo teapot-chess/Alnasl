@@ -155,15 +155,11 @@ defmodule AlnaslWeb.Hall do
     end
   end
 
+  # `:inet.gethostname/0` always answers `{:ok, name}`.
   defp machine_names do
-    case :inet.gethostname() do
-      {:ok, name} ->
-        name = name |> to_string() |> String.downcase()
-        [name, name <> ".local"]
-
-      _error ->
-        []
-    end
+    {:ok, name} = :inet.gethostname()
+    name = name |> to_string() |> String.downcase()
+    [name, name <> ".local"]
   end
 
   defp loopback?({127, _, _, _}), do: true
