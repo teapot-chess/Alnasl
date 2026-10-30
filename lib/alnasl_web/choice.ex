@@ -33,6 +33,7 @@ defmodule AlnaslWeb.Choice do
         changed: [boolean],    # per move of `line`: differs from the game as it stands
         number: ply | nil,     # the ply (1-based, in the game) being asked about
         white?: boolean,       # whose move that is
+        before: text | nil,    # the position asked about (64 characters), for the arrows
         options: [%{san, left, position, squares, standing?}]
       }
   """
@@ -48,6 +49,7 @@ defmodule AlnaslWeb.Choice do
           changed: changed(line, current),
           number: nil,
           white?: true,
+          before: nil,
           options: []
         }
 
@@ -87,6 +89,7 @@ defmodule AlnaslWeb.Choice do
           changed: [],
           number: from + at,
           white?: pos.turn == :w,
+          before: before |> Position.from_fen() |> Position.to_text(),
           options: options
         }
     end

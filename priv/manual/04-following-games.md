@@ -44,7 +44,7 @@ When Alnasl did not see every move, it works them out from the position, so that
 - **Reconstructed** (orange, a diamond): only one line of moves fits.
 - **Guessed** (red, a question mark): several fitted and Alnasl took one.
 
-The tile and the Boards list count them. Tap a guessed move, or "Check them" on the board's page, and Alnasl asks which move it was, one question at a time, each option on a small board, the likeliest first. "Keep it as it stands" is one tap. When no other line fits, it says so and offers to keep the moves, take them back, or go to where you type the right ones.
+The tile and the Boards list count them. Tap a guessed move, or "Check them" on the board's page, and Alnasl asks which move it was, one question at a time, each option on a small board, the likeliest first. Above the options, one board shows the position before the move with an arrow for each option: numbered as in the list, each in its own colour, the likeliest solid and the others dashed. Tap an arrow or an option to answer. "Keep it as it stands" is one tap. When no other line fits, it says so and offers to keep the moves, take them back, or go to the board where you play the right ones.
 
 The results site and Lichess get these moves like any other, without the mark. A correction replaces the game there. The count of reconstructed and guessed moves travels with the game to OpenPairings, so the arbiter there can see how much of a game was read and how much was worked out.
 
@@ -75,7 +75,8 @@ Some alarms name what the board shows:
 On the board's page.
 
 - **The board is right - resync from here.** Searches deeper and longer for the moves that were missed, and says which it added. If several lines fit, one is taken and marked as a guess for you to check. Moves you have just taken back with Undo are not put back by it.
-- **Type the moves** from the scoresheet, like `Nf3 Nc6 Bb5`.
+- **Play the moves on the board.** Tap a piece, then the square it goes to; only legal moves are taken, and a pawn reaching the last rank asks which piece it becomes. "Add moves at the end" puts each move in "Moves to add, in order"; "Change move n" (once a move number is given under "Undo or change a move") puts it in "Should be". Nothing changes in the game until you press the button under the board, or the form's own button. "One move back" takes off the last move you put on.
+- **Type the moves** from the scoresheet, like `Nf3 Nc6 Bb5`. Typing and tapping fill the same field, so you can mix them.
 - **Undo last move** and **Change a move.** The spectators' copy is corrected too.
 - **Start from a position**, for a resumed game, or when nothing else helps.
 - **Pause sending.** The board is followed but nothing goes out until you resume.
