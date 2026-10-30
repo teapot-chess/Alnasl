@@ -4,7 +4,7 @@ defmodule Alnasl.MixProject do
   def project do
     [
       app: :alnasl,
-      version: "0.13.0",
+      version: "0.14.0",
       elixir: "~> 1.19",
       elixirc_paths: elixirc_paths(Mix.env()),
       start_permanent: Mix.env() == :prod,
@@ -215,7 +215,7 @@ defmodule Alnasl.MixProject do
       # bridge that brings a hall's boards here from elsewhere. Pinned by tag,
       # as OpenPairings pins Ainalrami: a new Arkab reaches Alnasl when this
       # line says so, not when somebody pushes.
-      {:arkab, github: "teapot-chess/Arkab", tag: "v0.5.0"}
+      {:arkab, github: "teapot-chess/Arkab", tag: "v0.5.2"}
     ] ++ uart()
   end
 
