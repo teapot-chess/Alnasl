@@ -19,7 +19,10 @@
  *      in a folder with the installer's name - see "The data" below.
  *   3. Starts `bin\alnasl.bat start` with no window, in a job object, so
  *      that the server cannot outlive this process however it ends.
- *   4. Waits until the port answers, then opens the browser.
+ *   4. Opens the browser at once, on the start screen (rel/start/start.html,
+ *      see "the start screen" below), which moves on to the program when the
+ *      port answers. If the start screen cannot be shown, waits until the
+ *      port answers and opens the browser then, as before.
  *   5. Stays, as the stop button. Closing it asks first: while Alnasl is
  *      stopped the boards are not read, and a move not read is a move the
  *      arbiter types in later.
@@ -1463,6 +1466,90 @@ static void build_details(HWND wnd)
     SendMessageW(g_copy_button, WM_SETFONT, (WPARAM)g_font, TRUE);
     SendMessageW(g_folder_button, WM_SETFONT, (WPARAM)g_font, TRUE);
 }
+/* --- the start screen ------------------------------------------------------
+ * rel/start/start.html, copied (every start, so an update replaces it) to
+ * <data>\start\start.html with start-status.js beside it, and opened in the
+ * browser as soon as the server process exists. The page asks the server
+ * itself; this file tells it what only this process knows: whether it is the
+ * first start (no database yet), and that the server has died. Read the
+ * header of the page for why a file and not a second port. If any of it goes
+ * wrong - no page in the release, a folder that cannot be written - nothing
+ * is lost: the browser opens when the server answers, as it always did. */
+
+static WCHAR g_splash_page[MAXP], g_splash_status[MAXP], g_splash_tmp[MAXP];
+static BOOL g_splash_ok, g_first_run;
+
+static void splash_write(const char *state)
+{
+    char log8[MAXP * 3], json[MAXP * 7], num[16];
+    int n = 0, i;
+    HANDLE f;
+    DWORD written;
+
+    if (!g_splash_ok)
+        return;
+
+    utf8(log8, sizeof log8, g_log);
+    wsprintfA(num, "%d", g_port);
+
+    append(json, sizeof json, &n, "window.ALNASL_START={\"port\":");
+    append(json, sizeof json, &n, num);
+    append(json, sizeof json, &n, ",\"first\":");
+    append(json, sizeof json, &n, g_first_run ? "true" : "false");
+    append(json, sizeof json, &n, ",\"state\":\"");
+    append(json, sizeof json, &n, state);
+    append(json, sizeof json, &n, "\",\"log\":\"");
+    for (i = 0; log8[i]; i++) {
+        char c[3] = {log8[i], 0, 0};
+        if (log8[i] == '\\' || log8[i] == '"') {
+            c[0] = '\\';
+            c[1] = log8[i];
+        }
+        append(json, sizeof json, &n, c);
+    }
+    append(json, sizeof json, &n, "\"};\n");
+
+    /* Written beside and moved over: the page reads it every second, and
+     * should see the old file or the new one, never half of one. */
+    f = CreateFileW(g_splash_tmp, GENERIC_WRITE, FILE_SHARE_READ, NULL, CREATE_ALWAYS,
+                    FILE_ATTRIBUTE_NORMAL, NULL);
+    if (f == INVALID_HANDLE_VALUE)
+        return;
+    WriteFile(f, json, (DWORD)n, &written, NULL);
+    CloseHandle(f);
+    MoveFileExW(g_splash_tmp, g_splash_status, MOVEFILE_REPLACE_EXISTING);
+}
+
+/* Returns TRUE when the browser was sent to the page. */
+static BOOL splash_open(void)
+{
+    WCHAR dir[MAXP], src[MAXP], db[MAXP], data[MAXP];
+
+    if (g_background || GetEnvironmentVariableW(L"ALNASL_DATA", data, MAXP) == 0)
+        return FALSE;
+
+    join(dir, data, L"\\start");
+    CreateDirectoryW(dir, NULL);
+    join(g_splash_page, dir, L"\\start.html");
+    join(g_splash_status, dir, L"\\start-status.js");
+    join(g_splash_tmp, dir, L"\\start-status.tmp");
+    join(src, g_root, L"start.html");
+    join(db, data, L"\\alnasl.db");
+
+    if (!exists(src) || !CopyFileW(src, g_splash_page, FALSE))
+        return FALSE;
+
+    g_first_run = !exists(db);
+    g_splash_ok = TRUE;
+    splash_write("starting");
+
+    if ((INT_PTR)ShellExecuteW(NULL, L"open", g_splash_page, NULL, NULL, SW_SHOWNORMAL) <= 32) {
+        g_splash_ok = FALSE;
+        return FALSE;
+    }
+    return TRUE;
+}
+
 /* --- the window ------------------------------------------------------------ */
 
 static HWND control(const WCHAR *class, const WCHAR *text, DWORD style, int id, int x, int y,
@@ -1524,7 +1611,10 @@ static LRESULT CALLBACK window_proc(HWND wnd, UINT msg, WPARAM wp, LPARAM lp)
         g_running = TRUE;
         set_status(T(T_RUNNING), T(T_RUNNING_HINT));
         EnableWindow(g_open, TRUE);
-        if (!g_background)
+        /* The start screen moves itself on (it is told here, and asks the
+         * server too); a browser is opened only when it never was. */
+        splash_write("ready");
+        if (!g_background && !g_splash_ok)
             open_browser();
         /* Only the first start opens a browser by itself. */
         g_background = TRUE;
@@ -1536,6 +1626,7 @@ static LRESULT CALLBACK window_proc(HWND wnd, UINT msg, WPARAM wp, LPARAM lp)
 
     case WM_APP_FAILED:
         g_running = FALSE;
+        splash_write("stopped");
         SetWindowTextW(g_status, T(T_STOPPED));
         show_log_path(wp ? T_TIMEOUT : T_FAILED);
         SetWindowTextW(g_stop, T(T_CLOSE));
@@ -1552,6 +1643,7 @@ static LRESULT CALLBACK window_proc(HWND wnd, UINT msg, WPARAM wp, LPARAM lp)
             if (thread)
                 CloseHandle(thread);
         } else {
+            splash_write("stopped");
             SetWindowTextW(g_status, T(T_STOPPED));
             show_log_path(T_STOPPED_HINT);
             SetWindowTextW(g_stop, T(T_CLOSE));
@@ -1707,6 +1799,11 @@ int WINAPI WinMain(HINSTANCE inst, HINSTANCE prev, LPSTR cmdline, int show)
 
     create_window();
     start_server();
+
+    /* The browser, now, on the start screen; the server answers when it
+     * answers. The window steps aside so that the page is what is seen. */
+    if (splash_open())
+        ShowWindow(g_wnd, SW_SHOWMINNOACTIVE);
 
     /* After the window exists, so the thread always has somewhere to post
      * to. It asks nothing while the panel is closed. */

@@ -87,6 +87,13 @@ defmodule Alnasl.MixProject do
         )
     end
 
+    # The start screen the launchers open the browser on before the server
+    # answers. On every system: the Mac app copies this release into itself.
+    File.cp!(
+      Path.join([__DIR__, "rel", "start", "start.html"]),
+      Path.join(release.path, "start.html")
+    )
+
     File.write!(Path.join(release.path, "VERSION"), release.version <> "\n")
     release
   end
