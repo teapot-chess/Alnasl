@@ -37,6 +37,14 @@ De stelling groot, de zettenlijst, en het gereedschap. De pijltoetsen links en r
 
 Als bord en partij uit elkaar gelopen zijn, toont de pagina wat het bord leest naast wat zeker is. Eén geval krijgt een naam: het bord staat in de beginstelling terwijl de partij al zetten heeft. Dat is bijna altijd een nieuwe partij, opgezet op een bord dat nog aan de oude gekoppeld is; start een nieuwe partij met "Nieuwe partij", of zet de stelling terug als de stukken omgevallen zijn.
 
+## Namen op een box zonder OpenPairings {#names}
+
+Een box zonder OpenPairings speelt zijn borden in het eigen toernooi van de box, dus daar vult niets de spelers in. Typ ze op de pagina van het bord: open het bord (klik erop op Live of op Borden), en vul in het paneel "Deze partij", onder "Spelers", "Wit" en "Zwart" in en druk op "De namen opslaan". Alleen een arbiter of de eigenaar ziet het paneel. Op een box zonder accounts ziet iedereen het, wat de schakelaar "Geavanceerde functies tonen" ook zegt. De partij draagt die namen dan overal mee: de uitslagensite, Lichess en de PGN.
+
+De andere manier is een PGN aan het bord toewijzen: de tags White en Black geven de namen.
+
+In een toernooi dat aan OpenPairings gekoppeld is, staat het formulier voor de namen er niet. De namen komen uit de paring.
+
 ## Zetten die Alnasl afgeleid heeft {#reconstructed}
 
 Heeft Alnasl niet elke zet gezien, dan leidt het ze af uit de stelling, zodat het bord mee blijft. Elke zet zo is in de lijst gemarkeerd:
