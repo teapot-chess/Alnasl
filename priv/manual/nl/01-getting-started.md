@@ -99,6 +99,42 @@ Niet in de map van het programma. Windows: `%LOCALAPPDATA%\AlnaslData` (typ dat 
 
 Instellingen, Dit kastje, "Deze kopie van Alnasl", zegt de versie, hoe deze kopie gestart is en waar de gegevensmap staat. Een tweede kopie die anders gestart is op dezelfde computer heeft een eigen gegevensmap: eigen borden, nummers en toernooien.
 
+## Een kastje zonder netwerk {#setup-hotspot}
+
+Een kastje zonder kabel en zonder wifi die hij kent, is vanuit de zaal niet te bereiken. Daarom maakt hij zijn eigen wifi-netwerk. Maak er verbinding mee met je telefoon of laptop, dan gaat de installatiepagina van het kastje open. Daar kies je de wifi van de zaal. Op een Arkab-kastje stel je daar ook de pincode op afstand in en plak je de koppellink. Hiervoor heeft het kastje geen scherm en geen toetsenbord nodig.
+
+Het netwerk heet `Alnasl-setup-XXXX`; de vier tekens achteraan horen bij het kastje. Het is altijd met een wachtwoord beveiligd (WPA2), nooit open. Het verschijnt ongeveer een minuut nadat het kastje start als er geen netwerk is, en het verdwijnt zodra het kastje op de wifi van de zaal zit. Met een netwerkkabel is het er de eerste tien minuten na het starten, daarna verdwijnt het. Zolang het aan staat, zegt de statusregel op het scherm van het kastje `setup hotspot`.
+
+### Er verbinding mee maken {#joining-the-hotspot}
+
+Het wachtwoord staat in het bestand `alnasl-hotspot.txt` op de kleine FAT-partitie van de sd-kaart, de partitie die op elke pc gewoon zichtbaar is. Open het bestand en lees de regel `PASSWORD=`. Het kastje schrijft daar bij de eerste start zelf een wachtwoord in (10 tekens, zonder 0, O, 1 of l om je in de war te brengen), en de naam van het netwerk op de regel `SSID=`.
+
+Of scan `alnasl-hotspot-qr.png`, de QR-afbeelding naast dat bestand, met de camera van je telefoon. De telefoon maakt dan verbinding zonder dat je iets typt. Druk hem af en plak hem op de kast.
+
+Zodra je verbonden bent, opent de telefoon de installatiepagina vanzelf. Doet hij dat niet, open dan `http://10.42.0.1` in de browser en typ zelf het `http://` ervoor. Op een iPhone: komt de pagina nooit, kies dan Dit netwerk vergeten, verbind opnieuw en controleer of Automatisch inloggen aan staat voor dat netwerk.
+
+### Een eigen wachtwoord {#hotspot-password}
+
+Voor de eerste start kun je zelf een wachtwoord achter `PASSWORD=` typen: 8 tot 63 gewone toetsenbordtekens, zonder aanhalingstekens. Wil je op elk kastje hetzelfde wachtwoord, schrijf dan op elke kaart hetzelfde. Een wachtwoord dat te kort of te lang is, vervangt het kastje door een ander, en het bestand zegt dat erbij.
+
+Later wijzigen kan op dezelfde manier. Het geldt vanaf de volgende start. `HOTSPOT=off` zet de hotspot helemaal uit.
+
+Wie het wachtwoord kan lezen of de QR-code kan scannen, kan de installatiepagina openen, en die kan de wifi van het kastje wijzigen. Hou de sticker bij het kastje, niet op een gedeelde schijf.
+
+### Op de installatiepagina {#setup-page}
+
+- **Wifi.** De pagina zet de netwerken op een rij die hij ziet. Kies het netwerk van de zaal of typ de naam, vul het wachtwoord in en druk op Verbinden. Het kastje verlaat zijn eigen netwerk en probeert het. Lukt het, dan blijft de hotspot uit, en de regel die bij het einde van `alnasl-hotspot.txt` met `# Box:` begint, zegt waar het kastje naartoe is gegaan. Lukt het niet, dan komt de hotspot binnen ongeveer een minuut terug, en de pagina zegt waarom: verkeerd wachtwoord, netwerk niet gevonden, geweigerd of geen adres.
+- **Pincode op afstand en koppellink (alleen een Arkab-kastje).** Zie de volgende sectie, of stel de pincode hier in.
+- **Alleen lezen.** De rol van het kastje, zijn adressen, waar je hem daarna bereikt, en een link "open in je browser" naar `http://10.42.0.1/`, voor als het aanmeldvenster te krap is.
+
+### De pincode op afstand van Arkab {#arkab-pin}
+
+Op een Arkab-kastje kan een browser elders in de zaal Arkab beheren nadat je een pincode hebt ingetypt. Om de pincode in te stellen, open je `alnasl-arkab-pin.txt` op de bootpartitie en typ je hem achter `PIN=`. Steek daarna de kaart terug in het kastje. De pincode moet 4 tot 64 tekens zijn. Letters, cijfers en andere gewone toetsenbordtekens zijn goed. Hij mag niet beginnen of eindigen met een spatie of een aanhalingsteken, en hij mag geen besturingstekens bevatten. De woorden `remove` en `verwijderen` zijn geen pincode: die betekenen "de pincode weghalen".
+
+Het kastje neemt de pincode over bij de volgende start. Hij geeft hem door aan Arkab en maakt de regel `PIN=` daarna weer leeg, zodat de pincode niet zomaar op de kaart te lezen is. Onderaan het bestand schrijft het kastje een regel `# Last result:`. Daarin staat of de pincode is ingesteld, waarom hij is geweigerd, of dat hij nog niet doorgegeven kon worden en bij de volgende start opnieuw wordt geprobeerd. Lees die regel als je de kaart in een pc steekt.
+
+Om de pincode weg te halen, schrijf je `PIN=remove` en start je het kastje. Je kunt de pincode ook op de installatiepagina instellen, zonder de kaart aan te raken.
+
 ## Voor de ronde {#before-the-round}
 
 Elke keer dezelfde korte lijst. Bij elke stap zegt een pagina in woorden wat er mis is, als er iets mis is.

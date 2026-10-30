@@ -20,6 +20,7 @@ section, word for word. See [docs/releasing.md](docs/releasing.md).
 ## [Unreleased]
 
 - [Docs] **Bridges, "Wireless in one hall".** The manual said a bridge was for the next room or another town, which undersold it: one bridge per group of tables on the hall's Wi-Fi, all joined to the same hall, keeps the cables off the floor. A tester pointed out the obvious; the manual now says it, in English and Dutch.
+- [Docs] **A box with no network, "Getting started".** A box that finds no network opens its own Wi-Fi, `Alnasl-setup-XXXX`, and the manual had no word on it. It now says how to join (the password on the SD card's boot partition, or the QR picture beside it), what the setup page does, how to set a password of your own, and how the Arkab remote PIN file works: its 4 to 64 characters, what the box writes back on its last line, and how to remove the PIN. English and Dutch.
 
 ## [0.13.0] - 2026-10-28
 
