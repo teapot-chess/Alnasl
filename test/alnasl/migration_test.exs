@@ -226,4 +226,60 @@ defmodule Alnasl.MigrationTest do
     assert Jason.decode!(round) == 4
     assert %{rows: []} = Repo.query!("SELECT name FROM sqlite_master WHERE name = 'tournaments'")
   end
+
+  describe "advanced features already in use" do
+    @advanced_in_use 20_261_030_120_000
+
+    defp before_advanced(pid) do
+      Ecto.Migrator.run(Repo, @path, :up,
+        to_exclusive: @advanced_in_use,
+        dynamic_repo: pid,
+        log: false
+      )
+    end
+
+    defp ui_mode_rows, do: Repo.query!("SELECT value FROM settings WHERE key = 'ui_mode'").rows
+
+    test "a box that moved a fine-tuning knob is given advanced features", %{pid: pid} do
+      before_advanced(pid)
+      setting("capture_cap_mb", 900)
+      upgrade(pid)
+
+      assert ui_mode_rows() == [[~s("full")]]
+    end
+
+    test "a box with fair play switched on is given advanced features", %{pid: pid} do
+      before_advanced(pid)
+
+      Repo.query!(
+        "INSERT INTO fair_play_settings (hall_id, enabled, nodes, inserted_at, updated_at) VALUES (1, 1, 1000000, ?, ?)",
+        [@now, @now]
+      )
+
+      upgrade(pid)
+
+      assert ui_mode_rows() == [[~s("full")]]
+    end
+
+    test "settings saved at their defaults do not count", %{pid: pid} do
+      before_advanced(pid)
+      setting("capture_cap_mb", 500)
+      setting("clock_heartbeat_s", 20)
+      setting("auto_suggest", false)
+      setting("new_game_on_setup", "unpaired")
+      setting("tracker", %{})
+      upgrade(pid)
+
+      assert ui_mode_rows() == []
+    end
+
+    test "a box that chose simple mode keeps its choice", %{pid: pid} do
+      before_advanced(pid)
+      setting("ui_mode", "simple")
+      setting("capture_cap_mb", 900)
+      upgrade(pid)
+
+      assert ui_mode_rows() == [[~s("simple")]]
+    end
+  end
 end

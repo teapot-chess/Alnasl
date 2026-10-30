@@ -201,10 +201,12 @@ defmodule AlnaslWeb.WalkLive do
           </.link>
         </div>
 
+        <%!-- Sound is an advanced feature: the switch (and so the beep) is there
+              only with advanced features on (`AlnaslWeb.Mode`) --%>
         <%!-- ignored by the patch: the hook owns what this shows, and a
               re-render must not put "Sound off" back over a context that is
               running --%>
-        <div id="walk-sound" class="walk-sound" phx-update="ignore">
+        <div :if={!@simple?} id="walk-sound" class="walk-sound" phx-update="ignore">
           <button
             id="walk-mute"
             type="button"
@@ -249,7 +251,7 @@ defmodule AlnaslWeb.WalkLive do
         // it) and every later beep asks it to resume first. Web Audio needs
         // no secure context; vibrate exists on Android only.
         const KEY = "alnasl-walk-sound"
-        const wanted = () => { try { return localStorage.getItem(KEY) === "1" } catch (_e) { return false } }
+        const wanted = () => { if (!document.getElementById("walk-mute")) return false; try { return localStorage.getItem(KEY) === "1" } catch (_e) { return false } }
         const remember = (on) => { try { localStorage.setItem(KEY, on ? "1" : "0") } catch (_e) { /* private mode */ } }
         const context = () => {
           const Ctx = window.AudioContext || window.webkitAudioContext

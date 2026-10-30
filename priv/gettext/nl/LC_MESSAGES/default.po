@@ -9411,8 +9411,8 @@ msgstr "Scherm"
 #: lib/alnasl_web/components/layouts.ex:732
 #: lib/alnasl_web/components/layouts.ex:854
 #, elixir-autogen, elixir-format
-msgid "Show everything"
-msgstr "Alles tonen"
+msgid "Show advanced features"
+msgstr "Geavanceerde functies tonen"
 
 #: lib/alnasl_web/components/layouts.ex:837
 #, elixir-autogen, elixir-format
@@ -9431,8 +9431,8 @@ msgstr "Klein scherm"
 
 #: lib/alnasl_web/components/layouts.ex:842
 #, elixir-autogen, elixir-format
-msgid "Switch back to simple mode whenever you like: Show everything, in the account menu."
-msgstr "Je zet de eenvoudige modus terug wanneer je wilt: Alles tonen, in het accountmenu."
+msgid "Switch back to simple mode whenever you like: Show advanced features, in the account menu."
+msgstr "Je zet de eenvoudige modus terug wanneer je wilt: Geavanceerde functies tonen, in het accountmenu."
 
 #: lib/alnasl_web/components/layouts.ex:835
 #, elixir-autogen, elixir-format

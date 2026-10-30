@@ -7,7 +7,7 @@ defmodule AlnaslWeb.Mode do
   (touch a board, it gets the next table), the halls and their bridges,
   the setup that gets a tournament onto the boards (the wizard,
   Tournaments, Connections, Updates on a box), and the manual. Full mode
-  ("Show everything") adds the rest: PGN, the outbox, the log, recordings,
+  ("Show advanced features") adds the rest: PGN, the outbox, the log, recordings,
   the phone page for finding a board in the hall, fair play, support, and
   the advanced Setup sections. Nothing is removed in simple mode; the pages are left out of
   the menu, and a link to one shows `AlnaslWeb.Layouts.full_mode_notice/1`
