@@ -3247,6 +3247,206 @@ tr.sought td:first-child {
   width: 100%;
 }
 
+/* The candidates as arrows on one board. The colours are the same in every
+   theme: the squares under them barely change, and each arrow carries a
+   pale rim and a number, so no colour has to be told apart on its own. */
+:root {
+  --arrow-0: #1f63c6;
+  --arrow-1: #d35400;
+  --arrow-2: #7b3fd6;
+  --arrow-3: #13804a;
+  --arrow-4: #c0186f;
+  --arrow-5: #00798a;
+  --arrow-rim: rgba(255, 255, 255, 0.85);
+  --tap-sel: rgba(31, 99, 198, 0.38);
+  --tap-dot: rgba(20, 30, 40, 0.42);
+}
+
+.choice-arrows {
+  margin: 0.6rem 0;
+  max-width: 24rem;
+}
+
+.choice-arrows figcaption {
+  font-size: 0.8125rem;
+  color: var(--quiet);
+  margin-bottom: 0.35rem;
+}
+
+.tone-0 { --arrow: var(--arrow-0); }
+.tone-1 { --arrow: var(--arrow-1); }
+.tone-2 { --arrow: var(--arrow-2); }
+.tone-3 { --arrow: var(--arrow-3); }
+.tone-4 { --arrow: var(--arrow-4); }
+.tone-5 { --arrow: var(--arrow-5); }
+
+.board .arrow {
+  cursor: pointer;
+  opacity: 0.82;
+  transition: opacity 0.15s ease;
+}
+
+.board .arrow.primary,
+.board .arrow:hover {
+  opacity: 1;
+}
+
+.board .arrow-halo {
+  stroke: var(--arrow-rim);
+  stroke-width: 0.26;
+  stroke-linecap: round;
+}
+
+.board .arrow.primary .arrow-halo {
+  stroke-width: 0.32;
+}
+
+.board .arrow-line {
+  stroke: var(--arrow);
+  stroke-width: 0.15;
+  stroke-linecap: round;
+  stroke-dasharray: 0.28 0.14;
+}
+
+.board .arrow.primary .arrow-line {
+  stroke-width: 0.21;
+  stroke-dasharray: none;
+}
+
+.board .arrow-head {
+  fill: var(--arrow);
+  stroke: var(--arrow-rim);
+  stroke-width: 0.05;
+  stroke-linejoin: round;
+  paint-order: stroke;
+}
+
+/* A finger is wider than an arrow: the line it may land on is too. */
+.board .arrow-hit {
+  stroke: transparent;
+  stroke-width: 0.6;
+  stroke-linecap: round;
+  pointer-events: stroke;
+}
+
+.board .arrow-badge {
+  fill: var(--arrow);
+  stroke: var(--arrow-rim);
+  stroke-width: 0.05;
+}
+
+.board .arrow .arrow-n {
+  font-size: 0.3px;
+  font-weight: 800;
+  fill: #fff;
+  opacity: 1;
+  pointer-events: none;
+}
+
+.arrow-key {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 1.5rem;
+  height: 1.5rem;
+  border-radius: 999px;
+  background: var(--arrow);
+  color: #fff;
+  font-weight: 800;
+  font-size: 0.8125rem;
+}
+
+/* --- playing a move on the board instead of typing it ----------------------- */
+
+.play-tool {
+  grid-column: 1 / -1;
+}
+
+.play-seg {
+  align-self: flex-start;
+  max-width: 100%;
+  flex-wrap: wrap;
+}
+
+.play-seg button {
+  min-height: 2.75rem;
+}
+
+.play-seg button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.play-board {
+  width: 100%;
+  max-width: 26rem;
+}
+
+.board.tappable {
+  touch-action: manipulation;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.board .tap-hit {
+  fill: transparent;
+  cursor: pointer;
+}
+
+.board .tap-hit:hover {
+  fill: rgba(255, 255, 255, 0.12);
+}
+
+.board .tap-sel {
+  fill: var(--tap-sel);
+}
+
+.board .tap-dot {
+  fill: var(--tap-dot);
+  pointer-events: none;
+}
+
+.board .tap-ring {
+  fill: none;
+  stroke: var(--tap-dot);
+  stroke-width: 0.08;
+  pointer-events: none;
+}
+
+.promo-pick {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.promo-piece {
+  width: 3rem;
+  height: 3rem;
+  padding: 0.25rem;
+  border: 1px solid var(--rule);
+  border-radius: var(--radius);
+  background: var(--sq-light);
+  cursor: pointer;
+  transition: border-color 0.15s ease, transform 0.15s ease;
+}
+
+.promo-piece:hover,
+.promo-piece:focus-visible {
+  border-color: var(--accent);
+  transform: translateY(-1px);
+}
+
+.promo-piece svg {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+.tool .play-note {
+  color: var(--bad);
+}
+
 /* --- finishing a game and beginning the next ---------------------------------- */
 
 .tile-wrap {

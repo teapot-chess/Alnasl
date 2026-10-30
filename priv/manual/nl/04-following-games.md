@@ -44,7 +44,7 @@ Heeft Alnasl niet elke zet gezien, dan leidt het ze af uit de stelling, zodat he
 - **Afgeleid** (oranje, een ruit): slechts één reeks zetten past.
 - **Geraden** (rood, een vraagteken): er pasten er meer en Alnasl nam er één.
 
-De tegel en de lijst Borden tellen ze. Tik op een geraden zet, of op "Kijk ze na" op de pagina van het bord, en Alnasl vraagt welke zet het was, één vraag per keer, elke mogelijkheid op een klein bord, de meest waarschijnlijke eerst. "Laat het zoals het staat" is één tik. Past er geen andere reeks, dan zegt het dat en biedt het aan de zetten te houden, terug te nemen, of naar de plek te gaan waar je de juiste zetten typt.
+De tegel en de lijst Borden tellen ze. Tik op een geraden zet, of op "Kijk ze na" op de pagina van het bord, en Alnasl vraagt welke zet het was, één vraag per keer, elke mogelijkheid op een klein bord, de meest waarschijnlijke eerst. Boven de mogelijkheden toont één bord de stelling voor de zet, met een pijl voor elke mogelijkheid: genummerd zoals in de lijst, elk in een eigen kleur, de meest waarschijnlijke vol en de andere gestreept. Tik een pijl of een mogelijkheid aan om te antwoorden. "Laat het zoals het staat" is één tik. Past er geen andere reeks, dan zegt het dat en biedt het aan de zetten te houden, terug te nemen, of naar het bord te gaan waar je de juiste zetten speelt.
 
 De uitslagensite en Lichess krijgen deze zetten als alle andere, zonder markering. Een correctie vervangt de partij daar. Het aantal afgeleide en geraden zetten reist met de partij mee naar OpenPairings, zodat de arbiter daar ziet hoeveel van een partij gelezen is en hoeveel afgeleid.
 
@@ -75,7 +75,8 @@ Sommige meldingen noemen wat het bord toont:
 Op de pagina van het bord.
 
 - **Het bord klopt - hier hersynchroniseren.** Zoekt dieper en langer naar de gemiste zetten en zegt welke het toevoegde. Passen er meer reeksen, dan wordt er één genomen en als gok gemarkeerd, zodat jij het kunt nakijken. Zetten die je net met Ongedaan maken hebt teruggenomen, zet het niet terug.
-- **De zetten typen** van het partijformulier, zoals `Pf3 Pc6 Lb5`.
+- **De zetten op het bord spelen.** Tik een stuk aan, dan het veld waar het heen gaat; alleen geldige zetten worden aangenomen, en een pion op de laatste rij vraagt welk stuk hij wordt. "Zetten achteraan toevoegen" zet elke zet in "Toe te voegen zetten, in volgorde"; "Zet n wijzigen" (zodra je onder "Een zet ongedaan maken of wijzigen" een zetnummer hebt opgegeven) zet hem in "Hoort te zijn". Er verandert niets aan de partij tot je op de knop onder het bord drukt, of op die van het formulier. "Eén zet terug" haalt de laatste zet die je erop zette er weer af.
+- **De zetten typen** van het partijformulier, zoals `Pf3 Pc6 Lb5`. Typen en aantikken vullen hetzelfde veld, dus je kunt ze door elkaar gebruiken.
 - **Laatste zet ongedaan maken** en **Een zet wijzigen.** De kopie van de toeschouwers wordt ook verbeterd.
 - **Starten vanuit een stelling**, voor een hervatte partij, of als niets anders helpt.
 - **Versturen pauzeren.** Het bord wordt gevolgd, maar er gaat niets weg tot je hervat.

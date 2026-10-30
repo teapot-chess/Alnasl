@@ -218,6 +218,10 @@ defmodule AlnaslWeb.CoreComponents do
   attr :coords, :boolean, default: false
   attr :label, :string, default: nil
   attr :id, :string, default: nil
+  attr :class, :any, default: nil
+  # Drawn over the pieces, in the board's own units (a square is 1 by 1):
+  # arrows, the dots of a picked-up piece, the squares to tap.
+  slot :inner_block
 
   def board(assigns) do
     pieces =
@@ -240,7 +244,7 @@ defmodule AlnaslWeb.CoreComponents do
     ~H"""
     <svg
       id={@id}
-      class={["board", @position == nil && "blank"]}
+      class={["board", @position == nil && "blank", @class]}
       viewBox="0 0 8 8"
       role="img"
       aria-label={@label || gettext("Chess board")}
@@ -270,9 +274,108 @@ defmodule AlnaslWeb.CoreComponents do
         height="0.9"
         class="diff"
       />
+      {render_slot(@inner_block)}
     </svg>
     """
   end
+
+  @doc """
+  An arrow from one square to another, drawn inside `board/1`: a candidate
+  move. `tone` (0-5) is its colour, `n` the number on it - the same number
+  as beside the move in the list, since a colour alone says nothing to a
+  reader who cannot tell red from green. `primary` draws it solid and
+  heavier (the likeliest); the others are dashed. With `event`, a click on
+  it sends that event with `phx-value-san`.
+
+  `shift` moves the whole arrow sideways, for the same piece's moves along
+  one line (d3 and d4), which would otherwise lie on top of each other.
+  `nudge` moves only the number sideways, for two arrows whose numbers
+  would sit on each other.
+  """
+  attr :id, :string, default: nil
+  attr :from, :integer, required: true
+  attr :to, :integer, required: true
+  attr :n, :integer, required: true
+  attr :tone, :integer, default: 0
+  attr :primary, :boolean, default: false
+  attr :label, :string, default: nil
+  attr :event, :string, default: nil
+  attr :san, :string, default: nil
+  attr :nudge, :float, default: 0.0
+  attr :shift, :float, default: 0.0
+
+  def arrow(assigns) do
+    assigns = assign(assigns, arrow_geometry(assigns))
+
+    ~H"""
+    <g
+      id={@id}
+      class={["arrow", "tone-#{@tone}", @primary && "primary"]}
+      phx-click={@event}
+      phx-value-san={@san}
+    >
+      <title :if={@label}>{@label}</title>
+      <line x1={@x1} y1={@y1} x2={@bx} y2={@by} class="arrow-halo" />
+      <polygon points={@head} class="arrow-head" />
+      <line x1={@x1} y1={@y1} x2={@bx} y2={@by} class="arrow-line" />
+      <line x1={@x1} y1={@y1} x2={@tx} y2={@ty} class="arrow-hit" />
+      <circle cx={@nx} cy={@ny} r="0.24" class="arrow-badge" />
+      <text x={@nx} y={@ny} class="arrow-n" text-anchor="middle" dominant-baseline="central">
+        {@n}
+      </text>
+    </g>
+    """
+  end
+
+  @doc """
+  Where an arrow's number goes, `{x, y}` in board units, before any nudge:
+  three-fifths of the way along it, `shift` included. The same pawn's two
+  moves (d3, d4) then keep their numbers apart, which the tail does not.
+  """
+  def arrow_label_point(from, to, shift \\ 0.0) do
+    {{x1, y1}, {x2, y2}, _unit, _perp} = ends(from, to, shift)
+    {x1 + (x2 - x1) * 0.6, y1 + (y2 - y1) * 0.6}
+  end
+
+  # The two ends of an arrow, moved `shift` sideways, with its direction
+  # and the direction square to it.
+  defp ends(from, to, shift) do
+    {x1, y1} = centre(from)
+    {x2, y2} = centre(to)
+    length = max(:math.sqrt((x2 - x1) ** 2 + (y2 - y1) ** 2), 0.001)
+    {ux, uy} = {(x2 - x1) / length, (y2 - y1) / length}
+    {px, py} = {-uy, ux}
+    {{x1 + px * shift, y1 + py * shift}, {x2 + px * shift, y2 + py * shift}, {ux, uy}, {px, py}}
+  end
+
+  defp arrow_geometry(%{from: from, to: to, primary: primary, nudge: nudge, shift: shift}) do
+    {{x1, y1}, {x2, y2}, {ux, uy}, {px, py}} = ends(from, to, shift)
+    half = if primary, do: 0.27, else: 0.22
+
+    # The point stops short of the centre, so the piece there is still seen.
+    {tx, ty} = {x2 - ux * 0.12, y2 - uy * 0.12}
+    {bx, by} = {tx - ux * 0.4, ty - uy * 0.4}
+    {lx, ly} = arrow_label_point(from, to, shift)
+
+    head =
+      [{tx, ty}, {bx + px * half, by + py * half}, {bx - px * half, by - py * half}]
+      |> Enum.map_join(" ", fn {x, y} -> "#{r(x)},#{r(y)}" end)
+
+    %{
+      x1: r(x1 + ux * 0.18),
+      y1: r(y1 + uy * 0.18),
+      bx: r(bx),
+      by: r(by),
+      tx: r(tx),
+      ty: r(ty),
+      head: head,
+      nx: r(lx + px * nudge),
+      ny: r(ly + py * nudge)
+    }
+  end
+
+  defp centre(square), do: {rem(square, 8) + 0.5, div(square, 8) + 0.5}
+  defp r(value), do: Float.round(value * 1.0, 3)
 
   defp symbol({colour, kind}), do: Atom.to_string(colour) <> String.upcase(Atom.to_string(kind))
 
