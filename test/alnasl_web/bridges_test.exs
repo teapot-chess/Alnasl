@@ -100,6 +100,32 @@ defmodule AlnaslWeb.BridgesTest do
              |> post("/join/#{join.code}", Jason.encode!(@identity))
              |> json_response(410)
     end
+
+    test "an address guessing codes is made to wait; join codes come from strong randomness" do
+      Alnasl.Takeover.RateLimit.reset()
+      on_exit(&Alnasl.Takeover.RateLimit.reset/0)
+
+      guess = fn code ->
+        %{build_conn() | remote_ip: {192, 0, 2, 77}}
+        |> put_req_header("content-type", "application/json")
+        |> post("/join/" <> code, Jason.encode!(@identity))
+      end
+
+      for _ <- 1..20, do: assert(guess.("AAA-BBBB").status == 410)
+
+      {:ok, join} = Bridges.create_join()
+      limited = guess.(join.code)
+      assert limited.status == 429
+      assert [_seconds] = get_resp_header(limited, "retry-after")
+
+      # Another address is not held up by this one.
+      assert build_conn()
+             |> put_req_header("content-type", "application/json")
+             |> post("/join/" <> join.code, Jason.encode!(@identity))
+             |> json_response(200)
+
+      assert join.code =~ ~r/^[2-9A-HJKMNP-Z]{3}-[2-9A-HJKMNP-Z]{4}$/
+    end
   end
 
   describe "The Bridges tab of the hall page" do

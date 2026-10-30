@@ -116,3 +116,8 @@ config :arkab,
 # the tests answer those from priv/contracts/vendor and never from GitHub
 # (Alnasl.Contract).
 config :ex_json_schema, :remote_schema_resolver, {Alnasl.Contract, :resolve}
+
+# Phoenix's test requests ask for www.example.com from 127.0.0.1; on a box
+# that name would be a rebound stranger (`AlnaslWeb.Hall.local_request?/1`).
+# Here it is the box's own browser, as every test before the check assumed.
+config :alnasl, local_hosts: ["www.example.com"]

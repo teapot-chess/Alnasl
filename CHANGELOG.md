@@ -19,6 +19,10 @@ section, word for word. See [docs/releasing.md](docs/releasing.md).
 
 ## [Unreleased]
 
+- [Security] **Loopback is the box only under the box's own name.** A box without accounts let any request from 127.0.0.1 past the PIN. A web page open in a browser on the same computer could point its own name at 127.0.0.1 (DNS rebinding) and arrive from loopback, as its own origin, with everything readable; it was believed. The exemption now also wants a `Host` of `localhost`, a loopback address or the computer's own name, and no forwarding header, since a proxy on the box connects from loopback too and is not anybody's kiosk. Everything else gives the PIN, the box's browser included if it insists on another name. `AlnaslWeb.Hall.local_request?/1`.
+- [Security] **Password sign-in is throttled.** It wasn't, which made the password the only thing standing between a guesser and an account, with no clock running. Ten wrong passwords in a quarter of an hour, per address or per account, and further tries get a 429 and "Too many wrong passwords", the right one included. Only failures count, so a hall signing in behind one router is not turned away. Same counter as the takeover pairing (`Alnasl.Takeover.RateLimit`, now with `peek/4`).
+- [Security] **Join codes, pairing codes and temporary passwords come from `:crypto.strong_rand_bytes/1`.** They came from `Enum.random/1`, which is honest about being predictable if nobody asks. One byte per character, with rejection sampling so no character is favoured (`Alnasl.SecretCode`). Bridge join codes that do not work are also counted: 20 per address in ten minutes, then a 429.
+
 ## [0.14.0] - 2026-10-30
 
 - [Change] **Arkab 0.5.2 inside.** Serial boards get DTR and RTS switched on when their port opens, which on a Mac is the difference between a loop of DGT boards and a loop of half-sentences; the log now says when a line drops mid-answer. The bridge's own status page fits a 3.5 inch screen, which Alnasl does not use.

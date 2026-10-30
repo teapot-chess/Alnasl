@@ -83,6 +83,8 @@ A hall that still has bridges, tournaments or a connection to OpenPairings is no
 
 ## Signing in {#signing-in}
 
+Ten wrong passwords in a quarter of an hour, from one address or for one account, and the sign-in page says "Too many wrong passwords" and how many minutes to wait; until then the right password waits too. Signing in with 02cloud or the QR code is not held up.
+
 ### With 02cloud {#sign-in-with-02cloud}
 
 Where the deployment has set it up, the sign-in page has a "Sign in with 02cloud" button. It signs in the account with the same verified address, and links the two the first time. It makes no account by itself.

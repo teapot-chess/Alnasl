@@ -81,7 +81,7 @@ defmodule AlnaslWeb.Hall do
   before it.
   """
   def gate(conn, _opts) do
-    local? = loopback?(conn.remote_ip)
+    local? = local_request?(conn)
     conn = put_session(conn, :local, local?)
 
     cond do
@@ -115,6 +115,56 @@ defmodule AlnaslWeb.Hall do
 
   @doc "May a browser in on a box without accounts: the box itself, the PIN given, or no PIN."
   def allowed?(local?, unlocked), do: local? or unlocked == true or not Settings.pin_set?()
+
+  @doc """
+  Whether a request is the box's own browser: from the loopback address, to
+  a name only this machine answers to, and not through a proxy.
+
+  The address alone is not enough. A web page open in a browser on this
+  machine can point its own name at 127.0.0.1 once it has loaded (DNS
+  rebinding); the browser then sends it here from loopback, as the same
+  origin, and reads the answers. The `Host` it sends is still the page's
+  own name, which it cannot choose, so the exemption only holds for
+  `localhost`, the loopback addresses, and this machine's own host name.
+  Anything else from loopback is asked for the PIN like any other machine.
+  A proxy or tunnel on the box also connects from loopback, and says so
+  with a forwarding header; that is not the box's browser either.
+  """
+  def local_request?(conn) do
+    loopback?(conn.remote_ip) and own_host?(conn.host) and not forwarded?(conn)
+  end
+
+  @forwarding ~w(x-forwarded-for forwarded x-real-ip cf-connecting-ip x-forwarded-host)
+  defp forwarded?(conn), do: Enum.any?(@forwarding, &(get_req_header(conn, &1) != []))
+
+  @doc "Whether `host` (a `Host` header without its port) names this machine and nothing else."
+  def own_host?(host) when is_binary(host) do
+    host = host |> String.trim_trailing(".") |> String.downcase()
+
+    host in ["localhost", "::1", "[::1]"] or String.ends_with?(host, ".localhost") or
+      loopback_literal?(host) or host in machine_names() or
+      host in Application.get_env(:alnasl, :local_hosts, [])
+  end
+
+  def own_host?(_host), do: false
+
+  defp loopback_literal?(host) do
+    case :inet.parse_ipv4strict_address(String.to_charlist(host)) do
+      {:ok, address} -> loopback?(address)
+      _not_ipv4 -> false
+    end
+  end
+
+  defp machine_names do
+    case :inet.gethostname() do
+      {:ok, name} ->
+        name = name |> to_string() |> String.downcase()
+        [name, name <> ".local"]
+
+      _error ->
+        []
+    end
+  end
 
   defp loopback?({127, _, _, _}), do: true
   defp loopback?({0, 0, 0, 0, 0, 0, 0, 1}), do: true
