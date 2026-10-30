@@ -103,7 +103,7 @@ Instellingen, Dit kastje, "Deze kopie van Alnasl", zegt de versie, hoe deze kopi
 
 Een kastje zonder kabel en zonder wifi die hij kent, is vanuit de zaal niet te bereiken. Daarom maakt hij zijn eigen wifi-netwerk. Maak er verbinding mee met je telefoon of laptop, dan gaat de installatiepagina van het kastje open. Daar kies je de wifi van de zaal. Op een Arkab-kastje stel je daar ook de pincode op afstand in en plak je de koppellink. Hiervoor heeft het kastje geen scherm en geen toetsenbord nodig.
 
-Het netwerk heet `Alnasl-setup-XXXX`; de vier tekens achteraan horen bij het kastje. Het is altijd met een wachtwoord beveiligd (WPA2), nooit open. Het verschijnt ongeveer een minuut nadat het kastje start als er geen netwerk is, en het verdwijnt zodra het kastje op de wifi van de zaal zit. Met een netwerkkabel is het er de eerste tien minuten na het starten, daarna verdwijnt het. Zolang het aan staat, zegt de statusregel op het scherm van het kastje `setup hotspot`.
+Het netwerk heet `Alnasl-setup-XXXX`; de vier tekens achteraan horen bij het kastje. Het is altijd met een wachtwoord beveiligd (WPA2), nooit open. Het verschijnt ongeveer een minuut nadat het kastje start als er geen netwerk is, en het verdwijnt zodra het kastje op de wifi van de zaal zit. Met een netwerkkabel is het er de eerste tien minuten na het starten, daarna verdwijnt het. Zolang het aan staat, zegt de statusregel op het scherm van het kastje `installatiehotspot`.
 
 ### Er verbinding mee maken {#joining-the-hotspot}
 
