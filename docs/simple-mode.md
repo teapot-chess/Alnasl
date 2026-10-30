@@ -63,7 +63,7 @@ Simple mode is about what is shown, not about who may do what. The roles
 
 ### The switch, and where it is kept
 
-"Show everything": a switch in the account menu, plus a button at the foot
+"Show advanced features" (formerly "Show everything"): a switch in the account menu, plus a button at the foot
 of the rail (and under More on a phone) while simple mode is on, plus the
 one on the note. All send the same event, `ui_mode`, which anybody who has
 the page may send (it is a personal choice, like the tour).
@@ -145,3 +145,19 @@ the most.
 - The other pages (Setup, Halls, a game) get the frame and the larger
   targets but no layout of their own; they scroll as on a phone.
 - The guided tour's pop-ups are positioned for the desktop frame.
+
+## Advanced features, and what counts as one
+
+"Show advanced features" is the simple/full switch under its plain name: the
+same `ui_mode`, the same places for it to be kept. Advanced is whatever most
+halls never open: the pages in the hidden list above, the Setup sections that
+tune the box, and the sound switch on the numbering page (`/boards/number`).
+The rule for new things: if a normal tournament does not need
+it, it waits behind the switch.
+
+Existing installations: the `ui_mode` migration put every box that was in use
+in full mode; `advanced_in_use` does the same for a box installed since, that
+never chose, and has fair play on or a non-default PIN, box name, tracker,
+capture limit, heartbeat or suggestions. A box that chose either way is left
+alone. The sound switch is kept in the browser and cannot be read by a
+migration; the beep stays off while its switch is hidden.

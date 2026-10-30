@@ -9411,7 +9411,7 @@ msgstr ""
 #: lib/alnasl_web/components/layouts.ex:732
 #: lib/alnasl_web/components/layouts.ex:854
 #, elixir-autogen, elixir-format
-msgid "Show everything"
+msgid "Show advanced features"
 msgstr ""
 
 #: lib/alnasl_web/components/layouts.ex:837
@@ -9431,7 +9431,7 @@ msgstr ""
 
 #: lib/alnasl_web/components/layouts.ex:842
 #, elixir-autogen, elixir-format
-msgid "Switch back to simple mode whenever you like: Show everything, in the account menu."
+msgid "Switch back to simple mode whenever you like: Show advanced features, in the account menu."
 msgstr ""
 
 #: lib/alnasl_web/components/layouts.ex:835

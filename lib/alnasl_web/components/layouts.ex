@@ -113,7 +113,7 @@ defmodule AlnaslWeb.Layouts do
             phx-click="ui_mode"
             phx-value-mode="full"
           >
-            <.icon name="more" /> <span>{gettext("Show everything")}</span>
+            <.icon name="more" /> <span>{gettext("Show advanced features")}</span>
           </button>
         </nav>
 
@@ -389,7 +389,7 @@ defmodule AlnaslWeb.Layouts do
             class="menu-item"
             phx-click={close_menu("tab-more") |> JS.push("ui_mode", value: %{mode: "full"})}
           >
-            <.icon name="more" /> <span>{gettext("Show everything")}</span>
+            <.icon name="more" /> <span>{gettext("Show advanced features")}</span>
           </button>
         </div>
       </div>
@@ -729,7 +729,7 @@ defmodule AlnaslWeb.Layouts do
             }
           >
             <span class="mode-switch-text">
-              <b>{gettext("Show everything")}</b>
+              <b>{gettext("Show advanced features")}</b>
               <span class="hint">
                 <%= if @simple? do %>
                   {gettext("Off: simple mode, the basics only.")}
@@ -840,7 +840,7 @@ defmodule AlnaslWeb.Layouts do
         </p>
         <p class="hint">
           {gettext(
-            "Switch back to simple mode whenever you like: Show everything, in the account menu."
+            "Switch back to simple mode whenever you like: Show advanced features, in the account menu."
           )}
         </p>
 
@@ -851,7 +851,7 @@ defmodule AlnaslWeb.Layouts do
             phx-click="ui_mode"
             phx-value-mode="full"
           >
-            {gettext("Show everything")}
+            {gettext("Show advanced features")}
           </.button>
 
           <.button id="full-mode-back" navigate={~p"/"}>{gettext("Back to the live boards")}</.button>
