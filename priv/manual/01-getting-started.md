@@ -99,6 +99,42 @@ Not in the program's folder. Windows: `%LOCALAPPDATA%\AlnaslData` (type that in 
 
 Setup, This box, "This copy of Alnasl", says the version, how this copy was started and where its data folder is. A second copy started another way on the same computer has a data folder of its own: its own boards, numbers and tournaments.
 
+## A box with no network {#setup-hotspot}
+
+A box with no cable and no Wi-Fi it knows cannot be reached from the hall, so it makes its own Wi-Fi network. Join it with a phone or a laptop and the box's setup page opens. There you choose the hall's Wi-Fi. On an Arkab box you also set its remote PIN and paste its join link. The box needs no screen and no keyboard for this.
+
+The network is called `Alnasl-setup-XXXX`; the four characters at the end belong to the box. It is always protected with a password (WPA2), never open. It appears about a minute after the box starts when there is no network, and goes away once the box is on the hall's Wi-Fi. With an Ethernet cable it is there for the first ten minutes after the start, then it goes away. While it is up, the status line on the box's screen says `setup hotspot`.
+
+### Joining it {#joining-the-hotspot}
+
+The password is in the file `alnasl-hotspot.txt` on the small FAT partition of the SD card, the one that shows up on any PC. Open the file and read the `PASSWORD=` line. The box writes a password there at its first start (10 characters, with no 0, O, 1 or l to confuse you) and the network's name on the `SSID=` line.
+
+Or scan `alnasl-hotspot-qr.png`, the QR picture that sits next to that file, with the phone's camera. The phone joins without any typing. Print it and stick it on the case.
+
+Once joined, the phone shows the setup page by itself. If it does not, open `http://10.42.0.1` in the browser, and type the `http://` yourself. On an iPhone, if the page never pops up, choose Forget This Network, join again, and check that Auto-Login is on for that network.
+
+### A password of your own {#hotspot-password}
+
+Before the first start you can type your own password after `PASSWORD=`: 8 to 63 plain keyboard characters, no quotes needed. If you want the same password on every box, write the same one on every card. A password that is too short or too long is replaced by the box, and the file says so.
+
+You can change it later in the same way. It is used from the next start on. `HOTSPOT=off` switches the hotspot off altogether.
+
+Whoever can read the password or scan the QR code can open the setup page, and the setup page can change the box's Wi-Fi. Keep the sticker with the box, not on a shared drive.
+
+### On the setup page {#setup-page}
+
+- **Wi-Fi.** The page lists the networks it sees. Pick the hall's network or type its name, enter the password and press Connect. The box leaves its own network and tries. If it works, the hotspot stays off, and the line that starts `# Box:` at the end of `alnasl-hotspot.txt` says where the box went. If it does not work, the hotspot comes back within about a minute, and the page says why: wrong password, network not found, refused, or no address.
+- **Remote PIN and join link (Arkab box only).** See the next section, or set the PIN here.
+- **Read-only.** The box's role, its addresses, where to reach it next, and an "open in your browser" link to `http://10.42.0.1/` for when the sign-in sheet is too cramped.
+
+### The Arkab remote PIN {#arkab-pin}
+
+On an Arkab box, a browser elsewhere in the hall can manage Arkab after you type a PIN. To set the PIN, open `alnasl-arkab-pin.txt` on the boot partition and type it after `PIN=`, then put the card back in the box. The PIN must be 4 to 64 characters. Letters, digits and other plain keyboard characters are fine. It may not start or end with a space or a quote, and it may not contain control characters. The words `remove` and `verwijderen` are not PINs: they mean "remove the PIN".
+
+The box takes the PIN at its next start. It hands it to Arkab, then empties the `PIN=` line again, so the PIN does not stay in plain sight on the card. At the bottom of the file the box writes a `# Last result:` line. It says the PIN was set, or why it was refused, or that it could not be handed over yet and will be tried at the next start. Read that line after you put the card in a PC.
+
+To remove the PIN, write `PIN=remove` and start the box. You can also set the PIN on the setup page, without touching the card.
+
 ## Before the round {#before-the-round}
 
 The same short list every time. Each step has a page that says in words what is wrong, if something is.
