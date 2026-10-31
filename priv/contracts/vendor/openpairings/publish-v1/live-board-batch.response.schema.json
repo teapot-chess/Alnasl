@@ -1,6 +1,6 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
-  "$id": "https://raw.githubusercontent.com/teapot-chess/openresults/main/priv/contracts/publish-v1/live-board-batch.response.schema.json",
+  "$id": "https://raw.githubusercontent.com/teapot-chess/openpairings/main/priv/contracts/publish-v1/live-board-batch.response.schema.json",
   "title": "Live boards judged (POST /api/tournaments/:slug/live, batch, 200)",
   "description": "Always 200 once the request itself is allowed, with one result per board in the order sent: one illegal move must not hide that the other boards were stored. Request-level refusals (credentials, tournament_not_published, too many boards) are error.response.schema.json.",
   "type": "object",

@@ -1,6 +1,6 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
-  "$id": "https://raw.githubusercontent.com/teapot-chess/openresults/main/priv/contracts/publish-v1/relay-key.response.schema.json",
+  "$id": "https://raw.githubusercontent.com/teapot-chess/openpairings/main/priv/contracts/publish-v1/relay-key.response.schema.json",
   "title": "Relay key made (POST /api/tournaments/:slug/relay-keys, 201)",
   "description": "Reader: OpenPairings, which hands relay_key to its Alnasl box; Alnasl then sends it as the Bearer credential on live-board updates. Cache-Control: no-store; the key is in this reply and nowhere else. Refusals: 401 unauthorized; 403 key_required, key_mismatch, not_owner, tournament_hidden, installation_suspended, installation_revoked, address_blocked; 404 tournament_not_published; 409 relay_key_limit; 429 rate_limited (six a tournament per ten minutes, POST and DELETE together); 503 publishing_paused. A server from before this route answers Phoenix's own 404 with no `error` code.",
   "type": "object",

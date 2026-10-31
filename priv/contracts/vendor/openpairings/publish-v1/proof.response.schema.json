@@ -1,6 +1,6 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
-  "$id": "https://raw.githubusercontent.com/teapot-chess/openresults/main/priv/contracts/publish-v1/proof.response.schema.json",
+  "$id": "https://raw.githubusercontent.com/teapot-chess/openpairings/main/priv/contracts/publish-v1/proof.response.schema.json",
   "title": "Round proof accepted (POST /api/tournaments/:slug/proofs, 200)",
   "description": "Reader: OpenPairings. `stored` is false when this server already held the same proof - a retry after a lost answer, which is not an error.",
   "type": "object",

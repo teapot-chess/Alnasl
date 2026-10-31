@@ -11,7 +11,7 @@ defmodule Alnasl.Contract do
   |---|---|
   | `:link` | OpenPairings' `alnasl-link-v1`: the board link Alnasl calls |
   | `:bridge` | Arkab's `bridge-protocol-v1`: the bridge's socket, its join, the DGT serial opening |
-  | `:publish` | OpenResults' `publish-v1`: where the moves go |
+  | `:publish` | `publish-v1` (OpenPairings keeps it): where the moves go |
 
   A schema's `$ref` to `common.schema.json` is a URL on GitHub once its
   `$id` is applied. `resolve/1` is ex_json_schema's remote resolver
@@ -25,7 +25,7 @@ defmodule Alnasl.Contract do
   @contracts %{
     link: {"openpairings", "alnasl-link-v1"},
     bridge: {"arkab", "bridge-protocol-v1"},
-    publish: {"openresults", "publish-v1"}
+    publish: {"openpairings", "publish-v1"}
   }
 
   def root, do: @root

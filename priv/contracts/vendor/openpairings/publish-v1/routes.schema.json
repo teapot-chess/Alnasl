@@ -1,6 +1,6 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
-  "$id": "https://raw.githubusercontent.com/teapot-chess/openresults/main/priv/contracts/publish-v1/routes.schema.json",
+  "$id": "https://raw.githubusercontent.com/teapot-chess/openpairings/main/priv/contracts/publish-v1/routes.schema.json",
   "title": "Route table (the HTTP envelope of every message)",
   "description": "Not a message: the transport around them. examples/routes.json lists every publish-v1 route - method, path, who sends it, which credential and headers it takes, and which schema file the body and each answer follow. Everything is plain JSON over HTTPS: no signing, no compression, no wrapping beyond the headers named here. Every non-2xx answer with an `error` code follows error.response.schema.json. The provider test checks that each route here exists in OpenResults' router.",
   "type": "object",

@@ -1,6 +1,6 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
-  "$id": "https://raw.githubusercontent.com/teapot-chess/openresults/main/priv/contracts/publish-v1/server.response.schema.json",
+  "$id": "https://raw.githubusercontent.com/teapot-chess/openpairings/main/priv/contracts/publish-v1/server.response.schema.json",
   "title": "Server info (GET /api/server, 200)",
   "description": "Readers: OpenPairings (the public-publishing consent dialog) and Alnasl (its connection test reads the status only). Open route, no credential, Cache-Control: no-store. A server too old to have the route answers Phoenix's own 404.",
   "type": "object",

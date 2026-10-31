@@ -1,6 +1,6 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
-  "$id": "https://raw.githubusercontent.com/teapot-chess/openresults/main/priv/contracts/publish-v1/snapshot.request.schema.json",
+  "$id": "https://raw.githubusercontent.com/teapot-chess/openpairings/main/priv/contracts/publish-v1/snapshot.request.schema.json",
   "title": "Snapshot (POST /api/snapshots body)",
   "description": "Sender: OpenPairings. The whole tournament as known at one moment, built by PairingsEngine.Snapshot.build/1 and sent as the JSON body of POST /api/snapshots. Headers: `Authorization: Bearer <operator ingest token | installation key orik_...>`, `X-OpenResults-Key: <the tournament's own key>` (optional until the slug is claimed; never inside the body, because the body is stored and served verbatim), `Content-Type: application/json`. OpenResults is LENIENT: it checks only the envelope (`schema`, `version`, `tournament.slug`) and stores everything else uninterpreted, so unknown fields are accepted anywhere (additionalProperties true throughout) and only the envelope is required. The other properties listed here are the ones OpenResults reads when it renders; when present they must have the type and vocabulary given. The prose specification is docs/snapshot-schema.md. Absent and null mean the same thing (not known) unless a description says otherwise. The same document, minus `publisher`, is what GET /api/tournaments/:slug and GET /api/tournaments/:slug/history answer.",
   "type": "object",

@@ -9,13 +9,19 @@ defmodule Mix.Tasks.Contracts.Sync do
   "bridge-protocol-v1"}, ...]`. For each, the provider's `index.json` is
   fetched from
   `https://raw.githubusercontent.com/teapot-chess/<repo>/main/priv/contracts/<name>/`,
-  then every file it lists, and the vendored directory
+  then every file it lists (`<repo>` is the entry's `"from"` when it has
+  one: a private twin, read with the token in `CONTRACTS_TOKEN`), and the
+  vendored directory
   `priv/contracts/vendor/<repo, lowercase>/<name>/` becomes exactly that:
   files the index no longer lists are deleted. Bytes are kept as they come;
   a vendored file is never edited by hand.
 
   `mix contracts.check` fetches the same and says what differs, without
   writing anything. Both use Req.
+
+  The vendored directory and the schemas' `$id` keep the `repo` name even
+  when the bytes come from `"from"`, so moving a provider into a private
+  twin changes where the copy is fetched, not what it is called.
   """
 
   use Mix.Task
@@ -70,17 +76,30 @@ defmodule Mix.Tasks.Contracts.Sync do
     {:ok, _apps} = Application.ensure_all_started(:req)
 
     for contract <- contracts() do
-      base = "#{@base}/#{contract["repo"]}/main/priv/contracts/#{contract["name"]}/"
-      index = get!(base <> "index.json")
+      source = contract["from"] || contract["repo"]
+      base = "#{@base}/#{source}/main/priv/contracts/#{contract["name"]}/"
+      headers = headers(contract)
+      index = get!(base <> "index.json", headers)
       listed = Jason.decode!(index)["files"]
-      files = Map.new(listed, &{&1, get!(base <> &1)})
+      files = Map.new(listed, &{&1, get!(base <> &1, headers)})
       {contract, Map.put(files, "index.json", index)}
     end
   end
 
-  defp get!(url) do
+  # A public provider needs nothing. A private twin needs a token that can
+  # read it, and saying so beats GitHub's 404, which is how it says "private".
+  defp headers(%{"from" => from}) do
+    case System.get_env("CONTRACTS_TOKEN") do
+      token when is_binary(token) and token != "" -> [authorization: "token " <> token]
+      _ -> Mix.raise("#{from} is private: set CONTRACTS_TOKEN to a token that can read it")
+    end
+  end
+
+  defp headers(_contract), do: []
+
+  defp get!(url, headers) do
     # `decode_body: false`: the bytes, not Req's idea of the JSON in them.
-    case Req.get(url, decode_body: false, retry: :transient, max_retries: 3) do
+    case Req.get(url, headers: headers, decode_body: false, retry: :transient, max_retries: 3) do
       {:ok, %{status: 200, body: body}} -> body
       {:ok, %{status: status}} -> Mix.raise("#{url} answered #{status}")
       {:error, error} -> Mix.raise("#{url}: #{Exception.message(error)}")

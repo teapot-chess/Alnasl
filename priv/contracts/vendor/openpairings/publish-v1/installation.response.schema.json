@@ -1,6 +1,6 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
-  "$id": "https://raw.githubusercontent.com/teapot-chess/openresults/main/priv/contracts/publish-v1/installation.response.schema.json",
+  "$id": "https://raw.githubusercontent.com/teapot-chess/openpairings/main/priv/contracts/publish-v1/installation.response.schema.json",
   "title": "Installation registered (POST /api/installations, 201)",
   "description": "Reader: OpenPairings, which stores the key and sends it as its Bearer credential from then on. Cache-Control: no-store; the key exists nowhere else (the server keeps a digest). Refusals: 403 address_blocked; 429 rate_limited (per address or /64, and per server, each per 24 h); 503 registration_closed.",
   "type": "object",

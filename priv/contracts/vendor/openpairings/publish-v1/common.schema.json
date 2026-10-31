@@ -1,6 +1,6 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
-  "$id": "https://raw.githubusercontent.com/teapot-chess/openresults/main/priv/contracts/publish-v1/common.schema.json",
+  "$id": "https://raw.githubusercontent.com/teapot-chess/openpairings/main/priv/contracts/publish-v1/common.schema.json",
   "title": "publish-v1 shared definitions",
   "description": "Definitions the other publish-v1 schemas $ref by relative file name. Not a message of its own. Resolve locally; never fetch over the network.",
   "definitions": {
