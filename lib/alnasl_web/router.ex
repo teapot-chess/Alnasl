@@ -3,6 +3,7 @@ defmodule AlnaslWeb.Router do
 
   import AlnaslWeb.Hall, only: [gate: 2, put_locale: 2]
   import AlnaslWeb.UserAuth, only: [fetch_current_scope: 2]
+  import Phoenix.LiveDashboard.Router
 
   # Every page of the site. Who may be here is `AlnaslWeb.Hall.gate/2`'s:
   # on a box without accounts, where the request comes from and the PIN;
@@ -32,6 +33,11 @@ defmodule AlnaslWeb.Router do
     plug :fetch_current_scope
     plug :put_locale
   end
+
+  # Liveness for monitors and the deploy script (`Alnasl.Ops.Health`). No
+  # pipeline at all - no session, no CSRF, no locale, no PIN, no sign-in -
+  # and no log line per poll. Public by design, and says almost nothing.
+  get "/healthz", AlnaslWeb.HealthController, :show, log: false
 
   scope "/", AlnaslWeb do
     pipe_through :door
@@ -150,6 +156,8 @@ defmodule AlnaslWeb.Router do
     get "/files/round/:round", FileController, :round
     get "/files/round/:round/board/:board", FileController, :game
     get "/files/t/:tid/round/:round", FileController, :round
+    get "/files/tournament", FileController, :tournament
+    get "/files/t/:tid/tournament", FileController, :tournament
     get "/files/t/:tid/round/:round/board/:board", FileController, :game
     get "/files/capture/:board/:name", FileController, :capture
     get "/files/labels", LabelsController, :index
@@ -201,7 +209,29 @@ defmodule AlnaslWeb.Router do
       live "/fair-play/:tid/player", FairPlayLive, :player
       live "/help", HelpLive, :index
       live "/help/:chapter", HelpLive, :chapter
+      # Health, the off-site backup and the crash reports: the
+      # installation's admins', which the page itself checks
+      # (`AlnaslWeb.SystemAccess`, on mount and on every event).
+      live "/system", SystemLive, :index
     end
+  end
+
+  # LiveDashboard, in production too, for the installation's admins only
+  # (`AlnaslWeb.SystemAccess`): the plug on the HTTP request, the on_mount
+  # hook on the socket, so neither half is reachable without the role. Its
+  # pages read process state and metrics, not games, but process state is
+  # somebody's business.
+  pipeline :system_admin do
+    plug AlnaslWeb.SystemAccess
+  end
+
+  scope "/system" do
+    pipe_through [:browser, :system_admin]
+
+    live_dashboard "/dashboard",
+      metrics: AlnaslWeb.Telemetry,
+      live_session_name: :system_dashboard,
+      on_mount: [AlnaslWeb.SystemAccess]
   end
 
   # The box's own helpers asking whether a round is on (the nightly OS

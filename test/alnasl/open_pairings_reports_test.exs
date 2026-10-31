@@ -70,7 +70,10 @@ defmodule Alnasl.OpenPairingsReportsTest do
              } = sent
 
       assert sent["seq"] == OpenPairings.seq(game)
-      assert sent["pgn"] =~ ~s([White "IM Open Player 1"]) and sent["pgn"] =~ "1. e4"
+
+      assert sent["pgn"] =~ ~s([White "Open Player 1"]) and sent["pgn"] =~ ~s([WhiteTitle "IM"]) and
+               sent["pgn"] =~ "1. e4"
+
       assert sent["pgn"] =~ ~s([TimeControl "5400+30"])
       refute is_map_key(sent, "replace")
     end

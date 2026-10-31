@@ -398,6 +398,13 @@ defmodule AlnaslWeb.PgnLive do
               href={Scope.round_file(@tid, @round)}
               download
             >{gettext("Whole round as PGN")}</.button>
+            <.button
+              :if={@stored != []}
+              id="export-tournament"
+              small
+              href={Scope.tournament_file(@tid)}
+              download
+            >{gettext("All games as PGN")}</.button>
           </:actions>
 
           <div :if={@stored == []} id="stored-empty" class="empty">
