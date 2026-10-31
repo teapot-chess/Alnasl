@@ -96,3 +96,13 @@ Met accounts is de QR-code onder "Open deze site op je telefoon" (op Borden en I
 ### Een vergeten wachtwoord {#forgotten-password}
 
 Er is geen mail om het mee te herstellen. Een beheerder opent het tabblad **Mensen** van de zaal en geeft het account een tijdelijk wachtwoord; bij de volgende aanmelding wordt om een eigen wachtwoord gevraagd, en elke andere browser die als dit account aangemeld was, wordt afgemeld. Je eigen wachtwoord wijzig je bij Account, in het accountmenu (de knop onderaan de balk, op een telefoon rechtsboven), dat ook zegt welke rol je hebt in de zaal waar je bent.
+
+## De pagina Systeem {#system}
+
+Voor de beheerders van de installatie, onder Beheren, **Systeem** (met de geavanceerde functies getoond). Ze beantwoordt drie vragen voor iemand ze moet stellen:
+
+- **Gezondheid**: of de database antwoordt, of de externe back-up bij is, of bruggen kunnen verbinden, en de versie. Het is hetzelfde antwoord dat het adres `/healthz` een monitor geeft.
+- **Externe back-up**: op de server gaat elke dag een versleutelde kopie van de database naar opslag elders. De pagina toont de laatste pogingen en heeft **Nu een kopie versturen**. Waar de server het niet aan heeft staan, zegt ze dat.
+- **Fouten**: wat er gecrasht is, één rij per soort, met hoe vaak en wanneer. Namen, partijen en sleutels worden met opzet weggelaten. **Vergeten** haalt een rij weg als ze afgehandeld is.
+
+**LiveDashboard** opent de technische kijk op het draaiende programma, voor wie onder de motorkap moet kijken.

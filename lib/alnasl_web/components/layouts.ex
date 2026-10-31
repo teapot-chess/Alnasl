@@ -275,7 +275,11 @@ defmodule AlnaslWeb.Layouts do
        [
          item(:halls, ~p"/halls", "hall", gettext("Halls")),
          item(:setup, ~p"/setup", "setup", gettext("Setup"))
-       ] ++ spare_item() ++ fair_play_item(scope) ++ support_item(scope)},
+       ] ++
+         spare_item() ++
+         fair_play_item(scope) ++
+         support_item(scope) ++
+         system_item(scope)},
       {"back", gettext("Look back"),
        [
          item(:log, ~p"/log", "log", gettext("Log")),
@@ -300,6 +304,14 @@ defmodule AlnaslWeb.Layouts do
   defp fair_play_item(scope) do
     if Alnasl.FairPlay.Access.menu?(scope),
       do: [item(:fair_play, ~p"/fair-play", "search", gettext("Fair play"))],
+      else: []
+  end
+
+  # The System page (health, the off-site backup, crash reports) is for
+  # whoever may change the box itself (`AlnaslWeb.SystemAccess`).
+  defp system_item(scope) do
+    if Alnasl.Accounts.Scope.can?(scope, :admin),
+      do: [item(:system, ~p"/system", "grid", gettext("System"))],
       else: []
   end
 

@@ -41,7 +41,7 @@ defmodule AlnaslWeb.Mode do
   @modes ~w(simple full)
 
   # The first segment of an address that is full mode's alone.
-  @full_pages ~w(pgn outbox log recordings fair-play support)
+  @full_pages ~w(pgn outbox log recordings fair-play support system)
 
   # Setup's sections that simple mode leaves out: the wizard, Tournaments,
   # Connections and Updates stay.
