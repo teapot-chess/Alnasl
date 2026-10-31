@@ -58,7 +58,7 @@ defmodule Alnasl.Destination.LichessBroadcast do
 
   import Ecto.Query
 
-  alias Alnasl.{Games, Pgn, Repo, Tournaments}
+  alias Alnasl.{Games, Repo, Tournaments}
   alias Alnasl.Destination.{Cursor, LichessApi}
   alias Alnasl.Games.Game
   alias Alnasl.Tournaments.Tournament
@@ -256,71 +256,8 @@ defmodule Alnasl.Destination.LichessBroadcast do
   # --- the PGN -----------------------------------------------------------------
 
   @doc """
-  One game as Lichess gets it: the box's own PGN of it, with the players as
-  the pairing program describes them. Titles go in `WhiteTitle`/`BlackTitle`
-  and not in front of the name, which is where Lichess looks for them.
+  One game as Lichess gets it: the box's own PGN of it (`Games.pgn/1`, the
+  single builder), with the players as the pairing program describes them.
   """
-  def pgn(%Game{} = game) do
-    players = Tournaments.players(game.tournament_id, game.round, game.board_no)
-    info = Tournaments.info(game.tournament_id)
-    shown = fn key -> info.display[key] != false end
-    plies = Games.plies(game)
-
-    date =
-      case List.first(plies) do
-        %{at: at} when is_integer(at) ->
-          at |> DateTime.from_unix!(:millisecond) |> Calendar.strftime("%Y.%m.%d")
-
-        _none ->
-          Calendar.strftime(game.inserted_at || DateTime.utc_now(), "%Y.%m.%d")
-      end
-
-    black_first? =
-      game.start_fen != nil and match?({:ok, %{turn: :b}}, Alnasl.Chess.parse_fen(game.start_fen))
-
-    offset = if black_first?, do: 1, else: 0
-
-    clocks =
-      plies
-      |> Enum.with_index()
-      |> Enum.map(fn {ply, index} ->
-        ply.clock && ply.clock[if(rem(index + offset, 2) == 0, do: :white_ms, else: :black_ms)]
-      end)
-
-    Pgn.write(%{
-      headers:
-        [
-          {"Event", info.name || "?"},
-          {"Site", info.city || "?"},
-          {"Date", date},
-          {"Round", Games.round_tag(game)},
-          {"White", name(players.white, game.white)},
-          {"Black", name(players.black, game.black)},
-          {"Board", Integer.to_string(game.board_no)}
-        ] ++
-          Games.team_tags(game) ++
-          extra("White", players.white, shown) ++
-          extra("Black", players.black, shown) ++
-          if(info.time_control_pgn, do: [{"TimeControl", info.time_control_pgn}], else: []),
-      moves: Enum.map(plies, & &1.san),
-      clocks: clocks,
-      result: if(game.status == "finished", do: game.result || "*", else: "*"),
-      start_fen: game.start_fen
-    })
-  end
-
-  defp name(%{name: name}, _stored) when is_binary(name) and name != "", do: name
-  defp name(_none, stored), do: stored || "?"
-
-  defp extra(_side, nil, _shown), do: []
-
-  defp extra(side, player, shown) do
-    for {suffix, value} <- [
-          {"Title", shown.("title") && player.title},
-          {"Elo", shown.("rating") && player.rating},
-          {"FideId", player.fide_id}
-        ],
-        value not in [nil, false],
-        do: {side <> suffix, to_string(value)}
-  end
+  defdelegate pgn(game), to: Games
 end

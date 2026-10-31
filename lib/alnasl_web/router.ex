@@ -150,6 +150,8 @@ defmodule AlnaslWeb.Router do
     get "/files/round/:round", FileController, :round
     get "/files/round/:round/board/:board", FileController, :game
     get "/files/t/:tid/round/:round", FileController, :round
+    get "/files/tournament", FileController, :tournament
+    get "/files/t/:tid/tournament", FileController, :tournament
     get "/files/t/:tid/round/:round/board/:board", FileController, :game
     get "/files/capture/:board/:name", FileController, :capture
     get "/files/labels", LabelsController, :index
