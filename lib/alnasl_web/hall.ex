@@ -252,7 +252,14 @@ defmodule AlnaslWeb.Hall do
   end
 
   # Who the page is for: `{:ok, scope}`, or where to send the browser.
-  defp mount_scope(session) do
+  defp mount_scope(session), do: session_scope(session)
+
+  @doc """
+  The scope of a LiveView's session: `{:ok, scope}`, or `{:redirect, to}`
+  where a page would send the browser (the sign-in, the PIN, the password).
+  For sockets outside the site's own pages (`AlnaslWeb.SystemAccess`).
+  """
+  def session_scope(session) do
     if Accounts.login_required?() do
       case UserAuth.session_user(session) do
         %{must_change_password: true} -> {:redirect, "/account"}

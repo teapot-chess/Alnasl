@@ -157,6 +157,10 @@ defmodule AlnaslWeb.Permit do
   # in a hall; the page asks that on every event itself.
   def needed(AlnaslWeb.SupportLive, _event), do: :viewer
 
+  # The System page is the installation's admins' (`AlnaslWeb.SystemAccess`),
+  # every event of it; the page asks the database again itself.
+  def needed(AlnaslWeb.SystemLive, _event), do: :admin
+
   def needed(view, event) do
     Map.get(@everywhere, event) ||
       Map.get(@frame, event) ||

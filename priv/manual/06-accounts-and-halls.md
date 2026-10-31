@@ -96,3 +96,13 @@ With accounts, the QR code under "Open this site on your phone" (on Boards and S
 ### A forgotten password {#forgotten-password}
 
 There is no mail to reset it with. An admin opens the hall's **People** tab and gives the account a temporary password; the next sign-in asks for one of the account's own, and every other browser signed in as it is signed out. Your own password is changed under Account, in the account menu (the button at the foot of the rail, top right on a phone), which also says your role in the hall you are in.
+
+## The System page {#system}
+
+For the admins of the installation, under Manage, **System** (with advanced features shown). It answers three questions before anybody has to ask them:
+
+- **Health**: whether the database answers, whether the off-site backup is current, whether bridges can connect, and the version. It is the same answer the address `/healthz` gives a monitor.
+- **Off-site backup**: on the server, once a day an encrypted copy of the database goes to storage elsewhere. The page lists the latest attempts and has **Send a copy now**. Where the server does not have it switched on, it says so.
+- **Errors**: what has crashed, one row per kind, with how often and when. Names, games and keys are left out on purpose. **Forget** removes a row once it is dealt with.
+
+**LiveDashboard** opens the technical view of the running program, for whoever has to look under the bonnet.
