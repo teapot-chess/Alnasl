@@ -45,6 +45,7 @@ Traversal.FileModule: Directory Traversal in `File.mkdir_p!`,lib/alnasl/games.ex
 Traversal.FileModule: Directory Traversal in `File.mkdir_p!`,lib/alnasl/games.ex:798,166C777
 Traversal.FileModule: Directory Traversal in `File.mkdir_p!`,lib/alnasl/games.ex:799,48E1821
 Traversal.FileModule: Directory Traversal in `File.mkdir_p!`,lib/alnasl/games.ex:800,72E134F
+Traversal.FileModule: Directory Traversal in `File.mkdir_p!`,lib/alnasl/games.ex:838,5350E5D
 Traversal.FileModule: Directory Traversal in `File.mkdir_p!`,lib/alnasl/hall_replays.ex:86,6003025
 Traversal.FileModule: Directory Traversal in `File.mkdir_p!`,lib/alnasl/ops/offsite_backup.ex:219,42ACFE6
 Traversal.FileModule: Directory Traversal in `File.mkdir_p!`,lib/alnasl/paths.ex:14,566248B
@@ -158,6 +159,7 @@ Traversal.FileModule: Directory Traversal in `File.write`,lib/alnasl/games.ex:79
 Traversal.FileModule: Directory Traversal in `File.write`,lib/alnasl/games.ex:812,7829BF4
 Traversal.FileModule: Directory Traversal in `File.write`,lib/alnasl/games.ex:813,4ECD175
 Traversal.FileModule: Directory Traversal in `File.write`,lib/alnasl/games.ex:814,3939623
+Traversal.FileModule: Directory Traversal in `File.write`,lib/alnasl/games.ex:852,514D5A5
 Traversal.FileModule: Directory Traversal in `File.write`,lib/alnasl/hall_replays.ex:151,6FE94C7
 Traversal.FileModule: Directory Traversal in `File.write`,lib/alnasl/launcher_details.ex:210,7E9C8BD
 Traversal.FileModule: Directory Traversal in `File.write`,lib/alnasl/launcher_details.ex:212,7E7CB8E
@@ -166,8 +168,10 @@ Traversal.FileModule: Directory Traversal in `File.write`,lib/alnasl/recorder.ex
 Traversal.FileModule: Directory Traversal in `File.write`,lib/alnasl/updates.ex:382,793F855
 Traversal.SendFile: Directory Traversal in `send_file`,lib/alnasl_web/controllers/file_controller.ex:54,4198268
 Traversal.SendFile: Directory Traversal in `send_file`,lib/alnasl_web/controllers/file_controller.ex:56,2C5B7AA
+Traversal.SendFile: Directory Traversal in `send_file`,lib/alnasl_web/controllers/file_controller.ex:72,4FFCC76
 XSS.ContentType: XSS in `put_resp_content_type`,lib/alnasl_web/controllers/file_controller.ex:75,7530DC1
 XSS.ContentType: XSS in `put_resp_content_type`,lib/alnasl_web/controllers/file_controller.ex:80,607312B
+XSS.ContentType: XSS in `put_resp_content_type`,lib/alnasl_web/controllers/file_controller.ex:98,FB2E7D
 XSS.ContentType: XSS in `put_resp_content_type`,lib/alnasl_web/controllers/theme_pack_controller.ex:63,6F9F818
 XSS.Raw: XSS,lib/alnasl_web/components/core_components.ex:106,3E9466B
 XSS.Raw: XSS,lib/alnasl_web/components/core_components.ex:124,477A5B0
@@ -175,6 +179,7 @@ XSS.Raw: XSS,lib/alnasl_web/components/release_notes.ex:68,6CCAB2B
 XSS.Raw: XSS,lib/alnasl_web/live/help_live.ex:374,28CAD01
 XSS.SendResp: XSS in `send_resp`,lib/alnasl_web/controllers/file_controller.ex:77,18B112
 XSS.SendResp: XSS in `send_resp`,lib/alnasl_web/controllers/file_controller.ex:82,4FC58ED
+XSS.SendResp: XSS in `send_resp`,lib/alnasl_web/controllers/file_controller.ex:100,1C032D9
 XSS.SendResp: XSS in `send_resp`,lib/alnasl_web/controllers/theme_pack_controller.ex:63,73B3CD8
 XSS.SendResp: XSS in `send_resp`,lib/alnasl_web/endpoint.ex:73,116D82F
 XSS.SendResp: XSS in `send_resp`,lib/alnasl_web/endpoint.ex:77,3C28565
