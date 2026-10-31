@@ -6,8 +6,8 @@ name: CI
 # longer builds is found on the push that broke it and not on the day of a
 # release.
 #
-# And the contracts of the programs Alnasl talks to (OpenPairings, Arkab,
-# OpenResults), compared with the providers' current ones: on every push,
+# And the contracts of the programs Alnasl talks to (OpenPairings, Arkab),
+# compared with the providers' current ones: on every push,
 # and once a day, since a provider moves without Alnasl having a commit.
 
 on:
@@ -290,5 +290,10 @@ jobs:
       # Fetches each provider's contract from GitHub and fails, naming the
       # files, if it is not byte for byte the vendored copy. The fix is
       # `mix contracts.sync`, the tests, and whatever they then say.
+      # publish-v1 comes from the private openpairings-internal, which the
+      # job's own GITHUB_TOKEN cannot read: CONTRACTS_TOKEN must be a token
+      # with read access to it. Without one the check says so and fails.
       - name: Compare the vendored contracts with the providers'
         run: mix contracts.check
+        env:
+          CONTRACTS_TOKEN: ${{ secrets.CONTRACTS_TOKEN }}

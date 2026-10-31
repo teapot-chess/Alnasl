@@ -1,6 +1,6 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
-  "$id": "https://raw.githubusercontent.com/teapot-chess/openresults/main/priv/contracts/publish-v1/common.schema.json",
+  "$id": "https://raw.githubusercontent.com/teapot-chess/openpairings/main/priv/contracts/publish-v1/common.schema.json",
   "title": "publish-v1 shared definitions",
   "description": "Definitions the other publish-v1 schemas $ref by relative file name. Not a message of its own. Resolve locally; never fetch over the network.",
   "definitions": {
@@ -56,6 +56,9 @@
         "owner_revoked",
         "owner_suspended",
         "ply_mismatch",
+        "proof_mismatch",
+        "proof_not_announced",
+        "proof_too_large",
         "publishing_paused",
         "rate_limited",
         "registration_closed",
@@ -88,7 +91,7 @@
           "minimum": 0
         },
         "limit_bytes": {
-          "description": "snapshot_too_large: the most an installation key may publish, in bytes.",
+          "description": "snapshot_too_large: the most an installation key may publish, in bytes. proof_too_large: the largest proof file kept, in gzipped bytes.",
           "type": "integer",
           "minimum": 0
         },

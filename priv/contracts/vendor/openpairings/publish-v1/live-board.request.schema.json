@@ -1,6 +1,6 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
-  "$id": "https://raw.githubusercontent.com/teapot-chess/openresults/main/priv/contracts/publish-v1/live-board.request.schema.json",
+  "$id": "https://raw.githubusercontent.com/teapot-chess/openpairings/main/priv/contracts/publish-v1/live-board.request.schema.json",
   "title": "One live board (POST /api/tournaments/:slug/live body)",
   "description": "Sender: Alnasl (Alnasl.Games.body/3 via Alnasl.Outbox), one board per request. Headers: Authorization: Bearer <relay key orrk_... | operator ingest token | owning installation key>; X-OpenResults-Key: the tournament's key once claimed, NOT with a relay key; Content-Type: application/json. The tournament must have published and the (round, board) must be in its current snapshot (409 board_not_published). Keyed by (slug, round, board) and decided by ply count, so a resend is always safe. Unknown fields are ignored (additionalProperties true). Prose: docs/live-boards-api.md. Several boards at once: live-board-batch.request.schema.json.",
   "type": "object",
