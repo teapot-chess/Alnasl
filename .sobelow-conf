@@ -10,6 +10,9 @@
 #     (`mix fair_play.power --out FILE` likewise: the operator's own file.)
 #     (`mix fair_play.dump`, `fair_play.fit`/`check`/`label` outputs: the same.)
 #     (`AlnaslWeb.SupportController` reads Plug's own temp file of a multipart upload.)
+#     (`Alnasl.Ops.OffsiteBackup` works in `<data dir>/offsite` on names it makes
+#     itself; `Alnasl.Ops.Age`'s file functions are given those, or the
+#     operator's own paths by `mix ops.age`.)
 #   * XSS.* - bodies are fixed SVG/PDF/ndjson/escaped-HTML builders, release notes through Alnasl.Markdown (allowlisted tags) or the app's own
 #     bundled manual; content types are literals.
 #   * DOS.StringToAtom - atoms come from the app's own literals, bundled data or a

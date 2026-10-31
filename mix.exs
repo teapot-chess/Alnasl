@@ -202,6 +202,8 @@ defmodule Alnasl.MixProject do
       # JSON Schema in the tests; never part of a release.
       {:ex_json_schema, "~> 0.11.5", only: :test},
       {:esbuild, "~> 0.10", runtime: Mix.env() == :dev},
+      # Process state and metrics at /admin/dashboard, for admins only.
+      {:phoenix_live_dashboard, "~> 0.8.3"},
       {:telemetry_metrics, "~> 1.0"},
       {:telemetry_poller, "~> 1.0"},
       {:gettext, "~> 1.0"},

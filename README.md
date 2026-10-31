@@ -625,6 +625,14 @@ release carries the installer, the updater and the systemd units
 | `ALNASL_NO_LOCAL_BOARDS` | (unset: a box with ports) | `true`: a server that reads no boards of its own and takes bridges only. Every page asks who is there, always, and accounts come by invitation |
 | `ALNASL_ADMIN_EMAILS` | (none) | Comma-separated addresses that are admins: every hall and the box itself. On the server they sign in with 02cloud before any account exists; optional on a box |
 | `ALNASL_SUPPORT_ADMINS` | (none: support off) | Comma-separated addresses that may read the diagnostics boxes send for support, on `/support`. Empty, the upload address refuses everything and `/support` is a 404. See [docs/support.md](docs/support.md) |
+| `OFFSITE_BACKUP_RECIPIENTS` | (unset: off-site backups off) | age public keys (`age1...`), comma-separated, that every off-site copy is encrypted to. See [Off-site backups](#off-site-backups) |
+| `OFFSITE_BACKUP_S3_ENDPOINT` | (none) | `https://` address of an S3-compatible service (path-style requests); plain `http` only for `localhost` |
+| `OFFSITE_BACKUP_S3_BUCKET` | (none) | The bucket |
+| `OFFSITE_BACKUP_S3_ACCESS_KEY_ID` | (none) | A key that may write to that bucket, and ideally nothing else |
+| `OFFSITE_BACKUP_S3_SECRET_ACCESS_KEY` | (none) | **Secret.** Its secret |
+| `OFFSITE_BACKUP_S3_REGION` | `us-east-1` | The region the requests are signed for |
+| `OFFSITE_BACKUP_S3_PREFIX` | `alnasl` | The "folder" in the bucket |
+| `OFFSITE_BACKUP_STALE_HOURS` | `36` | Hours without a successful copy before `/healthz` and the System page say `stale` |
 | `ALNASL_KEYCLOAK_CLIENT_SECRET` | (unset: no 02cloud button) | **Secret.** The client secret of the Keycloak client; set, the sign-in page offers "Sign in with 02cloud" |
 | `ALNASL_KEYCLOAK_URL` | `https://auth.zerotwo.cloud` | Keycloak's base address |
 | `ALNASL_KEYCLOAK_REALM` | `zerotwo` | The realm |
@@ -632,6 +640,76 @@ release carries the installer, the updater and the systemd units
 | `ALNASL_KEYCLOAK_REDIRECT_URI` | (the address the browser used, `/auth/keycloak/callback`) | Pin the redirect address when a proxy hides the real one |
 
 Everything else is set on the Setup page and stored in the database.
+
+### Health, crash reports and LiveDashboard
+
+`GET /healthz` answers without a session, a PIN or a sign-in, and logs
+nothing:
+
+```json
+{"status": "ok", "version": "0.14.0",
+ "checks": {"database": "ok", "backup": "disabled", "bridge": "ok"}}
+```
+
+HTTP 200 while the database answers, 503 (`"status": "degraded"`,
+`"database": "unreachable"`) when it does not. Only the database decides
+that. `backup` (`ok`, `stale`, `failing`, `disabled`, see below) and
+`bridge` (`ok` while the processes bridges connect through are running,
+`degraded` when one is not; never a count, and an empty hall is `ok`) are
+reported beside it and never turn a 200 into a 503, so a deploy that waits
+for the health check does not wait for a bucket or a Saturday.
+
+Crashes are kept in the database, one row per kind with a count, at most
+200, with the arguments taken out of stack traces and the data out of
+messages, and shown on **System** (`/system`), which is also where
+LiveDashboard is (`/system/dashboard`). Both are for the installation's
+admins: the box's first account, the addresses in `ALNASL_ADMIN_EMAILS`,
+or, on a box without accounts, whoever is past the PIN. Nothing is sent
+anywhere.
+
+### Off-site backups
+
+Off until all five required `OFFSITE_BACKUP_*` variables above are set;
+some but not all of them and Alnasl refuses to start, rather than quietly
+backing up nothing. Configured, it takes a snapshot of the live database
+ten minutes after it starts and then once a day (once an hour while the
+last attempt failed): `VACUUM INTO` a private `offsite/` directory in the
+data directory, gzipped, encrypted with [age](https://age-encryption.org)
+to the public keys, `PUT` to
+`<bucket>/<prefix>/alnasl-<UTC stamp>.sqlite.gz.age` with an AWS SigV4
+signature, and every temporary file removed again. The System page lists
+the last runs and has **Send a copy now**. An S3 refusal is kept as its
+error code only, since the rest of the reply quotes the key id.
+
+The server only ever holds the public keys: it can write copies it cannot
+read. Make the key pair on your own machine, keep the key file offline,
+and keep a second one somewhere else, both public halves in
+`OFFSITE_BACKUP_RECIPIENTS`. Without a secret key the copies are noise.
+
+```
+mix ops.age keygen --out alnasl-backup-key.txt     # prints the public key, age1...
+mix ops.age public --identity alnasl-backup-key.txt
+```
+
+(or `age-keygen -o alnasl-backup-key.txt`). Old copies are the bucket's to
+delete: give it a lifecycle rule (30 days, say). A key that may only write
+to that bucket is the one to give the server.
+
+Restoring a copy:
+
+1. Download the object and decrypt it on your machine:
+   `age -d -i alnasl-backup-key.txt -o alnasl.sqlite.gz alnasl-20261031T031000Z.sqlite.gz.age`
+   (or `mix ops.age decrypt --identity alnasl-backup-key.txt alnasl-20261031T031000Z.sqlite.gz.age alnasl.sqlite.gz`),
+   then `gunzip alnasl.sqlite.gz`.
+2. Stop the service (`systemctl stop alnasl`, or whatever runs it).
+3. Move the live database out of the way, all three files of it:
+   `alnasl.db`, `alnasl.db-wal` and `alnasl.db-shm` in the data directory.
+   A `-wal` left beside a restored database is applied to it, which is
+   how a restore becomes a corruption.
+4. Put `alnasl.sqlite` in place as `alnasl.db`, owned by the user the
+   service runs as.
+5. Start the service. Migrations newer than the copy run at start, as on
+   any update.
 
 ### Where the data lives
 
@@ -650,6 +728,7 @@ run/launcher.token             the Details secret of a copy that no launcher sta
 tmp/                           Windows: what the runtime writes when it starts
 update/                        Linux, installed: where "Download and install" leaves its request
 backups/before-<version>-*/    Linux, installed: the database as it was before each update (never pruned)
+offsite/                       while an off-site backup runs: its snapshot, gzipped and encrypted; empty otherwise
 ```
 
 A real board is recorded from the moment it is connected, linked to a
