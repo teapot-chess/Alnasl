@@ -1,7 +1,5 @@
 Alnasl
-Copyright 2026 Jorian Burssens
-
-This product is licensed under the Apache License, Version 2.0 (see LICENSE).
+Copyright (c) 2026 teapot-chess. All rights reserved; see LICENSE.
 
 It includes the following, which keep their own notices:
 
@@ -11,12 +9,10 @@ It includes the following, which keep their own notices:
    lib/alnasl/pgn_reader.ex       from OpenResults, lib/openresults/live_boards/pgn_reader.ex
    test/alnasl/chess_test.exs     from OpenResults, test/openresults/chess_test.exs
 
-   Copyright (c) the OpenResults authors - the same author as Alnasl - and
-   used here under the Apache License, Version 2.0. Changes: the module names;
+   Copyright (c) 2026 teapot-chess, the same owner as Alnasl. Changes: the module names;
    in chess.ex, `pseudo_legal_moves/1`, `moves_from/2` and `legal?/2` were
-   made public for the tracker's recovery search. OpenResults itself is
-   distributed under its own licence; this copy is licensed by its author
-   under Apache-2.0 for Alnasl.
+   made public for the tracker's recovery search. OpenResults is
+   likewise all rights reserved.
 
 2. The "cburnett" chess pieces
 
@@ -74,6 +70,6 @@ It includes the following, which keep their own notices:
 
 Alnasl is not affiliated with or endorsed by DGT (Digital Game Technology
 B.V.). "DGT" is their trademark. The serial protocol Alnasl reads boards
-with is implemented in Arkab (a dependency, by the same author, Apache-2.0,
-lib/arkab/dgt/ there), following DGT's published protocol description for
+with is implemented in Arkab (a dependency, by the same owner, lib/arkab/dgt/
+there), following DGT's published protocol description for
 single-board communication; no DGT code is included.

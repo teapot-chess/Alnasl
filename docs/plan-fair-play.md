@@ -66,7 +66,7 @@ What this forces on us:
 - **Calibration.** Approved. It runs on the VM when that is back, or on the
   lab. Until a model file exists, the report shows the raw counts and no
   score.
-- **Licensing.** Alnasl stays Apache-2.0.
+- **Licensing.** Alnasl was Apache-2.0 when this was written; since 2026-11-01 it is all rights reserved.
   - Stockfish (GPL-3) runs as a separate program over UCI and is never
     distributed by us, so no GPL obligations arise.
   - The hosted server runs it, which is not distribution, and Stockfish is

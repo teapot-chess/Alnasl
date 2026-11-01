@@ -156,9 +156,10 @@ distrusts. Do not tell people to switch off their antivirus.
 
 ## Licence
 
-Apache License 2.0. Free to use, also commercially; the source is public.
-Copyright 2026 Jorian Burssens. (OpenPairings is under a different licence,
-the Elastic License 2.0; do not copy its licence line here.)
+All rights reserved, copyright 2026 teapot-chess; the source is private. The
+program itself is free of charge. Do not call it open source or print a
+licence name on the page. Releases published before 2026-11-01 keep the
+Apache 2.0 licence they were published under.
 
 Do not use any board maker's name or logo on the page.
 
@@ -231,7 +232,7 @@ English:
 > has been played on it yet. If you try it at an event, keep scoresheets as you
 > always do, and tell us how it went.
 >
-> Free and open source (Apache 2.0). For electronic boards with a serial or USB
+> Free of charge. For electronic boards with a serial or USB
 > connection.
 
 Dutch:
@@ -249,7 +250,7 @@ Dutch:
 > geen toernooi op gespeeld. Probeer je het op een evenement, hou dan notatieformulieren bij
 > zoals altijd, en laat ons weten hoe het ging.
 >
-> Gratis en open source (Apache 2.0). Voor elektronische borden met een seriële of
+> Gratis. Voor elektronische borden met een seriële of
 > USB-aansluiting.
 
 ## When this brief goes out of date
