@@ -1243,4 +1243,6 @@ stylesheet is hand-written (`assets/css/app.css`), bundled by esbuild.
 
 ## License
 
-Apache License 2.0 - see [LICENSE](LICENSE) and [NOTICE](NOTICE).
+Copyright (c) 2026 teapot-chess. All rights reserved. No licence is granted to
+use, copy, modify or distribute this software. See [LICENSE](LICENSE) and
+[NOTICE](NOTICE).
