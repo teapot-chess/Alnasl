@@ -34,6 +34,7 @@
       "flags": true,
       "pairings": true,
       "rating": true,
+      "rating_change": true,
       "standings": true,
       "tiebreak_working": true,
       "tiebreaks": true,
@@ -75,7 +76,7 @@
       "proof": { "sha256": "ea47fb5bbb502fc4c23d5ecb987210bfae546c4a63d8952f3a62360c076ab8e4", "bytes": 171, "format": "ainalrami-pairing-proof", "version": 2, "compression": "gzip" },
       "results_public": true,
       "boards": [
-        { "board": 1, "label": "1", "white": 1, "black": 3, "result": "1-0", "points": { "white": 1.0, "black": 0.0 } },
+        { "board": 1, "label": "1", "white": 1, "black": 3, "result": "1-0", "points": { "white": 1.0, "black": 0.0 }, "rating_change": { "white": 1.6, "black": -1.6 } },
         { "board": 2, "label": "2", "white": 4, "black": 2, "result": "0-1FF", "points": { "white": 0.0, "black": 1.0 } }
       ],
       "byes": [{ "player": 5, "kind": "pairing-allocated", "points": 1.0 }]
@@ -85,7 +86,7 @@
       "date": "2026-03-02",
       "results_public": true,
       "boards": [
-        { "board": 1, "label": "1", "white": 2, "black": 1, "result": "1/2-1/2", "points": { "white": 0.5, "black": 0.5 } },
+        { "board": 1, "label": "1", "white": 2, "black": 1, "result": "1/2-1/2", "points": { "white": 0.5, "black": 0.5 }, "rating_change": { "white": 8.0, "black": -8.0 } },
         {
           "board": 2,
           "label": "2",
@@ -135,12 +136,20 @@
             ]
           }
         },
-        "category": null
+        "category": null,
+        "rating_change": -6.4,
+        "rating_k": 20
       },
-      { "rank": 2, "player": 2, "points": 1.5, "tiebreaks": [1.5], "working": {}, "category": "U1800" },
+      { "rank": 2, "player": 2, "points": 1.5, "tiebreaks": [1.5], "working": {}, "category": "U1800", "rating_change": 8.0, "rating_k": 20 },
       { "rank": 3, "player": 5, "points": 1.5, "tiebreaks": [0.5], "working": {}, "category": "U1800" },
-      { "rank": 4, "player": 3, "points": 0.5, "tiebreaks": [3.0], "working": {}, "category": "U1800" },
+      { "rank": 4, "player": 3, "points": 0.5, "tiebreaks": [3.0], "working": {}, "category": "U1800", "rating_change": -1.6, "rating_k": 20 },
       { "rank": 5, "player": 4, "points": 0.5, "tiebreaks": [1.5], "working": {}, "category": null }
     ]
-  }
+  },
+  "standings_by_round": [
+    {
+      "after_round": 1,
+      "rows": [[1, 1, 1.0, 0.0], [2, 2, 1.0, 0.0], [5, 3, 1.0, 0.0], [3, 4, 0.0, 1.0], [4, 5, 0.0, 1.0]]
+    }
+  ]
 }
