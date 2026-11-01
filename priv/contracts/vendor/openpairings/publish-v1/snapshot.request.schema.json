@@ -41,6 +41,31 @@
       "items": { "$ref": "#/definitions/round" }
     },
     "standings": { "$ref": "#/definitions/standings" },
+    "standings_by_round": {
+      "description": "The standings after each EARLIER round, 1 to standings.after_round - 1 (the table after standings.after_round is `standings`), computed by the sender exactly as `standings` is, in rank order. Compact: each row is [no, rank, points, tiebreak...], the tie-breaks positional against standings.tiebreaks. Never the arbiter's hand-set order. Absent before round 2, for Keizer, for team events and from an older publisher.",
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": true,
+        "required": ["after_round", "rows"],
+        "properties": {
+          "after_round": { "type": "integer", "minimum": 1 },
+          "rows": {
+            "type": "array",
+            "items": {
+              "type": "array",
+              "minItems": 3,
+              "items": [
+                { "$ref": "#/definitions/no" },
+                { "type": ["integer", "null"] },
+                { "type": "number" }
+              ],
+              "additionalItems": { "type": ["number", "null"] }
+            }
+          }
+        }
+      }
+    },
     "teams": { "type": "array", "items": { "$ref": "#/definitions/team" } },
     "team_standings": { "$ref": "#/definitions/teamStandings" },
     "board_stats": { "type": "array", "items": { "$ref": "#/definitions/boardStat" } }
@@ -96,7 +121,7 @@
           "items": { "type": "string" }
         },
         "display": {
-          "description": "The arbiter's public-display ticks, resolved: every key a boolean. `flags` reads absent as off; every other key absent as on (`rounds_played`, `performance`, `sex` start off on the arbiter's side).",
+          "description": "The arbiter's public-display ticks, resolved: every key a boolean. `flags` and `rating_change` read absent as off; every other key absent as on (`rounds_played`, `performance`, `sex`, `rating_change` start off on the arbiter's side).",
           "type": "object",
           "additionalProperties": { "type": "boolean" }
         },
@@ -293,6 +318,15 @@
             "white": { "enum": ["win", "draw", "loss"] },
             "black": { "enum": ["win", "draw", "loss"] }
           }
+        },
+        "rating_change": {
+          "description": "The FIDE rating change of this game for each seat, K x (score - expected score), exact (two decimals at most). A seat is present only when the game is rated for that player; absent altogether when not FIDE-rated, not ticked (display.rating_change), withheld with the results, past standings.after_round, or an older publisher.",
+          "type": "object",
+          "additionalProperties": true,
+          "properties": {
+            "white": { "type": "number" },
+            "black": { "type": "number" }
+          }
         }
       }
     },
@@ -421,6 +455,15 @@
               "uncounted": { "const": true },
               "rounds_played": { "type": "integer" },
               "performance": { "type": "integer" },
+              "rating_change": {
+                "description": "The FIDE rating change over the games these standings cover, exact (not rounded to a whole number: FIDE rounds a rating period, not a tournament). Absent for a player with no rated game, an unrated player, and whenever the board-level field is absent.",
+                "type": "number"
+              },
+              "rating_k": {
+                "description": "The K factor rating_change was worked out with: the FIDE list's, else B.02 Article 8.3.3 as far as the tournament knows, capped so that K x games <= 700. Present exactly when rating_change is.",
+                "type": "integer",
+                "minimum": 1
+              },
               "value": { "description": "Keizer only.", "type": "number" },
               "score": { "description": "Keizer only: the game score.", "type": "number" }
             }
