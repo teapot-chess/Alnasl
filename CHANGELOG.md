@@ -19,6 +19,8 @@ section, word for word. See [docs/releasing.md](docs/releasing.md).
 
 ## [Unreleased]
 
+## [0.15.0] - 2026-11-01
+
 - [Change] **The results-site contract, brought up to date.** Alnasl's copy of the publish contract now comes from OpenPairings, which keeps it since OpenResults went private, and it knows about round proofs, which engine paired a round and which Swiss system an event uses. None of it concerns a hall box, which posts boards and leaves the paperwork to the arbiter's program.
 - [Feature] **The whole tournament as one PGN.** The PGN page has an "All games as PGN" button beside "Whole round as PGN", and `/files/tournament` (or `/files/t/<id>/tournament`) does the same for anyone who types: every round, in order, earlier games on a board included. It takes the same door as the round download, so a tournament you cannot see stays a tournament you cannot download.
 - [Change] **One PGN builder.** The box's PGN and the one Lichess gets were two near-identical functions that had drifted in the one way that mattered: only Lichess knew a player's Elo, title or FIDE ID. There is now a single `Games.pgn/1`, and the file on disk, the round and tournament downloads and the results site's copy all carry `WhiteElo`, `BlackTitle`, `WhiteFideId` and the rest, with the names as the pairing program spells them. What goes to Lichess is byte for byte what it was; what the arbiter hides stays hidden.
