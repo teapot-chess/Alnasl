@@ -19,6 +19,8 @@ section, word for word. See [docs/releasing.md](docs/releasing.md).
 
 ## [Unreleased]
 
+## [0.16.0] - 2026-11-01
+
 - [Change] **All rights reserved.** The Apache License 2.0 was a generous document for a program that has decided to keep its own counsel. LICENSE is now a short all-rights-reserved notice, and the README, NOTICE, download-page brief and theme pack readme agree. Releases already published under the Apache licence keep it, since a licence granted cannot be taken back; the new terms apply from here on. The licences of the pieces we borrowed (fonts, chess pieces, Erlang, the dependencies) are still theirs and still shipped.
 
 ## [0.15.0] - 2026-11-01
