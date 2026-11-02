@@ -57,7 +57,9 @@ defmodule AlnaslWeb.Endpoint do
   plug AlnaslWeb.Plugs.VersionHeader
 
   plug Plug.RequestId
-  plug Plug.Telemetry, event_prefix: [:phoenix, :endpoint]
+  # `/healthz` is polled every few seconds by a monitor and by the deploy;
+  # a log that records each poll records little else (`log_level/1`).
+  plug Plug.Telemetry, event_prefix: [:phoenix, :endpoint], log: {__MODULE__, :log_level, []}
 
   plug Plug.Parsers,
     parsers: [:urlencoded, :multipart, :json],
@@ -79,4 +81,10 @@ defmodule AlnaslWeb.Endpoint do
   end
 
   def favicon(conn, _opts), do: conn
+
+  @doc false
+  # The endpoint's request log: everything at :info, as before, but the
+  # health check.
+  def log_level(%Plug.Conn{path_info: ["healthz"]}), do: false
+  def log_level(_conn), do: :info
 end

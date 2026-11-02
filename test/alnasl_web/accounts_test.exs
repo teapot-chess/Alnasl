@@ -76,6 +76,35 @@ defmodule AlnaslWeb.AccountsTest do
       assert redirected_to(right) == "/"
       assert get_session(right, :user_token)
     end
+
+    test "ten wrong passwords and the address waits, the right one included" do
+      Alnasl.Takeover.RateLimit.reset()
+      on_exit(&Alnasl.Takeover.RateLimit.reset/0)
+      first_owner()
+
+      sign_in = fn ip, email, pass ->
+        post(%{build_conn() | remote_ip: ip}, ~p"/log-in", %{
+          "user" => %{"email" => email, "password" => pass}
+        })
+      end
+
+      far = {192, 0, 2, 50}
+      for n <- 1..10, do: assert(sign_in.(far, "x#{n}@example.org", "nope").status == 401)
+
+      held = sign_in.(far, "owner@example.org", password())
+      assert html_response(held, 429) =~ "Too many wrong passwords"
+      assert [_seconds] = get_resp_header(held, "retry-after")
+      refute get_session(held, :user_token)
+
+      # Another address may still sign in.
+      assert redirected_to(sign_in.({192, 0, 2, 51}, "owner@example.org", password())) == "/"
+
+      # And one account is not guessed at from many addresses.
+      for n <- 1..10,
+          do: assert(sign_in.({198, 51, 100, n}, "owner@example.org", "nope").status == 401)
+
+      assert sign_in.({198, 51, 100, 99}, " OWNER@example.org", password()).status == 429
+    end
   end
 
   describe "the phone's sign-in code" do

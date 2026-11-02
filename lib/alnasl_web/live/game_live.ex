@@ -26,7 +26,7 @@ defmodule AlnaslWeb.GameLive do
 
   alias Alnasl.{Boards, Chess, Games, Position, ResultsSite, Tournaments}
   alias AlnaslWeb.Scope
-  alias AlnaslWeb.{Choice, Words}
+  alias AlnaslWeb.{Choice, Tap, Words}
 
   @impl true
   def mount(%{"round" => round, "board" => board} = params, _session, socket) do
@@ -60,7 +60,11 @@ defmodule AlnaslWeb.GameLive do
     %{
       moves_form: to_form(%{"moves" => ""}, as: :typed),
       edit_form: to_form(%{"ply" => "", "san" => ""}, as: :edit),
-      fen_form: to_form(%{"fen" => ""}, as: :position)
+      fen_form: to_form(%{"fen" => ""}, as: :position),
+      # The board the moves are played on: which form its taps fill, and
+      # the piece picked up so far.
+      play_on: :append,
+      tap: Tap.new()
     }
   end
 
@@ -85,6 +89,7 @@ defmodule AlnaslWeb.GameLive do
 
     view =
       if snap do
+        {line, fens} = line(snap.plies, snap[:start_fen])
         certain = snap[:certain] || fen_text(snap[:fen])
         raw = snap[:raw]
         diff = if raw && certain && raw != certain, do: diff(raw, certain), else: []
@@ -99,7 +104,8 @@ defmodule AlnaslWeb.GameLive do
           white: snap[:white] || pairing[:white],
           black: snap[:black] || pairing[:black],
           rows: rows(snap.plies, snap[:start_fen]),
-          line: line(snap.plies, snap[:start_fen])
+          line: line,
+          fens: fens
         }
       end
 
@@ -134,8 +140,9 @@ defmodule AlnaslWeb.GameLive do
   end
 
   # The position after each ply, the start included, as what the board
-  # component draws: `[{position_text, last_move_squares}]`. Empty when the
-  # moves do not replay (they always should).
+  # component draws: `[{position_text, last_move_squares}]` - and beside it
+  # the same positions as FEN, which a move tapped on the board is played
+  # in. Both empty when the moves do not replay (they always should).
   defp line(plies, start_fen) do
     start = start_fen || Chess.start_fen()
 
@@ -146,10 +153,10 @@ defmodule AlnaslWeb.GameLive do
             {{fen_text(ply.fen), Chess.last_squares(before, ply.san)}, ply.fen}
           end)
 
-        [{fen_text(start), nil} | line]
+        {[{fen_text(start), nil} | line], [start | Enum.map(replayed, & &1.fen)]}
 
       _error ->
-        []
+        {[], []}
     end
   end
 
@@ -285,13 +292,14 @@ defmodule AlnaslWeb.GameLive do
     end)
   end
 
-  # "Type the right moves": to the tool for it, with the first of them filled in.
+  # "Play the right move": to the board it is played on, set to the first of
+  # them; the field to type it in is beside it.
   def handle_event("choice_type", _params, %{assigns: %{choice: %{alt: alt}}} = socket) do
     {:noreply,
      socket
-     |> assign(choice: nil)
+     |> assign(choice: nil, play_on: :edit, tap: Tap.new())
      |> assign(edit_form: to_form(%{"ply" => to_string(alt.from), "san" => ""}, as: :edit))
-     |> push_event("alnasl:go", %{to: "edit-move-form"})}
+     |> push_event("alnasl:go", %{to: "play-tool"})}
   end
 
   # The question is gone (the game changed under it, another browser
@@ -351,7 +359,7 @@ defmodule AlnaslWeb.GameLive do
   end
 
   def handle_event("type_moves", %{"typed" => %{"moves" => text}}, socket) do
-    sans = text |> String.replace(~r/\d+\.+/, " ") |> String.split(~r/[\s,]+/, trim: true)
+    sans = typed_words(text)
 
     with_board(socket, fn board ->
       cond do
@@ -374,6 +382,68 @@ defmodule AlnaslWeb.GameLive do
           end
       end
     end)
+  end
+
+  # The two forms, as they are typed in: the board beside them follows.
+  def handle_event("typed_change", %{"typed" => %{"moves" => text}}, socket) do
+    {:noreply,
+     assign(socket,
+       moves_form: to_form(%{"moves" => text}, as: :typed),
+       play_on: :append,
+       tap: Tap.new()
+     )}
+  end
+
+  def handle_event("edit_change", %{"edit" => %{"ply" => ply, "san" => san}}, socket) do
+    socket = assign(socket, edit_form: to_form(%{"ply" => ply, "san" => san}, as: :edit))
+    # A move number given: the board shows the position that move is played in.
+    {:noreply,
+     if(edit_ply(socket.assigns) && socket.assigns.play_on != :edit,
+       do: assign(socket, play_on: :edit, tap: Tap.new()),
+       else: socket
+     )}
+  end
+
+  def handle_event("play_on", %{"on" => on}, socket) when on in ["append", "edit"] do
+    {:noreply, assign(socket, play_on: String.to_existing_atom(on), tap: Tap.new())}
+  end
+
+  def handle_event("tap", %{"sq" => sq}, socket) do
+    case Integer.parse(sq) do
+      {square, ""} ->
+        socket.assigns.tap
+        |> Tap.tap(play(socket.assigns).fen, square)
+        |> played(socket)
+
+      _bad ->
+        {:noreply, socket}
+    end
+  end
+
+  def handle_event("promote", %{"piece" => piece}, socket) do
+    socket.assigns.tap
+    |> Tap.promote(play(socket.assigns).fen, piece)
+    |> played(socket)
+  end
+
+  # The last move put on the board and not yet added: off again.
+  def handle_event("play_back", _params, socket) do
+    words = typed_words(socket.assigns.moves_form[:moves].value)
+    text = words |> Enum.drop(-1) |> Enum.join(" ")
+
+    {:noreply,
+     assign(socket, moves_form: to_form(%{"moves" => text}, as: :typed), tap: Tap.new())}
+  end
+
+  # The button under the board: the same as the button of the form it fills.
+  def handle_event("play_commit", _params, %{assigns: %{play_on: :edit}} = socket) do
+    %{"ply" => ply, "san" => san} = form_params(socket.assigns.edit_form)
+    handle_event("edit_move", %{"edit" => %{"ply" => ply, "san" => san}}, socket)
+  end
+
+  def handle_event("play_commit", _params, socket) do
+    %{"moves" => moves} = form_params(socket.assigns.moves_form)
+    handle_event("type_moves", %{"typed" => %{"moves" => moves}}, socket)
   end
 
   def handle_event("edit_move", %{"edit" => %{"ply" => ply, "san" => san}}, socket) do
@@ -709,6 +779,86 @@ defmodule AlnaslWeb.GameLive do
       end
     end)
   end
+
+  # "1. Nf3 Nc6, 2. Bb5" as the moves in it.
+  defp typed_words(nil), do: []
+
+  defp typed_words(text),
+    do: text |> String.replace(~r/\d+\.+/, " ") |> String.split(~r/[\s,]+/, trim: true)
+
+  defp form_params(%Phoenix.HTML.Form{params: params}), do: params
+
+  # A tap made a move: it goes into the form the board fills, which is
+  # added or changed - as typed - with that form's button.
+  defp played({:move, san, tap}, %{assigns: %{play_on: :edit}} = socket) do
+    %{"ply" => ply} = form_params(socket.assigns.edit_form)
+
+    {:noreply,
+     assign(socket, tap: tap, edit_form: to_form(%{"ply" => ply, "san" => san}, as: :edit))}
+  end
+
+  defp played({:move, san, tap}, socket) do
+    words = typed_words(form_params(socket.assigns.moves_form)["moves"])
+    text = Enum.join(words ++ [san], " ")
+    {:noreply, assign(socket, tap: tap, moves_form: to_form(%{"moves" => text}, as: :typed))}
+  end
+
+  defp played({:wait, tap}, socket), do: {:noreply, assign(socket, tap: tap)}
+
+  # The move number in the "change a move" form, when it names a move of
+  # the game.
+  defp edit_ply(%{view: %{snap: %{plies: plies}, fens: [_ | _]}, edit_form: form}) do
+    case Integer.parse(to_string(form_params(form)["ply"] || "")) do
+      {n, ""} when n >= 1 and n <= length(plies) -> n
+      _none -> nil
+    end
+  end
+
+  defp edit_ply(_assigns), do: nil
+
+  # The position the board under the repair tools shows, and taps are
+  # played in:
+  #
+  # - adding: the end of the game, and the moves in the field after it as
+  #   far as they are legal (`stopped` is the first that is not);
+  # - changing: the position move n is played in, its new move marked.
+  defp play(%{view: %{fens: [_ | _] = fens}, play_on: :edit} = assigns) do
+    case edit_ply(assigns) do
+      nil ->
+        %{fen: nil, last: nil, stopped: nil, ply: nil}
+
+      n ->
+        fen = Enum.at(fens, n - 1)
+        san = String.trim(form_params(assigns.edit_form)["san"] || "")
+        last = if san != "", do: Chess.last_squares(fen, san)
+        %{fen: fen, last: last, stopped: nil, ply: n}
+    end
+  end
+
+  defp play(%{view: %{fens: [_ | _] = fens}, moves_form: form}) do
+    base = List.last(fens)
+    words = typed_words(form_params(form)["moves"])
+
+    {good, stopped} =
+      case Chess.replay(base, words) do
+        {:ok, _plies} -> {words, nil}
+        {:error, {k, _message}} -> {Enum.take(words, k - 1), Enum.at(words, k - 1)}
+        _bad -> {[], nil}
+      end
+
+    case good do
+      [] ->
+        %{fen: base, last: nil, stopped: stopped, ply: nil}
+
+      _some ->
+        {:ok, plies} = Chess.replay(base, good)
+        before = if length(plies) > 1, do: Enum.at(plies, -2).fen, else: base
+        last = List.last(plies)
+        %{fen: last.fen, last: Chess.last_squares(before, last.san), stopped: stopped, ply: nil}
+    end
+  end
+
+  defp play(_assigns), do: %{fen: nil, last: nil, stopped: nil, ply: nil}
 
   # Is a connected board reading this game now?
   defp reading?(%{board: %{} = _board, view: %{snap: %{running?: true}}}), do: true
@@ -1469,12 +1619,22 @@ defmodule AlnaslWeb.GameLive do
                 )}</.button>
               </div>
 
+              <.play_tool
+                :if={@may_arbiter}
+                play={play(assigns)}
+                play_on={@play_on}
+                tap={@tap}
+                edit_ply={edit_ply(assigns)}
+                typed={form_params(@moves_form)["moves"]}
+              />
+
               <div class="tool">
                 <b>{gettext("Type the moves")}</b>
                 <.form
                   :if={@may_arbiter}
                   for={@moves_form}
                   id="type-moves-form"
+                  phx-change="typed_change"
                   phx-submit="type_moves"
                   class="stack"
                 >
@@ -1517,6 +1677,7 @@ defmodule AlnaslWeb.GameLive do
                   :if={@may_arbiter}
                   for={@edit_form}
                   id="edit-move-form"
+                  phx-change="edit_change"
                   phx-submit="edit_move"
                   class="stack"
                 >
@@ -1804,6 +1965,35 @@ defmodule AlnaslWeb.GameLive do
               )}
         </b>
 
+        <figure id="choice-arrows-figure" class="choice-arrows">
+          <figcaption>
+            {gettext(
+              "Each arrow is one of the moves it can have been, numbered as in the list below; the solid one is the likeliest. Tap an arrow or a move to answer."
+            )}
+          </figcaption>
+
+          <.board
+            id="choice-arrows"
+            position={@ask.before}
+            label={gettext("The position before this move, with an arrow for each move it can be")}
+          >
+            <.arrow
+              :for={arrow <- arrows(@ask.options)}
+              id={"choice-arrow-#{arrow.index}"}
+              from={arrow.from}
+              to={arrow.to}
+              n={arrow.index + 1}
+              tone={rem(arrow.index, 6)}
+              primary={arrow.index == 0}
+              nudge={arrow.nudge}
+              shift={arrow.shift}
+              event="pick"
+              san={arrow.option.san}
+              label={"#{arrow.index + 1}: #{arrow.option.san}"}
+            />
+          </.board>
+        </figure>
+
         <div class="choice-options">
           <button
             :for={{option, index} <- Enum.with_index(@ask.options)}
@@ -1813,6 +2003,9 @@ defmodule AlnaslWeb.GameLive do
             phx-click="pick"
             phx-value-san={option.san}
           >
+            <span class={["arrow-key", "tone-#{rem(index, 6)}"]} aria-hidden="true">
+              {index + 1}
+            </span>
             <.board
               position={option.position}
               last={option.squares}
@@ -1882,6 +2075,237 @@ defmodule AlnaslWeb.GameLive do
       </div>
     </.panel>
     """
+  end
+
+  # The board the arbiter plays a move on instead of typing it: a tap on a
+  # piece, a tap on where it goes. Adding fills "Moves to add"; changing
+  # fills "Should be". Either is then done with the button under it, the
+  # same as typed - nothing reaches the game on a tap alone.
+  attr :play, :map, required: true
+  attr :play_on, :atom, required: true
+  attr :tap, :map, required: true
+  attr :edit_ply, :any, default: nil
+  attr :typed, :string, default: nil
+
+  defp play_tool(assigns) do
+    %{play: play, tap: tap} = assigns
+    fen = play.fen
+    turn = Tap.turn(fen)
+
+    assigns =
+      assign(assigns,
+        fen: fen,
+        position: fen_text(fen),
+        targets: Tap.targets(tap, fen),
+        turn: turn,
+        colour: if(turn == :b, do: "b", else: "w"),
+        words: typed_words(assigns.typed)
+      )
+
+    ~H"""
+    <div id="play-tool" class="tool play-tool">
+      <b>{gettext("Play the moves on the board")}</b>
+
+      <div class="seg play-seg" role="group" aria-label={gettext("What the taps do")}>
+        <button
+          id="play-on-append"
+          type="button"
+          aria-pressed={to_string(@play_on == :append)}
+          phx-click="play_on"
+          phx-value-on="append"
+        >{gettext("Add moves at the end")}</button>
+        <button
+          id="play-on-edit"
+          type="button"
+          aria-pressed={to_string(@play_on == :edit)}
+          disabled={@edit_ply == nil}
+          phx-click="play_on"
+          phx-value-on="edit"
+        >
+          {if @edit_ply,
+            do: gettext("Change move %{n}", n: @edit_ply),
+            else: gettext("Change a move")}
+        </button>
+      </div>
+
+      <p :if={@play_on == :edit and @edit_ply == nil} id="play-no-ply">
+        {gettext("Give the number of the move under \"Undo or change a move\" first.")}
+      </p>
+
+      <p :if={@fen}>
+        {cond do
+          @play_on == :edit ->
+            gettext("Tap the piece that moved, then where it went: it becomes move %{n}.",
+              n: @edit_ply
+            )
+
+          @turn == :b ->
+            gettext("Black to move. Tap a piece, then where it goes.")
+
+          true ->
+            gettext("White to move. Tap a piece, then where it goes.")
+        end}
+      </p>
+
+      <div :if={@fen} class="play-board">
+        <.board
+          id="play-board"
+          class="tappable"
+          position={@position}
+          last={@play.last}
+          label={gettext("The board to play the moves on")}
+        >
+          <rect
+            :if={@tap.selected}
+            x={rem(@tap.selected, 8)}
+            y={div(@tap.selected, 8)}
+            width="1"
+            height="1"
+            class="tap-sel"
+          />
+          <%= for {square, capture?} <- @targets do %>
+            <circle
+              :if={!capture?}
+              cx={rem(square, 8) + 0.5}
+              cy={div(square, 8) + 0.5}
+              r="0.16"
+              class="tap-dot"
+            />
+            <circle
+              :if={capture?}
+              cx={rem(square, 8) + 0.5}
+              cy={div(square, 8) + 0.5}
+              r="0.44"
+              class="tap-ring"
+            />
+          <% end %>
+          <rect
+            :for={square <- 0..63}
+            id={"play-#{Chess.name(square)}"}
+            x={rem(square, 8)}
+            y={div(square, 8)}
+            width="1"
+            height="1"
+            class="tap-hit"
+            phx-click="tap"
+            phx-value-sq={square}
+          />
+        </.board>
+      </div>
+
+      <div :if={@tap.promo} id="play-promo" class="promo-pick" role="group">
+        <span>{gettext("Promote to")}</span>
+        <button
+          :for={{letter, name} <- promo_pieces()}
+          id={"play-promo-#{letter}"}
+          type="button"
+          class="promo-piece"
+          aria-label={name}
+          title={name}
+          phx-click="promote"
+          phx-value-piece={letter}
+        >
+          <svg viewBox="0 0 1 1" aria-hidden="true">
+            <use href={"/pieces/cburnett.svg#" <> @colour <> String.upcase(letter)} />
+          </svg>
+        </button>
+      </div>
+
+      <p :if={@tap.note} id="play-note" class="play-note" role="status">
+        {tap_note(@tap.note)}
+      </p>
+
+      <p :if={@play.stopped} id="play-stopped" class="play-note" role="status">
+        {gettext("\"%{move}\" in the field is not legal there; the board shows the moves before it.",
+          move: @play.stopped
+        )}
+      </p>
+
+      <div class="row">
+        <.button
+          :if={@play_on == :append and @words != []}
+          id="play-commit"
+          variant="primary"
+          phx-click="play_commit"
+        >{ngettext("Add this move", "Add these %{count} moves", length(@words))}</.button>
+        <.button
+          :if={@play_on == :edit and @play.last}
+          id="play-commit"
+          variant="primary"
+          phx-click="play_commit"
+        >{gettext("Change that move")}</.button>
+        <.button
+          :if={@play_on == :append and @words != []}
+          id="play-back"
+          phx-click="play_back"
+        >{gettext("One move back")}</.button>
+      </div>
+    </div>
+    """
+  end
+
+  defp promo_pieces do
+    [
+      {"q", gettext("Queen")},
+      {"r", gettext("Rook")},
+      {"b", gettext("Bishop")},
+      {"n", gettext("Knight")}
+    ]
+  end
+
+  defp tap_note(:empty), do: gettext("Nothing stands there. Tap a piece of the side to move.")
+  defp tap_note(:theirs), do: gettext("That piece is not the side to move.")
+  defp tap_note(:stuck), do: gettext("That piece has no legal move.")
+  defp tap_note(:illegal), do: gettext("That is not a legal move. Nothing was added.")
+  defp tap_note(_other), do: gettext("There is no position to play in.")
+
+  # The candidates of a question as arrows on one board: numbered as in the
+  # list, coloured, the likeliest solid and on top. The same piece's moves
+  # along one line (d3 and d4) are set side by side, or the longer hides
+  # the shorter; two numbers that would sit on each other are pushed apart.
+  defp arrows(options) do
+    indexed =
+      for {option, index} <- Enum.with_index(options), match?({_, _}, option.squares) do
+        {from, to} = option.squares
+        %{option: option, index: index, from: from, to: to}
+      end
+
+    shifts =
+      indexed
+      |> Enum.group_by(&{&1.from, direction(&1.from, &1.to)})
+      |> Enum.flat_map(fn {_line, along} ->
+        count = length(along)
+
+        along
+        |> Enum.sort_by(& &1.index)
+        |> Enum.with_index()
+        |> Enum.map(fn {arrow, i} -> {arrow.index, (i - (count - 1) / 2) * 0.34} end)
+      end)
+      |> Map.new()
+
+    {placed, _points} =
+      Enum.map_reduce(indexed, [], fn arrow, taken ->
+        arrow = Map.put(arrow, :shift, shifts[arrow.index] * 1.0)
+        {x, y} = arrow_label_point(arrow.from, arrow.to, arrow.shift)
+        crowded = Enum.count(taken, fn {tx, ty} -> abs(tx - x) < 0.5 and abs(ty - y) < 0.5 end)
+
+        nudge =
+          if crowded == 0,
+            do: 0.0,
+            else: 0.5 * crowded * if(rem(crowded, 2) == 1, do: 1, else: -1)
+
+        {Map.put(arrow, :nudge, nudge), [{x, y} | taken]}
+      end)
+
+    # The likeliest is drawn last, so it is on top.
+    Enum.sort_by(placed, &(-&1.index))
+  end
+
+  # Which way a move goes, reduced: e2-e3 and e2-e4 go the same way.
+  defp direction(from, to) do
+    {dx, dy} = {rem(to, 8) - rem(from, 8), div(to, 8) - div(from, 8)}
+    g = max(Integer.gcd(dx, dy), 1)
+    {div(dx, g), div(dy, g)}
   end
 
   # What the sentence under the state is about: for a clock alarm the side

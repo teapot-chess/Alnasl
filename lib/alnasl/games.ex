@@ -708,10 +708,23 @@ defmodule Alnasl.Games do
 
   # --- PGN ---------------------------------------------------------------------
 
-  @doc "The game as PGN, with the clock after a move as a `[%clk]` comment."
+  @doc """
+  The game as PGN, with the clock after a move as a `[%clk]` comment.
+
+  The one builder behind every PGN the box produces: the file kept on disk,
+  the round and tournament downloads, and what goes to Lichess and the
+  results site. The players are described as the pairing program describes
+  them, so a name is the program's and Elo, titles and FIDE ids ride along as
+  `WhiteElo`, `BlackTitle`, `WhiteFideId` and friends - titles in their own
+  tag and not in front of the name, which is where Lichess looks for them.
+  What the arbiter hides on the public pages (`display` ticks for title and
+  rating) stays out here too.
+  """
   def pgn(%Game{} = game) do
     plies = plies(game)
     info = Tournaments.info(game.tournament_id)
+    players = Tournaments.players(game.tournament_id, game.round, game.board_no)
+    shown = fn key -> info.display[key] != false end
 
     date =
       case List.first(plies) do
@@ -735,11 +748,13 @@ defmodule Alnasl.Games do
           {"Site", info.city || "?"},
           {"Date", date},
           {"Round", round_tag(game)},
-          {"White", game.white || "?"},
-          {"Black", game.black || "?"},
+          {"White", player_name(players.white, game.white)},
+          {"Black", player_name(players.black, game.black)},
           {"Board", Integer.to_string(game.board_no)}
         ] ++
           team_tags(game) ++
+          player_tags("White", players.white, shown) ++
+          player_tags("Black", players.black, shown) ++
           if(info.time_control_pgn, do: [{"TimeControl", info.time_control_pgn}], else: []),
       moves: Enum.map(plies, & &1.san),
       clocks:
@@ -749,6 +764,21 @@ defmodule Alnasl.Games do
       result: if(game.status == "finished", do: game.result || "*", else: "*"),
       start_fen: game.start_fen
     })
+  end
+
+  defp player_name(%{name: name}, _stored) when is_binary(name) and name != "", do: name
+  defp player_name(_none, stored), do: stored || "?"
+
+  defp player_tags(_side, nil, _shown), do: []
+
+  defp player_tags(side, player, shown) do
+    for {suffix, value} <- [
+          {"Title", shown.("title") && player.title},
+          {"Elo", shown.("rating") && player.rating},
+          {"FideId", player.fide_id}
+        ],
+        value not in [nil, false],
+        do: {side <> suffix, to_string(value)}
   end
 
   defp black_first?(%Game{start_fen: nil}), do: false
@@ -785,6 +815,14 @@ defmodule Alnasl.Games do
   @doc "Every game of a round of a tournament as one PGN file, earlier games on a board included."
   def round_pgn(tournament_id, round),
     do: tournament_id |> all(round) |> Enum.map_join("\n", &pgn/1)
+
+  @doc """
+  Every game of a tournament as one PGN file, round by round, earlier games on
+  a board included. Empty when nothing was played.
+  """
+  def tournament_pgn(tournament_id) do
+    tournament_id |> rounds() |> Enum.map_join("\n", &round_pgn(tournament_id, &1))
+  end
 
   @doc """
   Where a game's PGN is kept on the box: `round-3/board-2.pgn` for the

@@ -4,7 +4,7 @@ defmodule Alnasl.MixProject do
   def project do
     [
       app: :alnasl,
-      version: "0.13.0",
+      version: "0.16.0",
       elixir: "~> 1.19",
       elixirc_paths: elixirc_paths(Mix.env()),
       start_permanent: Mix.env() == :prod,
@@ -209,6 +209,8 @@ defmodule Alnasl.MixProject do
       # JSON Schema in the tests; never part of a release.
       {:ex_json_schema, "~> 0.11.5", only: :test},
       {:esbuild, "~> 0.10", runtime: Mix.env() == :dev},
+      # Process state and metrics at /admin/dashboard, for admins only.
+      {:phoenix_live_dashboard, "~> 0.8.3"},
       {:telemetry_metrics, "~> 1.0"},
       {:telemetry_poller, "~> 1.0"},
       {:gettext, "~> 1.0"},
@@ -222,7 +224,7 @@ defmodule Alnasl.MixProject do
       # bridge that brings a hall's boards here from elsewhere. Pinned by tag,
       # as OpenPairings pins Ainalrami: a new Arkab reaches Alnasl when this
       # line says so, not when somebody pushes.
-      {:arkab, github: "teapot-chess/Arkab", tag: "v0.5.0"}
+      {:arkab, github: "teapot-chess/Arkab", tag: "v0.5.2"}
     ] ++ uart()
   end
 

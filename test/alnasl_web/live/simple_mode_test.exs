@@ -122,6 +122,18 @@ defmodule AlnaslWeb.SimpleModeTest do
       refute has_element?(view, "#link-state a[href='/outbox']")
     end
 
+    test "the sound switch on the numbering page is an advanced feature", %{conn: conn} do
+      {:ok, view, _html} = live(conn, ~p"/boards/number")
+      refute has_element?(view, "#walk-sound")
+      refute has_element?(view, "#walk-mute")
+
+      render_click(view, "ui_mode", %{"mode" => "full"})
+      assert has_element?(view, "#walk-mute")
+
+      render_click(view, "ui_mode", %{"mode" => "simple"})
+      refute has_element?(view, "#walk-mute")
+    end
+
     test "the tab bar follows the mode: Results only in full mode", %{conn: conn} do
       {:ok, view, _html} = live(conn, ~p"/")
 

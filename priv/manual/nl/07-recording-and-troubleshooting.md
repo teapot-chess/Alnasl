@@ -24,7 +24,7 @@ De verbindingen, eerlijk: voor de uitslagensite en voor elke andere bestemming, 
 
 ## PGN {#pgn}
 
-Lees PGN-bestanden in of plak zetten (ze worden op geldigheid gecontroleerd). Wijs een partij die niet vastgelegd werd toe aan haar bord, na bevestiging. Vergelijk een partijformulier met de vastgelegde partij en zie het eerste verschil. Exporteer een partij, of "Hele ronde als PGN" voor het bulletin.
+Lees PGN-bestanden in of plak zetten (ze worden op geldigheid gecontroleerd). Wijs een partij die niet vastgelegd werd toe aan haar bord, na bevestiging. Vergelijk een partijformulier met de vastgelegde partij en zie het eerste verschil. Exporteer een partij, of "Hele ronde als PGN" voor het bulletin, of "Alle partijen als PGN" voor het hele toernooi. Elke PGN van Alnasl bevat de Elo, titels en FIDE-nummers van de spelers wanneer het pairingprogramma ze meegaf.
 
 ## Als er iets mis is {#when-something-is-wrong}
 

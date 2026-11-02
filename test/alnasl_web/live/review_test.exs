@@ -126,7 +126,8 @@ defmodule AlnaslWeb.ReviewTest do
       refute has_element?(view, "#choice")
       assert has_element?(view, "#edit-tool[phx-hook]")
       assert has_element?(view, "#edit-ply[value='3']")
-      assert_push_event(view, "alnasl:go", %{to: "edit-move-form"})
+      assert has_element?(view, "#play-on-edit[aria-pressed='true']")
+      assert_push_event(view, "alnasl:go", %{to: "play-tool"})
     end
 
     test "a tap on the red move does the same as the button", %{view: view} do

@@ -98,7 +98,8 @@ defmodule Alnasl.BoardServerTest do
       # The PGN on the box: headers from the tournament, a clock comment per move.
       pgn = File.read!(Games.pgn_path(game))
 
-      assert pgn =~ ~s([Event "Test Open"]) and pgn =~ ~s([White "GM Player 1"]) and
+      assert pgn =~ ~s([Event "Test Open"]) and pgn =~ ~s([White "Player 1"]) and
+               pgn =~ ~s([WhiteTitle "GM"]) and
                pgn =~ ~s([Board "1"])
 
       assert pgn =~ "[%clk "

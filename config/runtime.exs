@@ -178,6 +178,29 @@ if config_env() == :dev do
     ]
 end
 
+# Off-site backups (`Alnasl.Ops.OffsiteBackup`, README "Off-site backups"):
+# a daily snapshot of the database, encrypted to age public keys, PUT to an
+# S3-compatible bucket. Off unless every required variable is set; half a
+# configuration refuses to start rather than quietly sending nothing:
+#
+#   OFFSITE_BACKUP_RECIPIENTS            age public keys (age1...), comma-separated
+#   OFFSITE_BACKUP_S3_ENDPOINT           https://<s3-compatible endpoint>
+#   OFFSITE_BACKUP_S3_BUCKET             bucket name (path-style requests)
+#   OFFSITE_BACKUP_S3_ACCESS_KEY_ID      a key that may write to that bucket, ideally only that
+#   OFFSITE_BACKUP_S3_SECRET_ACCESS_KEY
+#   OFFSITE_BACKUP_S3_REGION             optional, default us-east-1
+#   OFFSITE_BACKUP_S3_PREFIX             optional, default alnasl
+#   OFFSITE_BACKUP_STALE_HOURS           optional, default 36
+#
+# Not in a test run, which configures its own.
+if config_env() != :test do
+  case Alnasl.Ops.OffsiteBackup.from_env() do
+    {:ok, offsite} -> config :alnasl, :offsite_backup, offsite
+    :disabled -> :ok
+    {:error, message} -> raise message
+  end
+end
+
 if config_env() == :prod do
   data = data_dir
 

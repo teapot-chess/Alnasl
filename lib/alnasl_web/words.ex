@@ -1117,6 +1117,9 @@ defmodule AlnaslWeb.Words do
   defp log("account.refused", d),
     do: gettext("A wrong password was tried from %{from}.", from: d["from"])
 
+  defp log("account.throttled", d),
+    do: gettext("%{from} tried passwords too often and was made to wait.", from: d["from"])
+
   defp log("door.refused", d), do: gettext("A wrong PIN was tried from %{from}.", from: d["from"])
 
   defp log("door.throttled", d),

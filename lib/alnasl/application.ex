@@ -20,7 +20,16 @@ defmodule Alnasl.Application do
       )
 
     opts = [strategy: :one_for_one, name: Alnasl.Supervisor]
-    Supervisor.start_link(children, opts)
+
+    with {:ok, _pid} = started <- Supervisor.start_link(children, opts) do
+      # Crash reports onto the System page, not into a third party's
+      # dashboard (`Alnasl.Ops.ErrorReports`). Off in test.
+      if Application.get_env(:alnasl, :error_reports, true) do
+        Alnasl.Ops.ErrorReports.LoggerHandler.install()
+      end
+
+      started
+    end
   end
 
   @doc """
@@ -53,7 +62,12 @@ defmodule Alnasl.Application do
       Alnasl.Recorder,
       Alnasl.DoorGuard,
       # The cloud's count of who asks how often (`Alnasl.Takeover`).
-      Alnasl.Takeover.RateLimit
+      Alnasl.Takeover.RateLimit,
+      # Writes crash reports for the logger handler installed in start/2.
+      Alnasl.Ops.ErrorReports.Recorder,
+      # A snapshot of the database off the box, encrypted; idle unless
+      # configured (`OFFSITE_BACKUP_*`).
+      Alnasl.Ops.OffsiteBackup.Scheduler
     ] ++
       if(Alnasl.FairPlay.Live.enabled?(), do: [Alnasl.FairPlay.Live], else: []) ++
       if(local?,

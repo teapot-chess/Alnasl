@@ -28,4 +28,22 @@ defmodule Alnasl.StartScreenTest do
     assert html =~ "prefers-reduced-motion"
     assert html =~ "prefers-color-scheme"
   end
+
+  test "the route it probes exists, silent in the log, and is the liveness one" do
+    html = File.read!(@page)
+    assert [_, path] = Regex.run(~r{"http://localhost:" \+ port \+ "(/[a-z]+)"}, html)
+
+    route =
+      Enum.find(AlnaslWeb.Router.__routes__(), &(&1.path == path and &1.verb == :get))
+
+    assert route.plug == AlnaslWeb.HealthController
+    assert route.metadata.log == false
+  end
+
+  test "a stopped server is not mistaken for a running one" do
+    html = File.read!(@page)
+
+    assert html =~
+             ~r/function probe\(\) \{\s+if \(fromLauncher && fromLauncher\.state === "stopped"\) return;/
+  end
 end

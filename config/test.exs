@@ -116,3 +116,20 @@ config :arkab,
 # the tests answer those from priv/contracts/vendor and never from GitHub
 # (Alnasl.Contract).
 config :ex_json_schema, :remote_schema_resolver, {Alnasl.Contract, :resolve}
+
+# Phoenix's test requests ask for www.example.com from 127.0.0.1; on a box
+# that name would be a rebound stranger (`AlnaslWeb.Hall.local_request?/1`).
+# Here it is the box's own browser, as every test before the check assumed.
+config :alnasl, local_hosts: ["www.example.com"]
+
+# The off-site backup's timer stays still; the tests call
+# `Alnasl.Ops.OffsiteBackup.push/1` themselves, and every PUT goes to a
+# Req.Test stub, never to a network.
+config :alnasl, :offsite_backup_interval, :disabled
+
+config :alnasl, :offsite_backup_req_options,
+  plug: {Req.Test, Alnasl.Ops.OffsiteBackup},
+  retry: false
+
+# Crashes are half the point of some tests; they are not reports.
+config :alnasl, :error_reports, false

@@ -61,6 +61,12 @@ defmodule AlnaslWeb.Scope do
       else: ~p"/files/t/#{tournament_id}/round/#{round}"
   end
 
+  def tournament_file(tournament_id) do
+    if own?(tournament_id),
+      do: ~p"/files/tournament",
+      else: ~p"/files/t/#{tournament_id}/tournament"
+  end
+
   def game_file(tournament_id, round, board_no, game_no \\ nil) do
     base =
       if own?(tournament_id),

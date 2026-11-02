@@ -7,7 +7,9 @@ defmodule Alnasl.Takeover.RateLimit do
 
   A box asks every five seconds and sends a batch after a burst of moves;
   `AlnaslWeb.TakeoverController` allows it 240 requests a minute, and an
-  address 10 attempts at a pairing code in ten minutes.
+  address 10 attempts at a pairing code in ten minutes. The same counts keep
+  bridge join codes (`AlnaslWeb.JoinController`) and password sign-in
+  (`AlnaslWeb.SessionController`) from being guessed at leisure.
   """
 
   use GenServer
@@ -37,6 +39,28 @@ defmodule Alnasl.Takeover.RateLimit do
         do: :ok,
         else: {:error, max(div((window + 1) * window_ms - now, 1000), 1)}
     end
+  end
+
+  @doc """
+  The same answer as `hit/4` would give, without counting: for limits that
+  count only failures, asked before the attempt and hit after a failed one.
+  """
+  def peek(key, limit, window_ms, now \\ System.system_time(:millisecond)) do
+    window = div(now, window_ms)
+
+    count =
+      if :ets.whereis(@table) == :undefined do
+        0
+      else
+        case :ets.lookup(@table, {key, window_ms, window}) do
+          [{_key, count}] -> count
+          [] -> 0
+        end
+      end
+
+    if count < limit,
+      do: :ok,
+      else: {:error, max(div((window + 1) * window_ms - now, 1000), 1)}
   end
 
   @doc false

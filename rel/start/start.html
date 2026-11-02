@@ -14,10 +14,15 @@
        no CORS and no permission, and it carries the one thing the page can
        never learn alone: that the server process has died. Re-read every
        second under a new query string (a plain reload would be cached).
-    2. A probe of http://localhost:PORT/_ready with fetch(..., {mode:
+    2. A probe of http://localhost:PORT/healthz with fetch(..., {mode:
        'no-cors'}). From a file:// page the answer is opaque, and that is
        all that is needed: any response resolves, a refused connection
-       rejects. No CORS headers on the server, nothing to read. An <img> or
+       rejects. /healthz is the server's existing liveness route (no session, no
+       PIN, no log line, says almost nothing); a 503 from it is still an answer,
+       and the page then only moves on to the program, which says the rest.
+       No CORS headers on the server, nothing to read. Skipped once the launcher
+       has said "stopped", so that something else on the port cannot pass for
+       Alnasl. An <img> or
        <script> probe would work as well but would log an error for every
        try. If a browser asks "allow this site to reach devices on your
        network" or blocks the probe, way 1 still moves the page on.
@@ -205,9 +210,10 @@
 
   // Way 2: does anything answer on the port? Opaque is enough.
   function probe() {
+    if (fromLauncher && fromLauncher.state === "stopped") return;
     var ctl = window.AbortController ? new AbortController() : null;
     var timer = setTimeout(function () { if (ctl) ctl.abort(); }, 2500);
-    fetch("http://localhost:" + port + "/_ready", { mode: "no-cors", cache: "no-store", signal: ctl ? ctl.signal : undefined })
+    fetch("http://localhost:" + port + "/healthz", { mode: "no-cors", cache: "no-store", signal: ctl ? ctl.signal : undefined })
       .then(function () { clearTimeout(timer); go(); })
       .catch(function () { clearTimeout(timer); });
   }

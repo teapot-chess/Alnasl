@@ -40,6 +40,24 @@ defmodule AlnaslWeb.FileController do
     end
   end
 
+  # Every game of the tournament, rounds in order. `Scope.tournament/2` is the
+  # same door the round and game downloads use, so a person who cannot see a
+  # tournament cannot download it either.
+  def tournament(conn, params) do
+    case Scope.tournament(params, conn.assigns.current_scope) do
+      nil ->
+        send_resp(conn, 404, "no such tournament")
+
+      tournament ->
+        download(
+          conn,
+          Games.tournament_pgn(tournament.id),
+          "tournament-#{tournament.id}.pgn",
+          "application/x-chess-pgn"
+        )
+    end
+  end
+
   def capture(conn, %{"board" => board, "name" => name}) do
     account = conn.assigns.current_scope
 

@@ -398,6 +398,13 @@ defmodule AlnaslWeb.PgnLive do
               href={Scope.round_file(@tid, @round)}
               download
             >{gettext("Whole round as PGN")}</.button>
+            <.button
+              :if={@stored != []}
+              id="export-tournament"
+              small
+              href={Scope.tournament_file(@tid)}
+              download
+            >{gettext("All games as PGN")}</.button>
           </:actions>
 
           <div :if={@stored == []} id="stored-empty" class="empty">
@@ -409,7 +416,7 @@ defmodule AlnaslWeb.PgnLive do
             </p>
           </div>
 
-          <table :if={@stored != []} id="stored-games">
+          <table :if={@stored != []} id="stored-games" class="cards">
             <thead>
               <tr>
                 <th>{gettext("Board")}</th>
@@ -426,15 +433,17 @@ defmodule AlnaslWeb.PgnLive do
 
             <tbody>
               <tr :for={game <- @stored} id={"stored-#{game.board_no}"}>
-                <td>
+                <td class="lead" data-label={gettext("Board")}>
                   <.link navigate={Scope.game_path(@tid, @round, game.board_no)}>{game.board_no}</.link>
                 </td>
 
-                <td>{game.white || "?"} - {game.black || "?"}</td>
+                <td data-label={gettext("Players")}>{game.white || "?"} - {game.black || "?"}</td>
 
-                <td class="num">{div(length(Games.sans(game)) + 1, 2)}</td>
+                <td class="num" data-label={gettext("Moves")}>
+                  {div(length(Games.sans(game)) + 1, 2)}
+                </td>
 
-                <td>
+                <td data-label={gettext("Result")}>
                   {game.result || "*"}
                   <span :if={game.source == "pgn"} class="flag plain">{gettext("from PGN")}</span>
                 </td>

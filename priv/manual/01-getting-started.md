@@ -23,7 +23,7 @@ You work with it in a browser, on the box itself or on your laptop in the hall. 
 | Look back | Recordings | Everything the boards said, raw, for looking at again |
 | | Help | This manual |
 
-That is every page, as full mode shows them. A new installation starts in simple mode, which keeps the basics in the menu and the rest one switch away: see [Simple mode and everything](#simple-mode).
+That is every page, as full mode shows them. A new installation starts in simple mode, which keeps the basics in the menu and the rest one switch away: see [Simple mode and advanced features](#simple-mode).
 
 At the top of the rail: the box's name (on the server, "server") and, when you have more than one hall, the hall picker. At its foot: the account button, with your language, the colour theme and Sign out.
 
@@ -85,6 +85,8 @@ curl -fsSL https://github.com/teapot-chess/Alnasl/releases/latest/download/insta
 
 **Mac.** Download alnasl-macos-aarch64.zip for a Mac with an Apple chip (M1 and later; there is no build for Intel Macs), open it, and drag Alnasl into Applications. Apple has not signed it yet, so the first time macOS refuses to open it: in System Settings, Privacy & Security, click "Open Anyway" beside the message about Alnasl. Quitting Alnasl (Cmd-Q) asks first, because while it is stopped the boards are not read.
 
+**Windows and Mac: the start screen.** Starting Alnasl opens the browser at once, on a page that says what is going on, and the page moves on to Alnasl by itself when it is ready. The first start takes longer, because the database is made then. If it takes unusually long, or Alnasl stops before it is ready, the page says so and shows where the log is. The page is a file in Alnasl's data folder, so it needs no network. On Linux and the Pi there is no start screen: the service starts with the box.
+
 Then open the site in a browser: on the box itself at `http://localhost:4040`; from a laptop on the hall's network, the box's address with the same port (Boards and Setup, Access, show it, with a QR code for a phone, once other machines are let in).
 
 ### Updating {#updating}
@@ -98,6 +100,42 @@ What changed in each version is on the same page, under the button, so nobody ha
 Not in the program's folder. Windows: `%LOCALAPPDATA%\AlnaslData` (type that in Explorer's address bar). Linux, installed: `/var/lib/alnasl`. Mac: `~/Library/Application Support/AlnaslData`. It holds the database, the PGN of every game, the raw recordings, and the keys and codes you pasted. Updating and uninstalling leave it alone; installing again finds it. To move to another computer, copy that folder while Alnasl is stopped.
 
 Setup, This box, "This copy of Alnasl", says the version, how this copy was started and where its data folder is. A second copy started another way on the same computer has a data folder of its own: its own boards, numbers and tournaments.
+
+## A box with no network {#setup-hotspot}
+
+A box with no cable and no Wi-Fi it knows cannot be reached from the hall, so it makes its own Wi-Fi network. Join it with a phone or a laptop and the box's setup page opens. There you choose the hall's Wi-Fi. On an Arkab box you also set its remote PIN and paste its join link. The box needs no screen and no keyboard for this.
+
+The network is called `Alnasl-setup-XXXX`; the four characters at the end belong to the box. It is always protected with a password (WPA2), never open. It appears about a minute after the box starts when there is no network, and goes away once the box is on the hall's Wi-Fi. With an Ethernet cable it is there for the first ten minutes after the start, then it goes away. While it is up, the status line on the box's screen says `setup hotspot`.
+
+### Joining it {#joining-the-hotspot}
+
+The password is in the file `alnasl-hotspot.txt` on the small FAT partition of the SD card, the one that shows up on any PC. Open the file and read the `PASSWORD=` line. The box writes a password there at its first start (10 characters, with no 0, O, 1 or l to confuse you) and the network's name on the `SSID=` line.
+
+Or scan `alnasl-hotspot-qr.png`, the QR picture that sits next to that file, with the phone's camera. The phone joins without any typing. Print it and stick it on the case.
+
+Once joined, the phone shows the setup page by itself. If it does not, open `http://10.42.0.1` in the browser, and type the `http://` yourself. On an iPhone, if the page never pops up, choose Forget This Network, join again, and check that Auto-Login is on for that network.
+
+### A password of your own {#hotspot-password}
+
+Before the first start you can type your own password after `PASSWORD=`: 8 to 63 plain keyboard characters, no quotes needed. If you want the same password on every box, write the same one on every card. A password that is too short or too long is replaced by the box, and the file says so.
+
+You can change it later in the same way. It is used from the next start on. `HOTSPOT=off` switches the hotspot off altogether.
+
+Whoever can read the password or scan the QR code can open the setup page, and the setup page can change the box's Wi-Fi. Keep the sticker with the box, not on a shared drive.
+
+### On the setup page {#setup-page}
+
+- **Wi-Fi.** The page lists the networks it sees. Pick the hall's network or type its name, enter the password and press Connect. The box leaves its own network and tries. If it works, the hotspot stays off, and the line that starts `# Box:` at the end of `alnasl-hotspot.txt` says where the box went. If it does not work, the hotspot comes back within about a minute, and the page says why: wrong password, network not found, refused, or no address.
+- **Remote PIN and join link (Arkab box only).** See the next section, or set the PIN here.
+- **Read-only.** The box's role, its addresses, where to reach it next, and an "open in your browser" link to `http://10.42.0.1/` for when the sign-in sheet is too cramped.
+
+### The Arkab remote PIN {#arkab-pin}
+
+On an Arkab box, a browser elsewhere in the hall can manage Arkab after you type a PIN. To set the PIN, open `alnasl-arkab-pin.txt` on the boot partition and type it after `PIN=`, then put the card back in the box. The PIN must be 4 to 64 characters. Letters, digits and other plain keyboard characters are fine. It may not start or end with a space or a quote, and it may not contain control characters. The words `remove` and `verwijderen` are not PINs: they mean "remove the PIN".
+
+The box takes the PIN at its next start. It hands it to Arkab, then empties the `PIN=` line again, so the PIN does not stay in plain sight on the card. At the bottom of the file the box writes a `# Last result:` line. It says the PIN was set, or why it was refused, or that it could not be handed over yet and will be tried at the next start. Read that line after you put the card in a PC.
+
+To remove the PIN, write `PIN=remove` and start the box. You can also set the PIN on the setup page, without touching the card.
 
 ## Before the round {#before-the-round}
 
@@ -119,13 +157,13 @@ Whoever has chosen nothing reads Alnasl's default language. An admin sets it und
 
 The colours come in the same themes as OpenResults: Paper, Night, Board, Slate and High contrast, and Match device, which follows the phone or computer. Choose in the account menu, under Colour theme; it is the only place. The choice is kept in that browser only. High contrast is the one for a projector at the back of the hall.
 
-More themes can be added as theme packs: one folder per theme, in the folder `themes` inside the data folder. On the next page load they are offered after the built-in ones. They are offered in full mode only ([Simple mode and everything](#simple-mode)); a pack chosen before keeps working in simple mode. A pack Alnasl will not load is listed in grey, with the reason.
+More themes can be added as theme packs: one folder per theme, in the folder `themes` inside the data folder. On the next page load they are offered after the built-in ones. They are offered in full mode only ([Simple mode and advanced features](#simple-mode)); a pack chosen before keeps working in simple mode. A pack Alnasl will not load is listed in grey, with the reason.
 
-## Simple mode and everything {#simple-mode}
+## Simple mode and advanced features {#simple-mode}
 
 Alnasl starts in **simple mode**: the basics for running a hall, and nothing else in the menu. That is Live (the boards and their games), Boards (what is plugged in, the table numbers, numbering by touching the boards, "Ready for round N?"), Halls (people and bridges), Setup with the wizard, Tournaments, Connections and, on a box, Updates, and this manual. The connection badges in the bar still say whether the results reach the results site.
 
-The rest is one switch away: **Show everything**, in the account menu (and at the foot of the rail, or under More on a phone, while simple mode is on). It adds Games (PGN), Results (what was sent and what waits), Log, Recordings, the phone page for finding a board, fair play for the hall's owner, the other sections of Setup (Results and Lichess, This box, Access, Advanced) and the theme packs in the colour menu. Switch it off again and they leave the menu.
+The rest is one switch away: **Show advanced features**, in the account menu (and at the foot of the rail, or under More on a phone, while simple mode is on). It adds Games (PGN), Results (what was sent and what waits), Log, Recordings, the phone page for finding a board, fair play for the hall's owner, the other sections of Setup (Results and Lichess, This box, Access, Advanced) and the theme packs in the colour menu and the beep for the numbering page (Sound on or off). That list is all of it: whatever else this manual describes is there in simple mode too. Switch it off again and they leave the menu.
 
 Nothing is removed in simple mode, and nobody's rights change: a link to a page that is in full mode only opens a short note that says so, with the switch on it. Press it and the page is there.
 
@@ -138,6 +176,8 @@ A box or server that was in use before simple mode existed keeps every page afte
 On a screen of 4 to 7 inches (800x480, 1024x600, 720x720) Alnasl draws a compact layout by itself: one bar along the top with the places on the left and the hall and the account on the right, no rail, bigger buttons, and smaller tiles on Live with the board number, the state, the players, the clocks and the last move or the result. The position diagram waits for a larger screen; the board's own page still has it.
 
 The other pages follow. A board's own page shows the board with the names and clocks beside it and the moves in a column next to them, all on one screen; only the move list scrolls. When the game stays in Alnasl, that note shrinks to one line with its button; a changed pairing keeps its full text and comes first. Setup and Halls are one column with larger text and fields, and the list of halls shows each hall as a card. The tour puts its steps under the top bar, on the side away from what they point at.
+
+On a 3.5 inch screen (480x320, or 320x480 held upright) the layout goes one step further. The top bar shows icons, with the word only for the page you are on. The stored games on Games are cards instead of a table. A board's own page is one column, so the repair board and the move arrows take the whole width of the screen. Everything you tap is at least 44 px.
 
 Alnasl decides by the size of the window. A small panel with many pixels looks like a monitor to it: choose **Small screen** in the account menu, under Screen, and the compact layout stays on that screen. **Large screen** keeps it off, **Automatic** lets the window decide again. The choice is kept in that browser only.
 

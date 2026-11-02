@@ -1,6 +1,6 @@
 defmodule Alnasl.Contracts.PublishTest do
   @moduledoc """
-  OpenResults' `publish-v1` (vendored), from Alnasl's side: what the outbox
+  `publish-v1` (vendored from OpenPairings), from Alnasl's side: what the outbox
   sends fits `live-board.request`, and every answer the contract has an
   example of means to `Alnasl.Outbox` what the contract says it means.
 

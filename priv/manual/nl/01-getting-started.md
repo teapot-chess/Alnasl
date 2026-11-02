@@ -23,7 +23,7 @@ Je werkt ermee in een browser, op het kastje zelf of op je laptop in de zaal. De
 | Terugkijken | Opnames | Alles wat de borden zeiden, ruw, om nog eens te bekijken |
 | | Help | Deze handleiding |
 
-Dat zijn alle pagina's, zoals de volledige modus ze toont. Een nieuwe installatie start in de eenvoudige modus, die de basis in het menu houdt en de rest één schakelaar verder: zie [Eenvoudig of alles](#simple-mode).
+Dat zijn alle pagina's, zoals de volledige modus ze toont. Een nieuwe installatie start in de eenvoudige modus, die de basis in het menu houdt en de rest één schakelaar verder: zie [Eenvoudig of geavanceerd](#simple-mode).
 
 Bovenaan de balk: de naam van het kastje (op de server: "server") en, als je meer dan één zaal hebt, de zaalkiezer. Onderaan: de accountknop, met je taal, het kleurthema en Afmelden.
 
@@ -85,6 +85,8 @@ curl -fsSL https://github.com/teapot-chess/Alnasl/releases/latest/download/insta
 
 **Mac.** Download alnasl-macos-aarch64.zip voor een Mac met een Apple-chip (M1 en later; voor Intel-Macs is er geen build), open het en sleep Alnasl naar Programma's. Apple heeft het nog niet ondertekend, dus de eerste keer weigert macOS het te openen: klik in Systeeminstellingen, Privacy en beveiliging, op "Toch openen" bij de melding over Alnasl. Alnasl afsluiten (Cmd-Q) vraagt eerst bevestiging, want zolang het gestopt is worden de borden niet gelezen.
 
+**Windows en Mac: het startscherm.** Als je Alnasl start, opent de browser meteen op een pagina die zegt wat er gebeurt, en die pagina gaat vanzelf door naar Alnasl zodra het klaar is. De eerste start duurt langer, want dan wordt de database gemaakt. Duurt het ongewoon lang, of stopt Alnasl voordat het klaar is, dan zegt de pagina dat en laat ze zien waar het logboek staat. De pagina is een bestand in de gegevensmap van Alnasl, dus ze heeft geen netwerk nodig. Op Linux en de Pi is er geen startscherm: de dienst start met het kastje.
+
 Open daarna de site in een browser: op het kastje zelf via `http://localhost:4040`; vanaf een laptop in het netwerk van de zaal via het adres van het kastje met dezelfde poort (Borden en Instellingen, Toegang, tonen het, met een QR-code voor een telefoon, zodra andere machines binnen mogen).
 
 ### Updaten {#updating}
@@ -98,6 +100,42 @@ Wat er per versie veranderd is, staat op dezelfde pagina onder de knop, zodat ni
 Niet in de map van het programma. Windows: `%LOCALAPPDATA%\AlnaslData` (typ dat in de adresbalk van Verkenner). Linux, geïnstalleerd: `/var/lib/alnasl`. Mac: `~/Library/Application Support/AlnaslData`. Daarin staan de database, de PGN van elke partij, de ruwe opnames en de sleutels en codes die je geplakt hebt. Updaten en verwijderen laten die map met rust; opnieuw installeren vindt ze terug. Om naar een andere computer te verhuizen kopieer je die map terwijl Alnasl gestopt is.
 
 Instellingen, Dit kastje, "Deze kopie van Alnasl", zegt de versie, hoe deze kopie gestart is en waar de gegevensmap staat. Een tweede kopie die anders gestart is op dezelfde computer heeft een eigen gegevensmap: eigen borden, nummers en toernooien.
+
+## Een kastje zonder netwerk {#setup-hotspot}
+
+Een kastje zonder kabel en zonder wifi die hij kent, is vanuit de zaal niet te bereiken. Daarom maakt hij zijn eigen wifi-netwerk. Maak er verbinding mee met je telefoon of laptop, dan gaat de installatiepagina van het kastje open. Daar kies je de wifi van de zaal. Op een Arkab-kastje stel je daar ook de pincode op afstand in en plak je de koppellink. Hiervoor heeft het kastje geen scherm en geen toetsenbord nodig.
+
+Het netwerk heet `Alnasl-setup-XXXX`; de vier tekens achteraan horen bij het kastje. Het is altijd met een wachtwoord beveiligd (WPA2), nooit open. Het verschijnt ongeveer een minuut nadat het kastje start als er geen netwerk is, en het verdwijnt zodra het kastje op de wifi van de zaal zit. Met een netwerkkabel is het er de eerste tien minuten na het starten, daarna verdwijnt het. Zolang het aan staat, zegt de statusregel op het scherm van het kastje `installatiehotspot`.
+
+### Er verbinding mee maken {#joining-the-hotspot}
+
+Het wachtwoord staat in het bestand `alnasl-hotspot.txt` op de kleine FAT-partitie van de sd-kaart, de partitie die op elke pc gewoon zichtbaar is. Open het bestand en lees de regel `PASSWORD=`. Het kastje schrijft daar bij de eerste start zelf een wachtwoord in (10 tekens, zonder 0, O, 1 of l om je in de war te brengen), en de naam van het netwerk op de regel `SSID=`.
+
+Of scan `alnasl-hotspot-qr.png`, de QR-afbeelding naast dat bestand, met de camera van je telefoon. De telefoon maakt dan verbinding zonder dat je iets typt. Druk hem af en plak hem op de kast.
+
+Zodra je verbonden bent, opent de telefoon de installatiepagina vanzelf. Doet hij dat niet, open dan `http://10.42.0.1` in de browser en typ zelf het `http://` ervoor. Op een iPhone: komt de pagina nooit, kies dan Dit netwerk vergeten, verbind opnieuw en controleer of Automatisch inloggen aan staat voor dat netwerk.
+
+### Een eigen wachtwoord {#hotspot-password}
+
+Voor de eerste start kun je zelf een wachtwoord achter `PASSWORD=` typen: 8 tot 63 gewone toetsenbordtekens, zonder aanhalingstekens. Wil je op elk kastje hetzelfde wachtwoord, schrijf dan op elke kaart hetzelfde. Een wachtwoord dat te kort of te lang is, vervangt het kastje door een ander, en het bestand zegt dat erbij.
+
+Later wijzigen kan op dezelfde manier. Het geldt vanaf de volgende start. `HOTSPOT=off` zet de hotspot helemaal uit.
+
+Wie het wachtwoord kan lezen of de QR-code kan scannen, kan de installatiepagina openen, en die kan de wifi van het kastje wijzigen. Hou de sticker bij het kastje, niet op een gedeelde schijf.
+
+### Op de installatiepagina {#setup-page}
+
+- **Wifi.** De pagina zet de netwerken op een rij die hij ziet. Kies het netwerk van de zaal of typ de naam, vul het wachtwoord in en druk op Verbinden. Het kastje verlaat zijn eigen netwerk en probeert het. Lukt het, dan blijft de hotspot uit, en de regel die bij het einde van `alnasl-hotspot.txt` met `# Box:` begint, zegt waar het kastje naartoe is gegaan. Lukt het niet, dan komt de hotspot binnen ongeveer een minuut terug, en de pagina zegt waarom: verkeerd wachtwoord, netwerk niet gevonden, geweigerd of geen adres.
+- **Pincode op afstand en koppellink (alleen een Arkab-kastje).** Zie de volgende sectie, of stel de pincode hier in.
+- **Alleen lezen.** De rol van het kastje, zijn adressen, waar je hem daarna bereikt, en een link "open in je browser" naar `http://10.42.0.1/`, voor als het aanmeldvenster te krap is.
+
+### De pincode op afstand van Arkab {#arkab-pin}
+
+Op een Arkab-kastje kan een browser elders in de zaal Arkab beheren nadat je een pincode hebt ingetypt. Om de pincode in te stellen, open je `alnasl-arkab-pin.txt` op de bootpartitie en typ je hem achter `PIN=`. Steek daarna de kaart terug in het kastje. De pincode moet 4 tot 64 tekens zijn. Letters, cijfers en andere gewone toetsenbordtekens zijn goed. Hij mag niet beginnen of eindigen met een spatie of een aanhalingsteken, en hij mag geen besturingstekens bevatten. De woorden `remove` en `verwijderen` zijn geen pincode: die betekenen "de pincode weghalen".
+
+Het kastje neemt de pincode over bij de volgende start. Hij geeft hem door aan Arkab en maakt de regel `PIN=` daarna weer leeg, zodat de pincode niet zomaar op de kaart te lezen is. Onderaan het bestand schrijft het kastje een regel `# Last result:`. Daarin staat of de pincode is ingesteld, waarom hij is geweigerd, of dat hij nog niet doorgegeven kon worden en bij de volgende start opnieuw wordt geprobeerd. Lees die regel als je de kaart in een pc steekt.
+
+Om de pincode weg te halen, schrijf je `PIN=remove` en start je het kastje. Je kunt de pincode ook op de installatiepagina instellen, zonder de kaart aan te raken.
 
 ## Voor de ronde {#before-the-round}
 
@@ -119,13 +157,13 @@ Wie niets koos, leest de standaardtaal van Alnasl. Een beheerder stelt die in bi
 
 De kleuren komen in dezelfde thema's als OpenResults: Papier, Nacht, Bord, Leisteen en Hoog contrast, en Volg het toestel, dat het toestel volgt. Kies in het accountmenu, bij Kleurthema; dat is de enige plek. De keuze geldt alleen voor die browser. Hoog contrast is voor een projector achteraan de zaal.
 
-Er kunnen meer thema's bij als themapakketten: een map per thema, in de map `themes` binnen de gegevensmap. Bij de volgende keer laden staan ze na de ingebouwde thema's. Ze staan er alleen in de volledige modus ([Eenvoudig of alles](#simple-mode)); een pakket dat je eerder koos, blijft in de eenvoudige modus werken. Een pakket dat Alnasl niet wil laden, staat in het grijs in de lijst, met de reden.
+Er kunnen meer thema's bij als themapakketten: een map per thema, in de map `themes` binnen de gegevensmap. Bij de volgende keer laden staan ze na de ingebouwde thema's. Ze staan er alleen in de volledige modus ([Eenvoudig of geavanceerd](#simple-mode)); een pakket dat je eerder koos, blijft in de eenvoudige modus werken. Een pakket dat Alnasl niet wil laden, staat in het grijs in de lijst, met de reden.
 
-## Eenvoudig of alles {#simple-mode}
+## Eenvoudig of geavanceerd {#simple-mode}
 
 Alnasl start in de **eenvoudige modus**: de basis om een zaal te draaien, en verder niets in het menu. Dat is Live (de borden en hun partijen), Borden (wat er aangesloten is, de tafelnummers, nummeren door de borden aan te raken, "Klaar voor ronde N?"), Zalen (mensen en bruggen), Instellingen met de wizard, Toernooien, Koppelingen en, op een kastje, Updates, en deze handleiding. De verbindingsbadges in de balk zeggen nog steeds of de resultaten de uitslagensite bereiken.
 
-De rest staat één schakelaar verder: **Alles tonen**, in het accountmenu (en onderaan de balk, of onder Meer op een telefoon, zolang de eenvoudige modus aan staat). Daarmee komen Partijen (PGN), Resultaten (wat verstuurd is en wat wacht), Logboek, Opnames, de telefoonpagina om een bord te vinden, fair play voor de eigenaar van de zaal, de andere onderdelen van Instellingen (Uitslagen en Lichess, Dit kastje, Toegang, Geavanceerd) en de themapakketten in het kleurmenu erbij. Zet je hem weer uit, dan verdwijnen ze uit het menu.
+De rest staat één schakelaar verder: **Geavanceerde functies tonen**, in het accountmenu (en onderaan de balk, of onder Meer op een telefoon, zolang de eenvoudige modus aan staat). Daarmee komen Partijen (PGN), Resultaten (wat verstuurd is en wat wacht), Logboek, Opnames, de telefoonpagina om een bord te vinden, fair play voor de eigenaar van de zaal, de andere onderdelen van Instellingen (Uitslagen en Lichess, Dit kastje, Toegang, Geavanceerd) en de themapakketten in het kleurmenu erbij, plus de piep op de nummerpagina (Geluid aan of uit). Dat is de hele lijst: al het andere in deze handleiding staat ook in de eenvoudige modus. Zet je hem weer uit, dan verdwijnen ze uit het menu.
 
 In de eenvoudige modus wordt niets verwijderd en verandert niemands rechten: een link naar een pagina die alleen in de volledige modus staat, opent een korte melding die dat zegt, met de schakelaar erop. Druk erop en de pagina is er.
 
@@ -138,6 +176,8 @@ Een kastje of server die al in gebruik was voor de eenvoudige modus bestond, hou
 Op een scherm van 4 tot 7 inch (800x480, 1024x600, 720x720) tekent Alnasl vanzelf een compacte indeling: één strook bovenaan met de pagina's links en de zaal en het account rechts, geen balk opzij, grotere knoppen, en kleinere tegels op Live met het bordnummer, de toestand, de spelers, de klokken en de laatste zet of het resultaat. Het stellingsdiagram wacht op een groter scherm; de eigen pagina van het bord heeft het nog.
 
 De andere pagina's volgen. De eigen pagina van een bord toont het bord met de namen en klokken ernaast en de zetten in een kolom daarnaast, alles op één scherm; alleen de zettenlijst schuift. Blijft de partij in Alnasl, dan krimpt die melding tot één regel met haar knop; een gewijzigde paring houdt haar volledige tekst en staat bovenaan. Instellingen en Zalen staan in één kolom met grotere tekst en velden, en de lijst van zalen toont elke zaal als een kaart. De rondleiding zet haar stappen onder de strook bovenaan, aan de kant weg van waar ze naar wijzen.
+
+Op een scherm van 3,5 inch (480x320, of 320x480 rechtop) gaat de indeling nog een stap verder. De strook bovenaan toont pictogrammen, met het woord alleen voor de pagina waar je bent. De bewaarde partijen op Partijen zijn kaarten in plaats van een tabel. De eigen pagina van een bord is één kolom, zodat het herstelbord en de zetpijlen de hele breedte van het scherm krijgen. Alles waar je op tikt, is minstens 44 px.
 
 Alnasl beslist op de grootte van het venster. Een klein scherm met veel pixels lijkt daardoor op een monitor: kies **Klein scherm** in het accountmenu, bij Scherm, en de compacte indeling blijft aan op dat scherm. **Groot scherm** houdt ze uit, **Automatisch** laat het venster weer beslissen. De keuze geldt alleen voor die browser.
 

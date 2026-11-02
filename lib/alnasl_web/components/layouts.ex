@@ -113,7 +113,7 @@ defmodule AlnaslWeb.Layouts do
             phx-click="ui_mode"
             phx-value-mode="full"
           >
-            <.icon name="more" /> <span>{gettext("Show everything")}</span>
+            <.icon name="more" /> <span>{gettext("Show advanced features")}</span>
           </button>
         </nav>
 
@@ -275,7 +275,11 @@ defmodule AlnaslWeb.Layouts do
        [
          item(:halls, ~p"/halls", "hall", gettext("Halls")),
          item(:setup, ~p"/setup", "setup", gettext("Setup"))
-       ] ++ spare_item() ++ fair_play_item(scope) ++ support_item(scope)},
+       ] ++
+         spare_item() ++
+         fair_play_item(scope) ++
+         support_item(scope) ++
+         system_item(scope)},
       {"back", gettext("Look back"),
        [
          item(:log, ~p"/log", "log", gettext("Log")),
@@ -300,6 +304,14 @@ defmodule AlnaslWeb.Layouts do
   defp fair_play_item(scope) do
     if Alnasl.FairPlay.Access.menu?(scope),
       do: [item(:fair_play, ~p"/fair-play", "search", gettext("Fair play"))],
+      else: []
+  end
+
+  # The System page (health, the off-site backup, crash reports) is for
+  # whoever may change the box itself (`AlnaslWeb.SystemAccess`).
+  defp system_item(scope) do
+    if Alnasl.Accounts.Scope.can?(scope, :admin),
+      do: [item(:system, ~p"/system", "grid", gettext("System"))],
       else: []
   end
 
@@ -345,6 +357,7 @@ defmodule AlnaslWeb.Layouts do
         navigate={tab.to}
         id={"tab-#{tab.key}"}
         class="tab"
+        aria-label={tab.label}
         aria-current={if @nav == tab.key, do: "page"}
       >
         <.icon name={tab.icon} /> <span>{tab.label}</span>
@@ -361,6 +374,7 @@ defmodule AlnaslWeb.Layouts do
           id="tab-more-button"
           type="button"
           class="tab"
+          aria-label={gettext("More")}
           aria-haspopup="true"
           aria-expanded="false"
           aria-controls="tab-more-menu"
@@ -389,7 +403,7 @@ defmodule AlnaslWeb.Layouts do
             class="menu-item"
             phx-click={close_menu("tab-more") |> JS.push("ui_mode", value: %{mode: "full"})}
           >
-            <.icon name="more" /> <span>{gettext("Show everything")}</span>
+            <.icon name="more" /> <span>{gettext("Show advanced features")}</span>
           </button>
         </div>
       </div>
@@ -729,7 +743,7 @@ defmodule AlnaslWeb.Layouts do
             }
           >
             <span class="mode-switch-text">
-              <b>{gettext("Show everything")}</b>
+              <b>{gettext("Show advanced features")}</b>
               <span class="hint">
                 <%= if @simple? do %>
                   {gettext("Off: simple mode, the basics only.")}
@@ -840,7 +854,7 @@ defmodule AlnaslWeb.Layouts do
         </p>
         <p class="hint">
           {gettext(
-            "Switch back to simple mode whenever you like: Show everything, in the account menu."
+            "Switch back to simple mode whenever you like: Show advanced features, in the account menu."
           )}
         </p>
 
@@ -851,7 +865,7 @@ defmodule AlnaslWeb.Layouts do
             phx-click="ui_mode"
             phx-value-mode="full"
           >
-            {gettext("Show everything")}
+            {gettext("Show advanced features")}
           </.button>
 
           <.button id="full-mode-back" navigate={~p"/"}>{gettext("Back to the live boards")}</.button>

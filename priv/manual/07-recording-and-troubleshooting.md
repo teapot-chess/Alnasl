@@ -24,7 +24,7 @@ The connections, honestly: for the results site and for every other destination,
 
 ## PGN {#pgn}
 
-Read PGN files or paste moves (they are checked for legality). Attach a game that was not captured to its board, after asking. Compare a scoresheet with the captured game and see the first difference. Export a game, or "Whole round as PGN" for the bulletin.
+Read PGN files or paste moves (they are checked for legality). Attach a game that was not captured to its board, after asking. Compare a scoresheet with the captured game and see the first difference. Export a game, or "Whole round as PGN" for the bulletin, or "All games as PGN" for the whole tournament. Every PGN Alnasl writes carries the players' Elo, titles and FIDE IDs when the pairing program gave them.
 
 ## When something is wrong {#when-something-is-wrong}
 
