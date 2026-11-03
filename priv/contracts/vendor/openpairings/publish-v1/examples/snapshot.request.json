@@ -8,6 +8,8 @@
     "name": "Contract Spring Open 2026",
     "city": "Ghent",
     "federation": "BEL",
+    "organiser": "Gent Chess Club",
+    "homepage": "https://example.org/spring-open",
     "start_date": "2026-03-01",
     "end_date": "2026-03-05",
     "rounds_count": 5,
