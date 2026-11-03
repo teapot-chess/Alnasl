@@ -19,6 +19,8 @@ section, word for word. See [docs/releasing.md](docs/releasing.md).
 
 ## [Unreleased]
 
+- [Fix] **A phone held upright keeps one top bar.** On a smaller iPhone the top bar could be the big one, then the slim one, then the big one again as you scrolled: Safari shows and hides its toolbar, the window grew and shrank across the 620 px where Alnasl decides it is a small hall panel, and the bar obliged every time. The small-panel layout now also wants a window at least as wide as it is high, which a hall panel is and an upright phone is not. Turned sideways a phone still gets it.
+
 ## [0.17.0] - 2026-11-03
 
 - [Feature] **A start screen.** Double-click Alnasl on Windows or a Mac and the browser used to appear when the server was ready, which on a first start meant ten seconds of a small grey window and a growing suspicion that nothing had happened. Now the browser opens at once on a page with the mark, a calm bar and a plain line saying what is going on (English or Dutch, light or dark, still for those who asked for less motion), and walks into the program the moment it answers. First start: it says the database is being made. Too slow: it says where the log is. Dead: it says so, instead of waiting politely forever. One file with nothing fetched from anywhere, asking the server's existing `/healthz` how it is doing. If the page cannot be shown, the old behaviour stays: a tab when the server answers. Linux and the Pi do not use it.

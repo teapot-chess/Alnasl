@@ -123,9 +123,11 @@ window.addEventListener("phx:page-loading-stop", mark)
 // screen) are for a panel whose pixels do not say how big it is - a 7-inch
 // panel with a desktop's resolution. Kept in this browser only, because it
 // is about this screen and nobody else's.
+// Not portrait, either rule: an upright phone is not a hall panel, and Safari growing and shrinking its
+// toolbar moved a small iPhone across 620 px, so the top bar swapped layouts while you scrolled.
 const COMPACT_KEY = "alnasl-compact"
 const SMALL = window.matchMedia(
-  "(max-height: 620px), (max-width: 760px) and (max-height: 760px) and (min-aspect-ratio: 3/4)"
+  "(max-height: 620px) and (min-aspect-ratio: 1/1), (max-width: 760px) and (max-height: 760px) and (min-aspect-ratio: 3/4)"
 )
 
 const readCompact = () => {
