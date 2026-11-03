@@ -13,7 +13,11 @@
 //   * a small window: the name, what the server is doing, "Open in browser"
 //     and "Stop Alnasl". Closing the window only hides it; clicking
 //     the Dock icon brings it back; the Dock's menu has "Open in browser";
-//   * the browser, opened once the server answers;
+//   * the browser, opened at once on the start screen (rel/start/start.html,
+//     copied to <data>/start/ with a status file beside it; the page moves on
+//     to the program when the server answers - see the page's own header for
+//     how, and why a file and not a second port). If the page cannot be
+//     shown, the browser is opened once the server answers, as it always was;
 //   * Quit (Cmd-Q, the Dock's Quit, the Stop button, logout, shutdown, a
 //     SIGTERM) stops the server cleanly before the app goes. Cmd-Q, Quit
 //     and Stop ask first, as on Windows and as the old Mac window did: while
@@ -478,6 +482,11 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuItemValidation {
     var probing = false
     var startedAt = Date()
     var logPath = ""
+    // The start screen: where its status file is, and whether the browser was
+    // sent to it (otherwise the browser opens when the server answers).
+    var startStatusPath = ""
+    var startScreenOpen = false
+    var firstRun = false
     // A reply to applicationShouldTerminate is owed once the server is down.
     var replyOwed = false
     // Logout, shutdown or a signal: stop without asking anything.
@@ -658,6 +667,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuItemValidation {
         buildWindow()
         setState(.starting)
         showWindow()
+        openStartScreen(data: data)
 
         let timer = Timer(timeInterval: 1, target: self, selector: #selector(poll),
                           userInfo: nil, repeats: true)
@@ -680,9 +690,46 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuItemValidation {
                 self.pollTimer?.invalidate()
                 self.pollTimer = nil
                 self.setState(.running)
-                self.openBrowser()
+                // The start screen moves itself on (told here, and asking
+                // the server too); a tab is opened only if it never was.
+                self.writeStartStatus("ready")
+                if !self.startScreenOpen { self.openBrowser() }
             }
         }
+    }
+
+    // MARK: The start screen
+
+    // Copy the page (every start, so an update replaces it) beside the data,
+    // write its status file, and send the browser to it. Any failure leaves
+    // startScreenOpen false and the old behaviour: a tab when the server
+    // answers.
+    func openStartScreen(data: String) {
+        let files = FileManager.default
+        let source = (releasePath as NSString).deletingLastPathComponent
+        let page = ((source as NSString).deletingLastPathComponent as NSString).appendingPathComponent("start.html")
+        let folder = (data as NSString).appendingPathComponent("start")
+        let target = (folder as NSString).appendingPathComponent("start.html")
+        guard files.fileExists(atPath: page) else { return }
+        do {
+            try files.createDirectory(atPath: folder, withIntermediateDirectories: true)
+            if files.fileExists(atPath: target) { try files.removeItem(atPath: target) }
+            try files.copyItem(atPath: page, toPath: target)
+        } catch {
+            return
+        }
+        startStatusPath = (folder as NSString).appendingPathComponent("start-status.js")
+        firstRun = !files.fileExists(atPath: (data as NSString).appendingPathComponent("alnasl.db"))
+        writeStartStatus("starting")
+        startScreenOpen = NSWorkspace.shared.open(URL(fileURLWithPath: target))
+    }
+
+    func writeStartStatus(_ state: String) {
+        guard !startStatusPath.isEmpty else { return }
+        let log = logPath.replacingOccurrences(of: "\\", with: "\\\\").replacingOccurrences(of: "\"", with: "\\\"")
+        let text = "window.ALNASL_START={\"port\":\(port),\"first\":\(firstRun),\"state\":\"\(state)\",\"log\":\"\(log)\"};\n"
+        // atomically: the page reads it every second.
+        try? text.write(toFile: startStatusPath, atomically: true, encoding: .utf8)
     }
 
     func probe(_ done: @escaping (Bool, String?) -> Void) {
@@ -708,6 +755,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuItemValidation {
         pollTimer = nil
         let was = state
         setState(.stopped)
+        if was != .stopping { writeStartStatus("stopped") }
 
         switch was {
         case .stopping:

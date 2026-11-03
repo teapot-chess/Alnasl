@@ -85,6 +85,8 @@ curl -fsSL https://github.com/teapot-chess/Alnasl/releases/latest/download/insta
 
 **Mac.** Download alnasl-macos-aarch64.zip voor een Mac met een Apple-chip (M1 en later; voor Intel-Macs is er geen build), open het en sleep Alnasl naar Programma's. Apple heeft het nog niet ondertekend, dus de eerste keer weigert macOS het te openen: klik in Systeeminstellingen, Privacy en beveiliging, op "Toch openen" bij de melding over Alnasl. Alnasl afsluiten (Cmd-Q) vraagt eerst bevestiging, want zolang het gestopt is worden de borden niet gelezen.
 
+**Windows en Mac: het startscherm.** Als je Alnasl start, opent de browser meteen op een pagina die zegt wat er gebeurt, en die pagina gaat vanzelf door naar Alnasl zodra het klaar is. De eerste start duurt langer, want dan wordt de database gemaakt. Duurt het ongewoon lang, of stopt Alnasl voordat het klaar is, dan zegt de pagina dat en laat ze zien waar het logboek staat. De pagina is een bestand in de gegevensmap van Alnasl, dus ze heeft geen netwerk nodig. Op Linux en de Pi is er geen startscherm: de dienst start met het kastje.
+
 Open daarna de site in een browser: op het kastje zelf via `http://localhost:4040`; vanaf een laptop in het netwerk van de zaal via het adres van het kastje met dezelfde poort (Borden en Instellingen, Toegang, tonen het, met een QR-code voor een telefoon, zodra andere machines binnen mogen).
 
 ### Updaten {#updating}

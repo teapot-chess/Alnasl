@@ -85,6 +85,8 @@ curl -fsSL https://github.com/teapot-chess/Alnasl/releases/latest/download/insta
 
 **Mac.** Download alnasl-macos-aarch64.zip for a Mac with an Apple chip (M1 and later; there is no build for Intel Macs), open it, and drag Alnasl into Applications. Apple has not signed it yet, so the first time macOS refuses to open it: in System Settings, Privacy & Security, click "Open Anyway" beside the message about Alnasl. Quitting Alnasl (Cmd-Q) asks first, because while it is stopped the boards are not read.
 
+**Windows and Mac: the start screen.** Starting Alnasl opens the browser at once, on a page that says what is going on, and the page moves on to Alnasl by itself when it is ready. The first start takes longer, because the database is made then. If it takes unusually long, or Alnasl stops before it is ready, the page says so and shows where the log is. The page is a file in Alnasl's data folder, so it needs no network. On Linux and the Pi there is no start screen: the service starts with the box.
+
 Then open the site in a browser: on the box itself at `http://localhost:4040`; from a laptop on the hall's network, the box's address with the same port (Boards and Setup, Access, show it, with a QR code for a phone, once other machines are let in).
 
 ### Updating {#updating}
