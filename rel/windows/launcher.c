@@ -1626,7 +1626,9 @@ static LRESULT CALLBACK window_proc(HWND wnd, UINT msg, WPARAM wp, LPARAM lp)
 
     case WM_APP_FAILED:
         g_running = FALSE;
-        splash_write("stopped");
+        /* A timeout is not a death: the server may still be coming up, so the
+         * page gets its own word and keeps asking. */
+        splash_write(wp ? "timeout" : "stopped");
         SetWindowTextW(g_status, T(T_STOPPED));
         show_log_path(wp ? T_TIMEOUT : T_FAILED);
         SetWindowTextW(g_stop, T(T_CLOSE));

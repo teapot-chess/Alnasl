@@ -46,4 +46,14 @@ defmodule Alnasl.StartScreenTest do
     assert html =~
              ~r/function probe\(\) \{\s+if \(fromLauncher && fromLauncher\.state === "stopped"\) return;/
   end
+
+  test "a startup timeout has its own word and does not claim the server stopped" do
+    html = File.read!(@page)
+    assert html =~ "Alnasl is not answering yet."
+    assert html =~ "Alnasl antwoordt nog niet."
+    assert html =~ ~s|s.state === "timeout"|
+
+    launcher = File.read!(Path.expand("../../rel/windows/launcher.c", __DIR__))
+    assert launcher =~ ~s|splash_write(wp ? "timeout" : "stopped")|
+  end
 end

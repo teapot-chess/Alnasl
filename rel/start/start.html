@@ -32,7 +32,7 @@
   mean a listener in C/Swift, a second port to be busy, and a firewall
   question on a first start. The file is simpler and leaves nothing behind.
 
-  Preview aids (not used by the launchers): ?demo=starting|first|slow|stopped
+  Preview aids (not used by the launchers): ?demo=starting|first|slow|timeout|stopped
   freezes one state, ?theme=light|dark forces a scheme.
 -->
 <html lang="en">
@@ -83,7 +83,7 @@
   .more a { color: var(--accent); }
 
   /* slow: warning tint on the line. stopped: error tint, the bar stops. */
-  body[data-state="slow"] .status { color: var(--warn); }
+  body[data-state="slow"] .status, body[data-state="timeout"] .status { color: var(--warn); }
   body[data-state="stopped"] .status { color: var(--bad); font-weight: 600; }
   body[data-state="stopped"] .bar i { width: 100%; background: var(--bad); animation: none; opacity: 1; }
   body[data-state="stopped"] .mark rect { animation: none; opacity: 0.45; }
@@ -120,6 +120,7 @@
       first: ["First start: creating the database\u2026", "This only happens once, and takes longer than usual."],
       slow: ["This is taking unusually long.", "A virus scanner checking a new program can hold things up for a minute. The log says how far it got:"],
       stopped: ["Alnasl stopped before it was ready.", "Close this tab and start Alnasl again. If it keeps happening, the reason is at the end of this log:"],
+      timeout: ["Alnasl is not answering yet.", "It may still be starting; this page keeps asking and moves on when it answers. If it does not, the reason is at the end of this log:"],
       ready: ["Ready.", ""],
       link: "Open Alnasl anyway"
     },
@@ -128,6 +129,7 @@
       first: ["Eerste start: de database wordt gemaakt\u2026", "Dit gebeurt maar \u00e9\u00e9n keer en duurt langer dan normaal."],
       slow: ["Dit duurt ongewoon lang.", "Een virusscan van een nieuw programma kan een minuut duren. In het logboek staat hoe ver het kwam:"],
       stopped: ["Alnasl is gestopt voordat het klaar was.", "Sluit dit tabblad en start Alnasl opnieuw. Blijft het gebeuren, dan staat de reden aan het einde van dit logboek:"],
+      timeout: ["Alnasl antwoordt nog niet.", "Misschien is het nog bezig met starten; deze pagina blijft vragen en gaat door zodra het antwoordt. Gebeurt dat niet, dan staat de reden aan het einde van dit logboek:"],
       ready: ["Klaar.", ""],
       link: "Alnasl toch openen"
     }
@@ -156,12 +158,12 @@
     document.getElementById("status").textContent = w[0];
     var more = document.getElementById("more");
     more.textContent = w[1];
-    if (log && (state === "slow" || state === "stopped")) {
+    if (log && (state === "slow" || state === "stopped" || state === "timeout")) {
       var c = document.createElement("code");
       c.textContent = log;
       more.appendChild(c);
     }
-    if (state === "slow" || state === "stopped") {
+    if (state === "slow" || state === "stopped" || state === "timeout") {
       var a = document.createElement("a");
       a.href = appUrl();
       a.textContent = WORDS[lang].link;
@@ -177,6 +179,7 @@
     var state;
     if (demo) state = demo;
     else if (s.state === "stopped") state = "stopped";
+    else if (s.state === "timeout") state = "timeout";
     else if (Date.now() - born > SLOW_AFTER_MS) state = "slow";
     else state = s.first ? "first" : "starting";
     var log = s.log || (demo ? "C:\\Users\\you\\AppData\\Local\\AlnaslData\\launcher.log" : "");
