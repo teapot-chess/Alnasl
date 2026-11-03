@@ -102,6 +102,19 @@
         },
         "arbiter": { "$ref": "#/definitions/nullableString" },
         "deputy": { "$ref": "#/definitions/nullableString" },
+        "organiser": {
+          "description": "Who runs the tournament, as the arbiter typed it. Absent when not set; at most 200 characters. A reader shows it as plain text.",
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 200
+        },
+        "homepage": {
+          "description": "The tournament's own web page: an absolute http or https URL, at most 500 characters. Absent when not set. A reader renders it only when the scheme is http or https.",
+          "type": "string",
+          "format": "uri",
+          "pattern": "^[Hh][Tt][Tt][Pp][Ss]?://",
+          "maxLength": 500
+        },
         "fide_rated": { "type": "boolean" },
         "registration_open": { "description": "Absent means open.", "type": "boolean" },
         "listed": { "description": "Absent means listed.", "type": "boolean" },
