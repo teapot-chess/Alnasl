@@ -399,7 +399,11 @@
           "properties": { "to": { "$ref": "#/definitions/no" } }
         },
         "postponed_boards": { "type": "integer", "minimum": 1 },
-        "double_forfeit": { "const": true }
+        "double_forfeit": { "const": true },
+        "lineups_later": {
+          "description": "true when the arbiter holds line-ups back until the match starts and this match has no result yet: `boards` and `board_positions` are then empty and the match's pairings are absent from the round's `boards`. Absent otherwise (including a bye).",
+          "const": true
+        }
       }
     },
     "tiebreakDecl": {
