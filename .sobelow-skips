@@ -184,3 +184,14 @@ XSS.SendResp: XSS in `send_resp`,lib/alnasl_web/controllers/theme_pack_controlle
 XSS.SendResp: XSS in `send_resp`,lib/alnasl_web/endpoint.ex:73,116D82F
 XSS.SendResp: XSS in `send_resp`,lib/alnasl_web/endpoint.ex:77,3C28565
 XSS.SendResp: XSS in `send_resp`,lib/alnasl_web/endpoint.ex:79,6677975
+Traversal.FileModule: Directory Traversal in `File.chmod`,lib/alnasl/access_pin.ex:196,6A315E5
+Traversal.FileModule: Directory Traversal in `File.mkdir_p!`,lib/alnasl/access_pin.ex:182,55D5FC2
+Traversal.FileModule: Directory Traversal in `File.open`,lib/alnasl/access_pin.ex:190,775662B
+Traversal.FileModule: Directory Traversal in `File.read`,lib/alnasl/access_pin.ex:171,30E3701
+Traversal.FileModule: Directory Traversal in `File.read`,lib/alnasl/listen.ex:33,393E1C
+Traversal.FileModule: Directory Traversal in `File.read`,lib/alnasl/pin_request.ex:45,57D2898
+Traversal.FileModule: Directory Traversal in `File.rm`,lib/alnasl/access_pin.ex:188,500B501
+Traversal.FileModule: Directory Traversal in `File.rm`,lib/alnasl/application.ex:122,1FD371A
+Traversal.FileModule: Directory Traversal in `File.rm`,lib/alnasl/pin_request.ex:46,17B0811
+Traversal.FileModule: Directory Traversal in `File.rm`,lib/alnasl/pin_request.ex:51,6A2824F
+Traversal.FileModule: Directory Traversal in `File.write`,lib/alnasl/listen.ex:39,5A1B22D
