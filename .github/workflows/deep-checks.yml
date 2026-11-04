@@ -29,8 +29,8 @@ jobs:
           path: |
             deps
             _build
-          key: ${{ runner.os }}-cover-otp29.0-ex1.20-${{ hashFiles('mix.lock') }}
-          restore-keys: ${{ runner.os }}-cover-otp29.0-ex1.20-
+          key: ${{ runner.environment }}-${{ runner.os }}-cover-otp29.0-ex1.20-${{ hashFiles('mix.lock') }}
+          restore-keys: ${{ runner.environment }}-${{ runner.os }}-cover-otp29.0-ex1.20-
 
       - name: Install dependencies
         run: mix deps.get --check-locked

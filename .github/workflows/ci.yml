@@ -51,8 +51,8 @@ jobs:
           path: |
             deps
             _build
-          key: ${{ runner.os }}-mix-otp29.0-ex1.20-${{ hashFiles('mix.lock') }}
-          restore-keys: ${{ runner.os }}-mix-otp29.0-ex1.20-
+          key: ${{ runner.environment }}-${{ runner.os }}-mix-otp29.0-ex1.20-${{ hashFiles('mix.lock') }}
+          restore-keys: ${{ runner.environment }}-${{ runner.os }}-mix-otp29.0-ex1.20-
 
       # --check-locked: a constraint edited in mix.exs without the lock file
       # would otherwise be resolved here, silently, into a set of
@@ -112,8 +112,8 @@ jobs:
           path: |
             deps
             _build
-          key: ${{ runner.os }}-mix-e2e-otp29.0-ex1.20-${{ hashFiles('mix.lock') }}
-          restore-keys: ${{ runner.os }}-mix-e2e-otp29.0-ex1.20-
+          key: ${{ runner.environment }}-${{ runner.os }}-mix-e2e-otp29.0-ex1.20-${{ hashFiles('mix.lock') }}
+          restore-keys: ${{ runner.environment }}-${{ runner.os }}-mix-e2e-otp29.0-ex1.20-
 
       # Keyed on the lockfile, which pins Playwright, which pins the browser
       # build: a Playwright bump is a fresh download, never a driver talking
@@ -241,8 +241,8 @@ jobs:
           path: |
             deps
             _build
-          key: ${{ runner.os }}-mix-otp29.0.5-ex1.20-${{ hashFiles('mix.lock') }}
-          restore-keys: ${{ runner.os }}-mix-otp29.0.5-ex1.20-
+          key: ${{ runner.environment }}-${{ runner.os }}-mix-otp29.0.5-ex1.20-${{ hashFiles('mix.lock') }}
+          restore-keys: ${{ runner.environment }}-${{ runner.os }}-mix-otp29.0.5-ex1.20-
 
       # circuits_uart is built with mingw-w64: `gcc` and `mingw32-make`, both
       # on the runner image's PATH. If an image ever drops them, this says
@@ -288,8 +288,8 @@ jobs:
           path: |
             deps
             _build
-          key: ${{ runner.os }}-mix-contracts-otp29.0-ex1.20-${{ hashFiles('mix.lock') }}
-          restore-keys: ${{ runner.os }}-mix-contracts-otp29.0-ex1.20-
+          key: ${{ runner.environment }}-${{ runner.os }}-mix-contracts-otp29.0-ex1.20-${{ hashFiles('mix.lock') }}
+          restore-keys: ${{ runner.environment }}-${{ runner.os }}-mix-contracts-otp29.0-ex1.20-
 
       - run: mix deps.get --check-locked
 
