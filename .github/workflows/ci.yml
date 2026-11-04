@@ -31,7 +31,7 @@ jobs:
     if: github.event_name != 'schedule'
     # Named, not `ubuntu-latest`: that label moves, and it should move here
     # when somebody decides it does.
-    runs-on: ubuntu-24.04
+    runs-on: [self-hosted, Linux, X64, teapot-vm]
 
     steps:
       # Actions are pinned to a commit, not to a tag: a tag can be moved, and
@@ -94,7 +94,7 @@ jobs:
     # A job of its own, so the suite above does not wait on a browser download.
     name: Browser tests
     if: github.event_name != 'schedule'
-    runs-on: ubuntu-24.04
+    runs-on: [self-hosted, Linux, X64, teapot-vm]
     timeout-minutes: 20
 
     steps:
@@ -137,6 +137,7 @@ jobs:
 
       # apt packages, so not in the cache above.
       - name: Install the browser's system libraries
+        if: runner.environment == 'github-hosted'
         working-directory: e2e
         run: npx playwright install-deps chromium-headless-shell
 
@@ -163,7 +164,7 @@ jobs:
   dialyzer:
     name: Dialyzer
     if: github.event_name != 'schedule'
-    runs-on: ubuntu-24.04
+    runs-on: [self-hosted, Linux, X64, teapot-vm]
 
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -265,7 +266,7 @@ jobs:
 
   contracts:
     name: Contracts match their providers
-    runs-on: ubuntu-24.04
+    runs-on: [self-hosted, Linux, X64, teapot-vm]
     env:
       MIX_ENV: test
 
