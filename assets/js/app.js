@@ -69,3 +69,16 @@ document.addEventListener("keydown", (event) => {
 
 liveSocket.connect()
 window.liveSocket = liveSocket
+
+// "Show" beside a PIN on a page that is not a LiveView (/unlock), where
+// LiveView's own commands do not run: the field named in data-show-secret
+// turns from password to text and back.
+document.addEventListener("click", (event) => {
+  const button = event.target.closest?.("[data-show-secret]")
+  if (!button) return
+  const field = document.getElementById(button.dataset.showSecret)
+  if (!field) return
+  const shown = field.type === "password"
+  field.type = shown ? "text" : "password"
+  button.setAttribute("aria-pressed", shown ? "true" : "false")
+})

@@ -8,9 +8,14 @@ defmodule AlnaslWeb.Hall do
 
   The box itself always may: a request from the loopback address is the
   kiosk browser on the box. A browser on another machine in the hall may
-  when no PIN is set, or once it has given the PIN (`/unlock`). The plug
-  (`gate/2`) decides for ordinary requests and notes in the session how the
-  browser came in; `on_mount/4` reads that note for the LiveView socket.
+  once it has given the PIN (`/unlock`): there is always one
+  (`Alnasl.AccessPin`). The plug (`gate/2`) decides for ordinary requests
+  and notes in the session how the browser came in; `on_mount/4` reads that
+  note for the LiveView socket.
+
+  What the session keeps for a browser that gave the PIN is not "yes" but a
+  stamp of the PIN (`pin_stamp/0`). A grant holds only while it matches the
+  stamp of the PIN now, so a new PIN turns every earlier one away at once.
 
   ## The notice of a newer version
 
@@ -113,8 +118,27 @@ defmodule AlnaslWeb.Hall do
     end
   end
 
-  @doc "May a browser in on a box without accounts: the box itself, the PIN given, or no PIN."
-  def allowed?(local?, unlocked), do: local? or unlocked == true or not Settings.pin_set?()
+  @doc "May a browser in on a box without accounts: the box itself, or the PIN given."
+  def allowed?(local?, unlocked), do: local? or granted?(unlocked)
+
+  @doc "Whether `grant` (the session's `:unlocked`) is the stamp of the PIN now."
+  def granted?(grant) when is_binary(grant), do: Plug.Crypto.secure_compare(grant, pin_stamp())
+  def granted?(_grant), do: false
+
+  @doc """
+  The stamp a browser that gave the PIN carries in its session: the first
+  16 bytes of HMAC-SHA256 of the PIN, keyed with the endpoint's
+  `secret_key_base`. Nothing to guess the PIN from, and different the
+  moment the PIN is.
+  """
+  def pin_stamp do
+    key = AlnaslWeb.Endpoint.config(:secret_key_base)
+
+    :hmac
+    |> :crypto.mac(:sha256, key, "access-pin:" <> Alnasl.AccessPin.current())
+    |> binary_part(0, 16)
+    |> Base.encode64()
+  end
 
   @doc """
   Whether a request is the box's own browser: from the loopback address, to
@@ -216,6 +240,8 @@ defmodule AlnaslWeb.Hall do
             may_arbiter: Scope.can?(scope, :arbiter),
             may_owner: Scope.can?(scope, :owner),
             may_admin: Scope.can?(scope, :admin),
+            # The box's own browser: the one that sees and changes the PIN.
+            local?: session["local"] == true,
             link: Outbox.status(scope),
             box: Settings.get("box_name") || "Alnasl",
             locale: locale,

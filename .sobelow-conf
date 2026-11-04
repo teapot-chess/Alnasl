@@ -13,6 +13,8 @@
 #     (`Alnasl.Ops.OffsiteBackup` works in `<data dir>/offsite` on names it makes
 #     itself; `Alnasl.Ops.Age`'s file functions are given those, or the
 #     operator's own paths by `mix ops.age`.)
+#     (`Alnasl.AccessPin` and `Alnasl.PinRequest` touch two fixed names in the data
+#     dir; the request file's contents are a PIN, never a path.)
 #   * XSS.* - bodies are fixed SVG/PDF/ndjson/escaped-HTML builders, release notes through Alnasl.Markdown (allowlisted tags) or the app's own
 #     bundled manual; content types are literals.
 #   * DOS.StringToAtom - atoms come from the app's own literals, bundled data or a

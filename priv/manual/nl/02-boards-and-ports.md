@@ -67,19 +67,27 @@ Druk op "Welk bord is dit?" op de pagina Borden en til een stuk op het bord dat 
 
 Met een telefoon in je hand langs de tafels lopen is makkelijker dan heen en weer naar het kastje.
 
-1. Instellingen, Toegang, "Toegang vanaf andere machines": stel een pincode in, laat dan andere machines in de zaal de site openen, en start Alnasl opnieuw. Doe het voor de zaal volloopt.
-2. Open op het kastje Borden (of Instellingen, Toegang): "Open deze site op je telefoon" toont het adres en een QR-code. Richt de camera van de telefoon erop en geef de pincode. (Op een kastje met accounts meldt de code je aan; zie [Accounts, zalen en rollen](06-accounts-and-halls.md).)
+1. Instellingen, Toegang, "Toegang vanaf andere machines": laat andere machines in de zaal de site openen, en start Alnasl opnieuw. Doe het voor de zaal volloopt. De pincode van het kastje staat daar ook.
+2. Open op het kastje Borden (of Instellingen, Toegang): "Open deze site op je telefoon" toont het adres en een QR-code. Richt de camera van de telefoon erop en geef de pincode van het kastje. (Op een kastje met accounts meldt de code je aan; zie [Accounts, zalen en rollen](06-accounts-and-halls.md).)
 3. Op de telefoon: Borden, "Borden nummeren door ze aan te raken", Start. Het volgende tafelnummer vult het scherm. Loop naar die tafel en til een willekeurig stuk op; de telefoon laat het nummer en het serienummer van het bord oplichten, trilt (alleen Android) en piept eenmaal zodra "Geluid uit" aangetikt is tot "Geluid aan". Een telefoon wil per bezoek één tik voor hij geluid maakt, en een iPhone op stil speelt niets af.
 4. Ongedaan maken, Overslaan en Stop staan onderaan het scherm. Valt het netwerk van de telefoon tussen twee tafels weg, dan gaat er niets verloren: de ronde wordt op het kastje bewaard.
 
-> [!WARNING] Nooit zonder pincode
-> Iedereen op het netwerk van de zaal die het adres vindt, kan je borden hernummeren.
+Doe dit voor de ronde, met de stukken opgesteld en niemand aan de borden. De ronde stopt vanzelf als elk bord een nummer heeft, of na een kwartier zonder aanraking.
 
-Een pincode heeft minstens zes tekens; een kortere van voor die regel blijft werken, en Instellingen, Toegang vraagt je haar te vervangen. Gokken wordt afgeremd: vanaf de vijfde foute pincode moet een adres wachten, eerst vijf seconden en bij elke volgende mislukking dubbel zo lang (hoogstens een kwartier), ook als de volgende poging juist is, en het hele kastje neemt hoogstens veertig foute pincodes per minuut aan.
+> [!WARNING] De pincode is de deur
+> Iedereen op het netwerk van de zaal die het adres en de pincode heeft, kan je borden hernummeren. Houd de pincode van de projector en uit de groepschat.
+
+### De pincode van het kastje {#the-pin}
+
+Er is altijd een pincode. Alnasl maakt er een bij de eerste start, zes willekeurige cijfers, en Instellingen, Toegang, "Toegang vanaf andere machines" toont hem op het kastje zelf. Daar kun je er zelf een intypen en op "De PIN bewaren" drukken, of op "Nieuwe willekeurige PIN". Een pincode heeft 6 tot 64 tekens: cijfers, letters, leestekens en spaties binnenin mogen allemaal, maar geen spatie aan het begin of het eind en niets onzichtbaars. Zonder pincode kan niet.
+
+Een nieuwe pincode stuurt elke andere browser terug naar de pincodepagina: hun open pagina's sluiten, en elk moet de nieuwe geven. Alleen de browser van het kastje zelf ziet of verandert de pincode; een telefoon die hem gaf, kan de site gebruiken, maar de pincode niet teruglezen.
+
+Een update van Alnasl 0.17 of ouder maakt een nieuwe pincode. De oude werd alleen als hash bewaard, en die kan Instellingen niet tonen. Daarom wordt hij vervangen, en Instellingen zegt dat één keer en toont de nieuwe op het kastje.
+
+Gokken wordt afgeremd: vanaf de vijfde foute pincode moet een adres wachten, eerst vijf seconden en bij elke volgende mislukking dubbel zo lang (hoogstens een kwartier), ook als de volgende poging juist is, en het hele kastje neemt hoogstens veertig foute pincodes per minuut aan.
 
 De browser van het kastje zelf heeft de pincode nooit nodig, zolang je de site opent als `localhost` (of `127.0.0.1`, of de eigen naam van de computer). Onder elke andere naam wordt de pincode gevraagd, ook op het kastje zelf: zo blijft een webpagina van elders, open in een browser op dezelfde computer, buiten.
-
-Doe dit voor de ronde, met de stukken opgesteld en niemand aan de borden. De ronde stopt vanzelf als elk bord een nummer heeft, of na een kwartier zonder aanraking.
 
 ## De controle van de beginstelling {#start-position}
 

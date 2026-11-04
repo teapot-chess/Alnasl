@@ -227,18 +227,17 @@ defmodule AlnaslWeb.TablesAndOutputsTest do
       {:ok, view, _html} = live(conn, ~p"/boards")
       assert has_element?(view, "#phone-access-urls li", "http://192.168.1.20:4002/boards/number")
       assert has_element?(view, "#phone-access-qr svg[role=img] rect")
-      # No PIN: the hint to set one before the hall fills up.
-      assert has_element?(view, "#phone-access-pin-hint", "Set a PIN")
+      # There is always a PIN: where to find it, never the PIN itself.
+      assert has_element?(view, "#phone-access-pin")
+      refute render(view) =~ Alnasl.AccessPin.current()
       # The test box listens to itself only, and says so.
       assert has_element?(view, "#phone-access-local-only")
 
       Application.put_env(:alnasl, :lan?, true)
-      Settings.set_pin("2468")
       {:ok, view, _html} = live(conn, ~p"/setup/access")
       assert has_element?(view, "#setup-phone-access-urls li", "http://192.168.1.20:4002/")
       assert has_element?(view, "#setup-phone-access-qr svg")
-      assert has_element?(view, "#setup-phone-access-pin-set")
-      refute has_element?(view, "#setup-phone-access-pin-hint")
+      assert has_element?(view, "#setup-phone-access-pin")
       refute has_element?(view, "#setup-phone-access-local-only")
 
       Application.put_env(:alnasl, :lan_addresses, [])
@@ -404,7 +403,6 @@ defmodule AlnaslWeb.TablesAndOutputsTest do
 
     test "a spectator's phone gets the PIN question, not the numbering", %{conn: conn} do
       board = still("a")
-      Settings.set_pin("2468")
       far = from_elsewhere(conn)
 
       for path <- [~p"/boards/number", ~p"/boards/find", ~p"/boards", ~p"/files/labels"] do
@@ -416,7 +414,12 @@ defmodule AlnaslWeb.TablesAndOutputsTest do
       assert Boards.get!(board.id).table_no == nil
 
       # With the PIN it is the arbiter's phone.
-      inside = far |> post(~p"/unlock", %{pin: "2468"}) |> recycle() |> from_elsewhere()
+      inside =
+        far
+        |> post(~p"/unlock", %{pin: Alnasl.AccessPin.current()})
+        |> recycle()
+        |> from_elsewhere()
+
       {:ok, view, _html} = live(inside, ~p"/boards/number")
       view |> form("#walk-start-form", walk: %{first: "1"}) |> render_submit()
       Finder.touch(board.id)

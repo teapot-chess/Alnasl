@@ -6,10 +6,11 @@ defmodule AlnaslWeb.DoorController do
 
   use AlnaslWeb, :controller
 
-  alias Alnasl.{Log, Settings}
+  alias Alnasl.{AccessPin, DoorGuard, Log}
+  alias AlnaslWeb.Hall
 
   def unlock(conn, _params) do
-    if (get_session(conn, :local) or get_session(conn, :unlocked)) || not Settings.pin_set?() do
+    if Hall.allowed?(get_session(conn, :local) == true, get_session(conn, :unlocked)) do
       redirect(conn, to: ~p"/")
     else
       render(conn, :unlock, error: nil)
@@ -20,7 +21,9 @@ defmodule AlnaslWeb.DoorController do
     ip = conn.remote_ip
     from = ip |> :inet.ntoa() |> to_string()
 
-    case Alnasl.DoorGuard.check(ip) do
+    # Counted before it is compared: a burst of guesses cannot outrun the
+    # count (`Alnasl.DoorGuard.claim/2`).
+    case DoorGuard.claim(ip) do
       {:wait, seconds} ->
         Log.add(:warn, "door.throttled", %{from: from})
 
@@ -37,12 +40,18 @@ defmodule AlnaslWeb.DoorController do
         )
 
       :ok ->
-        if Settings.pin_valid?(pin) do
-          Alnasl.DoorGuard.succeeded(ip)
+        if AccessPin.valid?(pin) do
+          DoorGuard.succeeded(ip)
           Log.add(:info, "door.unlocked", %{from: from})
-          conn |> put_session(:unlocked, true) |> redirect(to: ~p"/")
+
+          # A stamp of the PIN, not "yes": a new PIN voids it. The socket id
+          # lets a change of PIN close this browser's open pages too.
+          conn
+          |> configure_session(renew: true)
+          |> put_session(:unlocked, Hall.pin_stamp())
+          |> put_session(:live_socket_id, AccessPin.socket_id())
+          |> redirect(to: ~p"/")
         else
-          Alnasl.DoorGuard.failed(ip)
           Log.add(:warn, "door.refused", %{from: from})
 
           conn
@@ -55,7 +64,10 @@ defmodule AlnaslWeb.DoorController do
   def enter(conn, _params), do: redirect(conn, to: ~p"/unlock")
 
   def lock(conn, _params) do
-    conn |> delete_session(:unlocked) |> redirect(to: ~p"/unlock")
+    conn
+    |> delete_session(:unlocked)
+    |> delete_session(:live_socket_id)
+    |> redirect(to: ~p"/unlock")
   end
 
   @doc """

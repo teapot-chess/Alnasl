@@ -6,7 +6,7 @@ defmodule Alnasl.Accounts do
   ## Open until it is not
 
   A box with no accounts is open, as it always was: anybody on the hall's
-  network, behind the PIN if one is set (`AlnaslWeb.Hall`). The first
+  network, behind the PIN (`AlnaslWeb.Hall`). The first
   account made on it (`create_first_owner/1`) is its owner and an admin,
   and from then on every page asks who you are.
 

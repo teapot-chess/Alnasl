@@ -484,7 +484,7 @@ defmodule AlnaslWeb.WizardComponents do
   defp words(%{key: :phone}, _a) do
     {gettext("Phones and laptops in the hall"),
      gettext(
-       "Setup, Access: let other machines in the hall open this site, and set a PIN so a spectator's phone gets the question and nothing else. Ticked once other machines are let in."
+       "Setup, Access: let other machines in the hall open this site. Each is asked for the box's PIN, so a spectator's phone gets the question and nothing else. Ticked once other machines are let in."
      )}
   end
 

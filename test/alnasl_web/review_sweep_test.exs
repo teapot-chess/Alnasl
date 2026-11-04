@@ -12,7 +12,7 @@ defmodule AlnaslWeb.ReviewSweepTest do
 
   import AlnaslWeb.AccountHelpers
 
-  alias Alnasl.{Accounts, Boards, Bridges, DoorGuard, Halls, Http, Settings}
+  alias Alnasl.{Accounts, Boards, Bridges, DoorGuard, Halls, Http}
   alias AlnaslWeb.{Endpoint, UserAuth}
 
   describe "a changed membership (ALN-01)" do
@@ -63,7 +63,7 @@ defmodule AlnaslWeb.ReviewSweepTest do
   describe "the PIN (ALN-03)" do
     setup do
       DoorGuard.reset()
-      Settings.set_pin("246810")
+      :ok = Alnasl.AccessPin.set("246810")
       on_exit(&DoorGuard.reset/0)
     end
 
@@ -108,20 +108,11 @@ defmodule AlnaslWeb.ReviewSweepTest do
       assert DoorGuard.check({10, 9, 9, 9}, 61) == :ok
     end
 
-    test "an older, shorter PIN works and is flagged; a six-character one is not" do
-      Settings.set_pin("2468")
-      assert Settings.pin_valid?("2468")
-      assert Settings.pin_short?()
-
-      Settings.set_pin("246810")
-      refute Settings.pin_short?()
-    end
-
     test "Setup takes no new PIN shorter than six characters", %{conn: conn} do
       {:ok, view, _html} = live(conn, ~p"/setup/access")
       assert view |> form("#pin-form", door: %{pin: "12345"}) |> render_submit() =~ "at least 6"
       view |> form("#pin-form", door: %{pin: "123456"}) |> render_submit()
-      assert Settings.pin_valid?("123456")
+      assert Alnasl.AccessPin.valid?("123456")
     end
   end
 

@@ -127,8 +127,10 @@ defmodule AlnaslWeb.EditionTest do
     test "Setup refuses the box's events", %{conn: conn} do
       {:ok, view, _html} = live(conn, ~p"/setup")
 
+      pin = Alnasl.AccessPin.current()
       render_hook(view, "save_pin", %{"door" => %{"pin" => "123456"}})
-      refute Settings.pin_set?()
+      render_hook(view, "new_pin", %{})
+      assert Alnasl.AccessPin.current() == pin
 
       render_hook(view, "set_listen", %{"choice" => "lan"})
       render_hook(view, "save_update_mode", %{"mode" => "never"})

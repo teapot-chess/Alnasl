@@ -67,19 +67,27 @@ Press "Which board is this?" on the Boards page and lift a piece on the board yo
 
 Walking along the tables with a phone in your hand is easier than going back and forth to the box.
 
-1. Setup, Access, "Access from other machines": set a PIN, then let other machines in the hall open the site, and start Alnasl again. Do it before the hall fills up.
-2. On the box, open Boards (or Setup, Access): "Open this site on your phone" shows the address and a QR code. Point the phone's camera at it and give the PIN. (On a box with accounts, the code signs you in instead; see [Accounts, halls and roles](06-accounts-and-halls.md).)
+1. Setup, Access, "Access from other machines": let other machines in the hall open the site, and start Alnasl again. Do it before the hall fills up. The box's PIN is shown there as well.
+2. On the box, open Boards (or Setup, Access): "Open this site on your phone" shows the address and a QR code. Point the phone's camera at it and give the box's PIN. (On a box with accounts, the code signs you in instead; see [Accounts, halls and roles](06-accounts-and-halls.md).)
 3. On the phone: Boards, "Number boards by touching them", Start. The next table number fills the screen. Walk to that table and lift any piece; the phone flashes the number and the board's serial, buzzes (Android only) and beeps once "Sound off" has been tapped to "Sound on". A phone wants one tap per visit before it makes any sound, and an iPhone on silent plays none.
 4. Undo, Skip and Stop are at the bottom of the screen. If the phone loses the network between two tables, nothing is lost: the run is kept on the box.
 
-> [!WARNING] Never without the PIN
-> Anybody on the hall's network who finds the address could renumber your boards.
+Do this before the round, with the pieces set up and nobody at the boards. The run ends by itself when every board has a number, or after fifteen minutes without a touch.
 
-A PIN has at least six characters; a shorter one set before that rule keeps working, and Setup, Access asks you to replace it. Guessing is slowed down: from the fifth wrong PIN an address has to wait, five seconds at first and twice as long with every further failure (a quarter of an hour at most), even if the next try is right, and the whole box accepts at most forty wrong PINs a minute.
+> [!WARNING] The PIN is the door
+> Anybody on the hall's network who has the address and the PIN can renumber your boards. Keep the PIN off the projector and out of the group chat.
+
+### The box's PIN {#the-pin}
+
+There is always a PIN. Alnasl makes one at its first start, six random digits, and Setup, Access, "Access from other machines" shows it on the box itself. There you can type one of your own and press "Save the PIN", or press "New random PIN". A PIN has 6 to 64 characters: digits, letters, punctuation and spaces inside are all fine, but no space at the start or the end and nothing invisible. There is no way to have no PIN.
+
+A new PIN sends every other browser back to the PIN page: their open pages close, and each has to give the new one. Only the box's own browser sees or changes the PIN; a phone that gave it can use the site, not read the PIN back.
+
+An update from Alnasl 0.17 or older makes a new PIN. The old one was kept only as a hash, which Setup cannot show, so it is replaced, and Setup says so once and shows the new one on the box.
+
+Guessing is slowed down: from the fifth wrong PIN an address has to wait, five seconds at first and twice as long with every further failure (a quarter of an hour at most), even if the next try is right, and the whole box accepts at most forty wrong PINs a minute.
 
 The box's own browser never needs the PIN, as long as it opens the site as `localhost` (or `127.0.0.1`, or the computer's own name). Under any other name, even from the box itself, the PIN is asked: that is how a web page from elsewhere, open in a browser on the same computer, is kept out.
-
-Do this before the round, with the pieces set up and nobody at the boards. The run ends by itself when every board has a number, or after fifteen minutes without a touch.
 
 ## The start-position check {#start-position}
 
