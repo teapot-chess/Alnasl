@@ -131,11 +131,11 @@ Wie het wachtwoord kan lezen of de QR-code kan scannen, kan de installatiepagina
 
 ### De pincode op afstand van Arkab {#arkab-pin}
 
-Op een Arkab-kastje kan een browser elders in de zaal Arkab beheren nadat je een pincode hebt ingetypt. Om de pincode in te stellen, open je `alnasl-arkab-pin.txt` op de bootpartitie en typ je hem achter `PIN=`. Steek daarna de kaart terug in het kastje. De pincode moet 4 tot 64 tekens zijn. Letters, cijfers en andere gewone toetsenbordtekens zijn goed. Hij mag niet beginnen of eindigen met een spatie of een aanhalingsteken, en hij mag geen besturingstekens bevatten. De woorden `remove` en `verwijderen` zijn geen pincode: die betekenen "de pincode weghalen".
+Op een Arkab-kastje kan een browser elders in de zaal Arkab beheren nadat je een pincode hebt ingetypt. Om de pincode in te stellen, open je `alnasl-arkab-pin.txt` op de bootpartitie en typ je hem achter `PIN=`. Steek daarna de kaart terug in het kastje. De pincode moet 6 tot 64 tekens zijn. Letters, cijfers en andere gewone toetsenbordtekens zijn goed. Hij mag niet beginnen of eindigen met een spatie of een aanhalingsteken, en hij mag geen besturingstekens bevatten.
 
 Het kastje neemt de pincode over bij de volgende start. Hij geeft hem door aan Arkab en maakt de regel `PIN=` daarna weer leeg, zodat de pincode niet zomaar op de kaart te lezen is. Onderaan het bestand schrijft het kastje een regel `# Last result:`. Daarin staat of de pincode is ingesteld, waarom hij is geweigerd, of dat hij nog niet doorgegeven kon worden en bij de volgende start opnieuw wordt geprobeerd. Lees die regel als je de kaart in een pc steekt.
 
-Om de pincode weg te halen, schrijf je `PIN=remove` en start je het kastje. Je kunt de pincode ook op de installatiepagina instellen, zonder de kaart aan te raken.
+De pincode weghalen kan niet: Arkab heeft er altijd een. Je kunt de pincode ook op de installatiepagina instellen, zonder de kaart aan te raken.
 
 ## Voor de ronde {#before-the-round}
 

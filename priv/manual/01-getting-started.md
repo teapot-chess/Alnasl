@@ -131,11 +131,11 @@ Whoever can read the password or scan the QR code can open the setup page, and t
 
 ### The Arkab remote PIN {#arkab-pin}
 
-On an Arkab box, a browser elsewhere in the hall can manage Arkab after you type a PIN. To set the PIN, open `alnasl-arkab-pin.txt` on the boot partition and type it after `PIN=`, then put the card back in the box. The PIN must be 4 to 64 characters. Letters, digits and other plain keyboard characters are fine. It may not start or end with a space or a quote, and it may not contain control characters. The words `remove` and `verwijderen` are not PINs: they mean "remove the PIN".
+On an Arkab box, a browser elsewhere in the hall can manage Arkab after you type a PIN. To set the PIN, open `alnasl-arkab-pin.txt` on the boot partition and type it after `PIN=`, then put the card back in the box. The PIN must be 6 to 64 characters. Letters, digits and other plain keyboard characters are fine. It may not start or end with a space or a quote, and it may not contain control characters.
 
 The box takes the PIN at its next start. It hands it to Arkab, then empties the `PIN=` line again, so the PIN does not stay in plain sight on the card. At the bottom of the file the box writes a `# Last result:` line. It says the PIN was set, or why it was refused, or that it could not be handed over yet and will be tried at the next start. Read that line after you put the card in a PC.
 
-To remove the PIN, write `PIN=remove` and start the box. You can also set the PIN on the setup page, without touching the card.
+There is no way to remove the PIN: Arkab always has one. You can also set the PIN on the setup page, without touching the card.
 
 ## Before the round {#before-the-round}
 
