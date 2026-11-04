@@ -12,8 +12,6 @@ defmodule AlnaslWeb.Access do
 
   use AlnaslWeb, :html
 
-  alias Alnasl.Settings
-
   @doc """
   `%{lan?, port, urls}`: whether the box listens beyond itself at all
   (`ALNASL_LISTEN=lan`), the port, and an address for each IPv4 interface
@@ -104,8 +102,7 @@ defmodule AlnaslWeb.Access do
       assign(assigns,
         info: info,
         url: url && url <> target,
-        code: url && show_code? && qr(url <> target),
-        pin_set?: Settings.pin_set?()
+        code: url && show_code? && qr(url <> target)
       )
 
     ~H"""
@@ -169,19 +166,14 @@ defmodule AlnaslWeb.Access do
           <p :if={!@info.lan?} id={"#{@id}-local-only"} class="note">
             <.badge tone="warn" icon="warning">{gettext("Not reachable yet")}</.badge>
             {gettext(
-              "This box answers only itself, so a phone gets no answer. Setup, Access, \"Access from other machines\": set a PIN, let other machines in, and start Alnasl again."
+              "This box answers only itself, so a phone gets no answer. Setup, Access, \"Access from other machines\": let other machines in, and start Alnasl again."
             )}
           </p>
 
-          <p :if={@pin_set? and !@accounts?} id={"#{@id}-pin-set"} class="note">
-            {gettext("The phone will be asked for the PIN once.")}
-          </p>
-
-          <p :if={!@pin_set? and !@accounts?} id={"#{@id}-pin-hint"} class="note">
-            <.badge tone="warn" icon="warning">{gettext("No PIN")}</.badge>
+          <p :if={!@accounts?} id={"#{@id}-pin"} class="note">
             {gettext(
-              "Anybody on the hall's network who opens this address can renumber the boards. Set a PIN in Setup before the hall fills up."
-            )} <.link navigate={~p"/setup/access"}>{gettext("Go to Setup")}</.link>
+              "The phone will be asked for the box's PIN once. The arbiter finds it on the box itself, in Setup, Access."
+            )}
           </p>
         </div>
       <% else %>

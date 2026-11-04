@@ -1,14 +1,16 @@
 defmodule Alnasl.Settings do
   @moduledoc """
   What the arbiter set up for the box as a whole, kept in the database so it
-  survives the plug being pulled: the language, the box's name, the PIN, and
-  the tracker's timings.
+  survives the plug being pulled: the language, the box's name and the
+  tracker's timings.
 
   What belongs to a tournament - its results page and relay key, its Lichess
   round, the round in play - is the tournament's (`Alnasl.Tournaments`): a
   box serves more than one.
 
-  The PIN is stored as a salted hash.
+  The PIN is not here: it is `Alnasl.AccessPin`'s, in a file of its own.
+  Alnasl 0.17 and before kept a salted hash under "pin", retired at the
+  first start since.
   """
 
   import Ecto.Query
@@ -110,46 +112,6 @@ defmodule Alnasl.Settings do
       true ->
         "https://" <> String.trim_trailing(text, "/")
     end
-  end
-
-  # --- the PIN -----------------------------------------------------------------
-
-  def pin_set?, do: get("pin") != nil
-
-  def set_pin(nil), do: put("pin", nil)
-  def set_pin(""), do: put("pin", nil)
-
-  def set_pin(pin) when is_binary(pin) do
-    salt = 16 |> :crypto.strong_rand_bytes() |> Base.encode16(case: :lower)
-    put("pin", %{"salt" => salt, "hash" => hash(pin, salt), "long" => String.length(pin) >= 6})
-  end
-
-  @doc """
-  Was the PIN set before the minimum became six characters, or shorter than
-  that? Only the hash is kept, so a PIN from before the rule counts as short
-  until it is set again.
-  """
-  def pin_short? do
-    case get("pin") do
-      %{"long" => true} -> false
-      %{} -> true
-      _none -> false
-    end
-  end
-
-  def pin_valid?(pin) when is_binary(pin) do
-    case get("pin") do
-      %{"salt" => salt, "hash" => stored} -> Plug.Crypto.secure_compare(hash(pin, salt), stored)
-      _none -> true
-    end
-  end
-
-  def pin_valid?(_other), do: false
-
-  defp hash(pin, salt) do
-    1..2_000
-    |> Enum.reduce(salt <> pin, fn _i, acc -> :crypto.hash(:sha256, acc) end)
-    |> Base.encode16(case: :lower)
   end
 
   # --- the tracker -------------------------------------------------------------

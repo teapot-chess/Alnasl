@@ -3,7 +3,8 @@ defmodule AlnaslWeb.SystemAccess do
   The door of `/system` and `/system/dashboard`: the installation's admins
   (`Alnasl.Accounts.Scope.can?(scope, :admin)` - the box's first account,
   the addresses in `ALNASL_ADMIN_EMAILS`, and everybody past the PIN on a
-  box with no accounts, who may change the PIN itself anyway). No new rule:
+  box with no accounts, who may change the box's network and updates
+  anyway). No new rule:
   the one Setup's box-wide switches already answer to.
 
   In three places, like `AlnaslWeb.SupportAccess`: the plug in front of the

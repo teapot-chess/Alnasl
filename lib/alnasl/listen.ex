@@ -9,8 +9,9 @@ defmodule Alnasl.Listen do
   `config/runtime.exs` reads. `ALNASL_LISTEN` in the environment wins over
   the file: a box whose unit says `lan` is not talked out of it by a page.
 
-  The default is `local`. An installed box that nobody has set up has no
-  PIN, and a site without a PIN on a hall's network is everybody's.
+  The default is `local`: a box nobody has set up keeps to itself. Let in,
+  the hall's machines are asked for the PIN, which there always is
+  (`Alnasl.AccessPin`).
   A change takes effect the next time the program starts.
   """
 
