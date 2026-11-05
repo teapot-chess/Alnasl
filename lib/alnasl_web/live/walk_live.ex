@@ -16,8 +16,8 @@ defmodule AlnaslWeb.WalkLive do
   own screen shows the same thing at the same time.
 
   Both pages are behind the same door as the rest of the site
-  (`AlnaslWeb.Hall`): with a PIN set, a spectator's phone gets the PIN
-  question and nothing else.
+  (`AlnaslWeb.Hall`): a spectator's phone gets the PIN question and
+  nothing else.
   """
 
   use AlnaslWeb, :live_view

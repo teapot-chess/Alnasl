@@ -210,7 +210,6 @@ defmodule AlnaslWeb.AccessibilityTest do
       end
     end
 
-    Settings.set_pin("2468")
     door = %{conn | remote_ip: {10, 0, 0, 9}} |> get(~p"/unlock") |> html_response(200)
     doc = LazyHTML.from_document(door)
     assert Enum.count(LazyHTML.query(doc, "label[for=unlock-pin]")) == 1

@@ -12,13 +12,13 @@ defmodule AlnaslWeb.AccountController do
 
   @doc """
   The first account: only on a box that has none, is not the server, and
-  only from a browser that may use the box now (the box itself, the PIN
-  given, or no PIN) - the one who can already change everything here.
+  only from a browser that may use the box now (the box itself, or the PIN
+  given) - the one who can already change everything here.
   """
   def first(conn, %{"user" => attrs}) do
     may? =
       not Accounts.login_required?() and
-        Hall.allowed?(get_session(conn, :local) == true, get_session(conn, :unlocked))
+        Hall.allowed?(Hall.local_request?(conn), get_session(conn, :unlocked))
 
     if may? do
       case Accounts.create_first_owner(attrs) do

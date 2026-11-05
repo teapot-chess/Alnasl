@@ -399,20 +399,16 @@ defmodule AlnaslWeb.PagesTest do
       assert html =~ "Borden" and html =~ "Opslaan"
     end
 
-    test "a PIN is set and removed", %{conn: conn} do
+    test "the PIN is shown and changed on the box, and never removed", %{conn: conn} do
       {:ok, view, _html} = live(conn, ~p"/setup/access")
-      assert has_element?(view, "#pin-state", "No PIN")
+      assert has_element?(view, "#pin-value", Alnasl.AccessPin.current())
+      refute has_element?(view, "#clear-pin")
       assert view |> form("#pin-form", door: %{pin: "12"}) |> render_submit() =~ "at least 6"
       view |> form("#pin-form", door: %{pin: "246810"}) |> render_submit()
 
-      assert Settings.pin_set?() and Settings.pin_valid?("246810") and
-               not Settings.pin_valid?("1111")
-
-      assert has_element?(view, "#pin-state", "A PIN is set")
+      assert Alnasl.AccessPin.valid?("246810") and not Alnasl.AccessPin.valid?("1111")
+      assert has_element?(view, "#pin-value", "246810")
       refute Jason.encode!(Settings.get("pin")) =~ "246810"
-
-      view |> element("#clear-pin") |> render_click()
-      refute Settings.pin_set?()
     end
 
     test "the tracker's patience is saved, bounded, and reset", %{conn: conn} do
@@ -760,12 +756,10 @@ defmodule AlnaslWeb.PagesTest do
   describe "the door" do
     defp from_elsewhere(conn), do: %{conn | remote_ip: {192, 168, 1, 50}}
 
-    test "the box itself is always let in; another machine only with the PIN, when one is set", %{
+    test "the box itself is always let in; another machine only with the PIN", %{
       conn: conn
     } do
-      assert conn |> from_elsewhere() |> get(~p"/help") |> html_response(200)
-
-      Settings.set_pin("2468")
+      Alnasl.DoorGuard.reset()
       assert conn |> get(~p"/help") |> html_response(200)
       assert {:ok, _view, _html} = live(conn, ~p"/help")
 
@@ -777,7 +771,7 @@ defmodule AlnaslWeb.PagesTest do
       wrong = post(far, ~p"/unlock", %{pin: "0000"})
       assert html_response(wrong, 401) =~ "That is not the PIN."
 
-      opened = post(far, ~p"/unlock", %{pin: "2468"})
+      opened = post(far, ~p"/unlock", %{pin: Alnasl.AccessPin.current()})
       assert redirected_to(opened) == ~p"/"
       inside = opened |> recycle() |> from_elsewhere()
       assert inside |> get(~p"/help") |> html_response(200)
@@ -792,8 +786,6 @@ defmodule AlnaslWeb.PagesTest do
     test "loopback under a stranger's name, or through a proxy, is not the box itself", %{
       conn: conn
     } do
-      Settings.set_pin("2468")
-
       # DNS rebinding: a page's own name pointed at 127.0.0.1.
       rebound = %{conn | host: "evil.example"}
       assert redirected_to(get(rebound, ~p"/help")) == ~p"/unlock"

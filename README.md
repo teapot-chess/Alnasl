@@ -177,8 +177,10 @@ with the box and comes back when it falls over. Then
 `http://localhost:4040` on the box.
 
 - **A box without a screen**: `... | sudo sh -s -- --lan` lets the hall's
-  network in from the first start. There is no PIN yet at that moment: open
-  Setup from your laptop and set one before anybody else finds the address.
+  network in from the first start, behind the six-digit PIN Alnasl makes
+  at that start. Only the box itself shows the PIN, so read it there:
+  `sudo cat /var/lib/alnasl/access-pin`. Give it from your laptop. Only the box
+  itself can change it, as only the box itself can read it.
 - **A hall without internet**: download
   [alnasl-linux-x86_64.tar.gz](https://github.com/teapot-chess/Alnasl/releases/latest/download/alnasl-linux-x86_64.tar.gz)
   (or [`-aarch64`](https://github.com/teapot-chess/Alnasl/releases/latest/download/alnasl-linux-aarch64.tar.gz)
@@ -447,11 +449,11 @@ is read as one board, two or more as a loop.
 The numbering is meant to be done walking: the two pages are built for a
 phone held in one hand.
 
-1. In Setup, *Access from other machines*: **set a PIN**, then "Let other
-   machines in the hall open this site", and start Alnasl again - before
-   the hall fills up. The switch wants the PIN first: without one, anybody
-   on the hall's network who finds the address could renumber your boards.
-   (`ALNASL_LISTEN=lan` in the environment does the same and overrules the
+1. In Setup, *Access from other machines*: "Let other machines in the hall
+   open this site", and start Alnasl again - before the hall fills up. The
+   box's PIN is shown there too: there always is one (six random digits
+   from the first start, yours if you change it), and every other machine
+   gives it once. (`ALNASL_LISTEN=lan` in the environment does the same and overrules the
    switch.) On Windows, the first time, the firewall asks whether the
    program may be reached; say yes for private networks.
 2. Boards (or Setup) on the box shows "Open this site on your phone": the

@@ -287,20 +287,19 @@ defmodule AlnaslWeb.UpdatesTest do
   end
 
   describe "the hall's network" do
-    test "a box answers only itself, and the switch wants a PIN first", %{conn: conn} do
+    test "a box answers only itself until it is let out, behind the PIN there always is", %{
+      conn: conn
+    } do
       {:ok, view, _html} = live(conn, ~p"/setup/access")
 
       assert Listen.chosen() == "local"
-      assert has_element?(view, "#listen-lan[disabled]")
-      assert has_element?(view, "#listen-needs-pin")
-
-      # Not through the button either.
-      render_click(view, "set_listen", %{"choice" => "lan"})
-      assert Listen.chosen() == "local"
+      refute has_element?(view, "#listen-lan[disabled]")
+      refute has_element?(view, "#listen-needs-pin")
     end
 
-    test "with a PIN it is one press, and it says it waits for the next start", %{conn: conn} do
-      Settings.set_pin("2468")
+    test "letting other machines in is one press, and it says it waits for the next start", %{
+      conn: conn
+    } do
       {:ok, view, _html} = live(conn, ~p"/setup/access")
 
       view |> element("#listen-lan") |> render_click()

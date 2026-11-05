@@ -7,7 +7,7 @@ defmodule AlnaslWeb.SetupLive do
   serves - a connect code from OpenPairings brings each with its pairings
   and its results page - which tables play in which, the results page of
   the box's own tournament, a Lichess round per tournament; the box's name
-  and language; a PIN for browsers on other machines; how patient the
+  and language; the PIN browsers on other machines give; how patient the
   tracker is.
 
   The first section is the Setup wizard (`AlnaslWeb.WizardComponents`,
@@ -30,6 +30,7 @@ defmodule AlnaslWeb.SetupLive do
   use AlnaslWeb, :live_view
 
   alias Alnasl.{
+    AccessPin,
     Autostart,
     Boards,
     Destination,
@@ -175,6 +176,41 @@ defmodule AlnaslWeb.SetupLive do
   defp here(socket),
     do: Alnasl.Accounts.Scope.hall_id(socket.assigns.current_scope) || Alnasl.Halls.own_id()
 
+  @doc """
+  Who sees and changes the PIN: on a box without accounts the box's own
+  browser and nobody else, not even a browser that gave the PIN; with
+  accounts (which are then the way in) the box's admins. Never the server,
+  whose door is its accounts and nothing else.
+  """
+  def pin_manager?(assigns, scope) do
+    cond do
+      Alnasl.Accounts.server?() -> false
+      Alnasl.Accounts.login_required?() -> Alnasl.Accounts.Scope.can?(scope, :admin)
+      true -> assigns[:local?] == true
+    end
+  end
+
+  # A new PIN: every other browser that gave the old one is out, its pages
+  # closed (`Alnasl.AccessPin`). Neither the PIN nor its length is logged.
+  defp pin_changed(socket) do
+    Log.add(:info, "setup.saved", %{})
+    AccessPin.notice_seen()
+
+    socket
+    |> put_flash(:info, gettext("PIN changed; every other browser has to give the new one."))
+    |> load()
+  end
+
+  @doc "What is wrong with a PIN, in words."
+  def pin_error(:too_short),
+    do: gettext("A PIN needs at least %{n} characters.", n: AccessPin.min_length())
+
+  def pin_error(:too_long),
+    do: gettext("A PIN has %{n} characters at most.", n: AccessPin.max_length())
+
+  def pin_error(:edge_space), do: gettext("A PIN cannot start or end with a space.")
+  def pin_error(_invisible), do: gettext("A PIN cannot hold an invisible or control character.")
+
   defp load(socket) do
     s =
       Settings.get_many(
@@ -264,8 +300,10 @@ defmodule AlnaslWeb.SetupLive do
         ),
       key_hint: Tournaments.relay_key_hint(own),
       about: Alnasl.BoxInfo.info(),
-      pin_set?: Settings.pin_set?(),
-      pin_short?: Settings.pin_short?(),
+      # The PIN, for the one who may see it: the box's own browser, or an
+      # admin where accounts are the way in. Never anybody else.
+      pin: if(pin_manager?(socket.assigns, scope), do: AccessPin.current()),
+      pin_notice?: pin_manager?(socket.assigns, scope) and AccessPin.notice?(),
       listen: Listen.chosen(),
       listen_forced: Listen.forced(),
       listening_lan?: Access.info().lan?,
@@ -332,7 +370,7 @@ defmodule AlnaslWeb.SetupLive do
   # What only a box in a hall can do: on the server the panels are not drawn,
   # and a hand-made event gets nothing either.
   def handle_event(event, _params, %{assigns: %{server?: true}} = socket)
-      when event in ~w(save_pin clear_pin set_listen save_update_mode check_update update_start
+      when event in ~w(save_pin new_pin pin_notice_seen set_listen save_update_mode check_update update_start
                        update_cancel update_apply set_autostart),
       do: {:noreply, socket}
 
@@ -784,60 +822,43 @@ defmodule AlnaslWeb.SetupLive do
   end
 
   def handle_event("save_pin", %{"door" => %{"pin" => pin}}, socket) do
-    pin = String.trim(pin)
-
-    cond do
-      pin == "" ->
-        {:noreply, put_flash(socket, :error, gettext("Type a PIN, or use \"Remove the PIN\"."))}
-
-      String.length(pin) < Alnasl.DoorGuard.min_length() ->
-        {:noreply, put_flash(socket, :error, gettext("A PIN needs at least 6 characters."))}
-
-      true ->
-        Settings.set_pin(pin)
-        Log.add(:info, "setup.saved", %{})
-
-        {:noreply,
-         socket
-         |> put_flash(
-           :info,
-           gettext("The PIN is set. Browsers on other machines will be asked for it.")
-         )
-         |> load()}
+    if pin_manager?(socket.assigns, socket.assigns.current_scope) do
+      case AccessPin.set(pin) do
+        :ok -> {:noreply, pin_changed(socket)}
+        {:error, reason} -> {:noreply, put_flash(socket, :error, pin_error(reason))}
+      end
+    else
+      {:noreply, socket}
     end
   end
 
-  def handle_event("clear_pin", _params, socket) do
-    Settings.set_pin(nil)
-    Log.add(:info, "setup.saved", %{})
-    {:noreply, socket |> put_flash(:info, gettext("The PIN is removed.")) |> load()}
+  def handle_event("new_pin", _params, socket) do
+    if pin_manager?(socket.assigns, socket.assigns.current_scope) do
+      {:ok, _pin} = AccessPin.renew()
+      {:noreply, pin_changed(socket)}
+    else
+      {:noreply, socket}
+    end
   end
 
-  # The hall's network is opened only behind a PIN: the switch is on a page
-  # that anybody who reaches the box could otherwise use.
+  def handle_event("pin_notice_seen", _params, socket) do
+    if pin_manager?(socket.assigns, socket.assigns.current_scope), do: AccessPin.notice_seen()
+    {:noreply, load(socket)}
+  end
+
+  # The hall's network: every machine on it is asked for the PIN, which
+  # there always is.
   def handle_event("set_listen", %{"choice" => choice}, socket) when choice in ["lan", "local"] do
-    cond do
-      socket.assigns.listen_forced ->
-        {:noreply, socket}
+    if socket.assigns.listen_forced do
+      {:noreply, socket}
+    else
+      Listen.put(choice)
+      Log.add(:info, "setup.saved", %{})
 
-      choice == "lan" and not Settings.pin_set?() ->
-        {:noreply,
-         put_flash(
-           socket,
-           :error,
-           gettext(
-             "Set a PIN first. Without one, anybody on the hall's network could use this site."
-           )
-         )}
-
-      true ->
-        Listen.put(choice)
-        Log.add(:info, "setup.saved", %{})
-
-        {:noreply,
-         socket
-         |> put_flash(:info, gettext("Saved. It takes effect the next time Alnasl starts."))
-         |> load()}
+      {:noreply,
+       socket
+       |> put_flash(:info, gettext("Saved. It takes effect the next time Alnasl starts."))
+       |> load()}
     end
   end
 
@@ -1697,6 +1718,23 @@ defmodule AlnaslWeb.SetupLive do
         </form>
 
         <div class="setup-body">
+          <div :if={@pin_notice? && @pin} id="pin-notice" class="callout" role="status">
+            <p>
+              <.badge tone="warn" icon="warning">{gettext("A new PIN")}</.badge>
+              {gettext(
+                "A new PIN was made when Alnasl was updated: the old one was stored only as a hash and could not be shown. Browsers on other machines give this one from now on:"
+              )} <b id="pin-notice-value" class="mono">{@pin}</b>
+            </p>
+            <div class="row">
+              <.button id="pin-notice-seen" type="button" phx-click="pin_notice_seen" small>
+                {gettext("Got it")}
+              </.button>
+              <.button id="pin-notice-setup" patch={~p"/setup/access"} variant="ghost" small>
+                {gettext("Change it")}
+              </.button>
+            </div>
+          </div>
+
           <WizardComponents.wizard
             :if={@section == :wizard}
             plan={@wizard}
@@ -2537,7 +2575,7 @@ defmodule AlnaslWeb.SetupLive do
                 <% true -> %>
                   <p class="note">
                     {gettext(
-                      "This box has no accounts: everybody on the hall's network may do everything (behind the PIN, if there is one). The first account makes you the box's owner and admin - and from then on every page asks who is there, the box's own screen included."
+                      "This box has no accounts: everybody on the hall's network may do everything (behind the PIN). The first account makes you the box's owner and admin - and from then on every page asks who is there, the box's own screen included."
                     )}
                   </p>
 
@@ -2582,7 +2620,7 @@ defmodule AlnaslWeb.SetupLive do
             >
               <p class="note">
                 {gettext(
-                  "The box itself is always let in. A browser on another machine in the hall is let in freely, unless a PIN is set here. Other machines can only reach the box at all when that is switched on below."
+                  "The box itself is always let in. A browser on another machine in the hall is asked for the box's PIN once. Other machines can only reach the box at all when that is switched on below."
                 )}
               </p>
 
@@ -2618,7 +2656,6 @@ defmodule AlnaslWeb.SetupLive do
                     type="button"
                     phx-click="set_listen"
                     phx-value-choice="lan"
-                    disabled={!@pin_set?}
                   >
                     {gettext("Let other machines in the hall open this site")}
                   </.button>
@@ -2632,10 +2669,6 @@ defmodule AlnaslWeb.SetupLive do
                   >
                     {gettext("This box only")}
                   </.button>
-
-                  <span :if={@listen == "local" && !@pin_set?} id="listen-needs-pin" class="note">
-                    {gettext("Set a PIN first.")}
-                  </span>
                 </div>
 
                 <p class="note">
@@ -2645,45 +2678,20 @@ defmodule AlnaslWeb.SetupLive do
                 </p>
               </div>
 
-              <p id="pin-state">
-                <.badge :if={@pin_set?} tone="ok" icon="ok">{gettext("A PIN is set")}</.badge>
+              <.pin_block pin={@pin} pin_form={@pin_form} />
+            </.panel>
 
-                <.badge :if={!@pin_set?} icon="waiting">{gettext("No PIN")}</.badge>
-              </p>
-
-              <p :if={@pin_short?} id="pin-short" class="note">
+            <.panel
+              :if={@pin && (@accounts? or @server?)}
+              id="setup-pin"
+              title={gettext("The box's PIN")}
+            >
+              <p class="note">
                 {gettext(
-                  "This PIN may be shorter than 6 characters, which is quickly guessed. Set a new one."
+                  "With accounts, every browser signs in and nobody is asked for the PIN. It is kept all the same, and shown here to the box's admins."
                 )}
               </p>
-
-              <.form
-                :if={@may_admin}
-                for={@pin_form}
-                id="pin-form"
-                phx-submit="save_pin"
-                class="row align-end"
-              >
-                <.input
-                  field={@pin_form[:pin]}
-                  id="pin-input"
-                  type="password"
-                  label={gettext("New PIN")}
-                  autocomplete="new-password"
-                /> <.button id="save-pin" type="submit">{gettext("Set the PIN")}</.button>
-                <.button
-                  :if={@may_admin and @pin_set?}
-                  id="clear-pin"
-                  type="button"
-                  variant="danger"
-                  phx-click="clear_pin"
-                  data-confirm={
-                    gettext("Remove the PIN? Any browser that can reach the box will be let in.")
-                  }
-                >
-                  {gettext("Remove the PIN")}
-                </.button>
-              </.form>
+              <.pin_block pin={@pin} pin_form={@pin_form} />
             </.panel>
 
             <.panel id="setup-phone" title={gettext("Open this site on your phone")}>
@@ -3163,6 +3171,76 @@ defmodule AlnaslWeb.SetupLive do
         </div>
       </div>
     </Layouts.app>
+    """
+  end
+
+  # The PIN, and the means to change it: shown in full to whoever this page
+  # gives it to (`pin_manager?/2`), masked for nobody else - nobody else gets
+  # it at all. No way to have none.
+  attr :pin, :string, default: nil
+  attr :pin_form, :any, required: true
+
+  defp pin_block(assigns) do
+    ~H"""
+    <%= if @pin do %>
+      <div id="pin-current" class="stack">
+        <p>
+          {gettext("The PIN:")}
+          <b id="pin-value" class="mono">{@pin}</b>
+        </p>
+        <p class="note">
+          {gettext(
+            "A browser on another machine is asked for it once. Change it and every one of them has to give the new one; their open pages close."
+          )}
+        </p>
+      </div>
+
+      <.form for={@pin_form} id="pin-form" phx-submit="save_pin" class="row align-end">
+        <.input
+          field={@pin_form[:pin]}
+          id="pin-input"
+          type="password"
+          label={
+            gettext("New PIN (%{min} to %{max} characters)",
+              min: AccessPin.min_length(),
+              max: AccessPin.max_length()
+            )
+          }
+          autocomplete="new-password"
+          maxlength={AccessPin.max_length()}
+        />
+        <.button
+          id="pin-input-show"
+          type="button"
+          variant="ghost"
+          aria-controls="pin-input"
+          phx-click={
+            JS.toggle_attribute({"type", "text", "password"}, to: "#pin-input")
+            |> JS.toggle_attribute({"aria-pressed", "true", "false"})
+          }
+          aria-pressed="false"
+        >
+          {gettext("Show")}
+        </.button>
+        <.button id="save-pin" type="submit">{gettext("Save the PIN")}</.button>
+        <.button
+          id="new-pin"
+          type="button"
+          phx-click="new_pin"
+          data-confirm={
+            gettext("Make a new random PIN? Every other browser has to give the new one.")
+          }
+        >
+          {gettext("New random PIN")}
+        </.button>
+      </.form>
+    <% else %>
+      <p id="pin-elsewhere" class="note">
+        {gettext(
+          "There is always a PIN. It is shown and changed on the box itself, in this same place, and not from another machine."
+        )}
+      </p>
+    <% end %>
     """
   end
 end

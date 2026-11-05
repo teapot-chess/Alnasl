@@ -69,7 +69,6 @@ defmodule AlnaslWeb.ThemePackControllerTest do
 
   test "is served before the PIN, like the PIN page it dresses", %{themes_dir: dir} do
     install_pack(dir, "toon")
-    Alnasl.Settings.set_pin("2468")
     stranger = fn -> %{build_conn() | remote_ip: {10, 0, 0, 9}} end
 
     assert stranger.() |> get(~p"/") |> redirected_to() == "/unlock"

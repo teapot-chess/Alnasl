@@ -61,6 +61,9 @@ defmodule Alnasl.Application do
       {Task.Supervisor, name: Alnasl.TaskSupervisor},
       Alnasl.Recorder,
       Alnasl.DoorGuard,
+      # The access PIN: a request from the box applied, the old hash retired,
+      # one made if there is none - before the endpoint answers anybody.
+      Alnasl.AccessPin,
       # The cloud's count of who asks how often (`Alnasl.Takeover`).
       Alnasl.Takeover.RateLimit,
       # Writes crash reports for the logger handler installed in start/2.

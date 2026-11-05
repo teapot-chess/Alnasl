@@ -91,7 +91,6 @@ defmodule AlnaslWeb.ThemePickerPacksTest do
 
   test "the PIN page knows the packs too", %{conn: conn, themes_dir: dir} do
     install_pack(dir, "toon")
-    Settings.set_pin("2468")
 
     doc = page(%{conn | remote_ip: {10, 0, 0, 9}}, ~p"/unlock")
     assert [%{"id" => "toon"}] = packs_data(doc)

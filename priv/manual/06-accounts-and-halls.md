@@ -4,9 +4,9 @@ Who may see and do what. On a box in a hall there are no accounts until you make
 
 ## Open until the first account {#open-until-the-first-account}
 
-A box without accounts is open: everybody on the hall's network may do everything, behind the PIN if there is one. That is how Alnasl has always worked, and an update does not change it.
+A box without accounts is open: everybody on the hall's network may do everything, behind the PIN. That is how Alnasl has always worked, and an update does not change it.
 
-Under Setup, Access, "Accounts", you can make the first account. You become the box's owner and admin, and from then on every page asks who is there, the box's own screen included. The PIN has no say any more then.
+Under Setup, Access, "Accounts", you can make the first account. You become the box's owner and admin, and from then on every page asks who is there, the box's own screen included. The PIN has no say any more then: it is kept, and Setup, Access shows it to the box's admins, but nobody is asked for it.
 
 > [!IMPORTANT] This switches the login on
 > Make the first account when you are ready to sign in on every device in the hall, phones included. The phone sign-in below makes that painless.

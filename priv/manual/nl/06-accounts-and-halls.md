@@ -4,9 +4,9 @@ Wie wat mag zien en doen. Op een kastje in een zaal zijn er geen accounts tot je
 
 ## Open tot het eerste account {#open-until-the-first-account}
 
-Een kastje zonder accounts is open: iedereen op het netwerk van de zaal mag alles doen, achter de pincode als die er is. Zo werkt Alnasl altijd al, en een update verandert dat niet.
+Een kastje zonder accounts is open: iedereen op het netwerk van de zaal mag alles doen, achter de pincode. Zo werkt Alnasl altijd al, en een update verandert dat niet.
 
-Bij Instellingen, Toegang, "Accounts", kun je het eerste account maken. Je wordt eigenaar en beheerder van het kastje, en vanaf dan vraagt elke pagina wie er is, ook het eigen scherm van het kastje. De pincode heeft dan niets meer te zeggen.
+Bij Instellingen, Toegang, "Accounts", kun je het eerste account maken. Je wordt eigenaar en beheerder van het kastje, en vanaf dan vraagt elke pagina wie er is, ook het eigen scherm van het kastje. De pincode heeft dan niets meer te zeggen: hij blijft bestaan, en Instellingen, Toegang toont hem aan de beheerders van het kastje, maar niemand wordt er nog om gevraagd.
 
 > [!IMPORTANT] Hiermee gaat de aanmelding aan
 > Maak het eerste account als je klaar bent om je op elk toestel in de zaal aan te melden, telefoons inbegrepen. De aanmelding met een QR-code op de telefoon, hieronder, maakt dat pijnloos.
