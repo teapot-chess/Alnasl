@@ -302,7 +302,11 @@ defmodule Alnasl.FairPlay.Model do
   one event, or `{key, records}` with a key that says which event (the
   calibration passes the event's name). Skipped plies are ignored.
   Options: `:engine`, `:bench`, `:nodes` (stored as they are), `:meta` (a
-  map, merged into the json's meta), `:lambda` (ridge, default 1.0e-4).
+  map, merged into the json's meta), `:lambda` (ridge, default 1.0e-4),
+  `:theta` (the likelihood-ratio weighting, `weight/2`; `default_theta/0`),
+  `:weights` (of the three tests in the combined score; one each unless
+  told otherwise - the benchmark of `Alnasl.FairPlay.Power` is where a
+  different vector earns its place).
 
   ## Cross-fitted
 
@@ -354,6 +358,7 @@ defmodule Alnasl.FairPlay.Model do
         dispersion: dispersion,
         scan: scan,
         union: union,
+        weights: Keyword.get(opts, :weights, model.weights),
         meta:
           Map.merge(
             %{
