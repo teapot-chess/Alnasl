@@ -560,3 +560,76 @@ whole engine game in an event 37%, two 59%, three 76%; selective engine use
 on 20% of moves 44%, 30% 82%; naive top-move copying on 30% of moves 6%, 50%
 57%; camouflaged (a random move within 40 cp of the best) 0% at every rate.
 The model ships as `priv/fair_play/model-sf19.json`.
+
+## 11. The third model, 2026-11-05
+
+The lab VM is 16 cores and 31 GB now, not 80 and 251; a 13,000-game
+label run takes a day and a half on it, with a second shard on the CI
+machine at the lowest priority. The development games are the 50,000 of
+§7-§10; `/root/w-final` is spent and was not touched. Workspace
+`/root/w-v3`.
+
+What changed (`Alnasl.FairPlay.Model`, format 3; CHANGELOG, Unreleased):
+
+- the match tests weigh each move by the log of the odds a player who
+  takes 30% of their moves from the engine would have produced a match
+  there, against the player alone: `log(1 + θ/((1 − θ)p))`, θ = 0.3. A
+  match the model gave 20% counts about three times one it gave 80%;
+- the expected loss is a ridge regression on the features, the variance
+  of its residuals per band and position type;
+- seven more features: the signed evaluation, the move number and a
+  hinge at 40, the spread from the best line to the fourth, a flag for
+  fewer than four lines, the clock before the move and a flag for it;
+- MM weighs double in the combined score (`--weights 2,1,1`).
+
+**Before and after on the same split** (`mix fair_play.power --holdout
+0.67`, the same 10,740 held-out player-events, seed 1; "before" is the
+shipped model's `power.log` of §10, "after" the third form with weights
+1,1,1 as the task fits it, and "2,1,1" the vector it then chose):
+
+| at 3.75 | before | after, 1,1,1 | after, 2,1,1 (final half) |
+| --- | --- | --- | --- |
+| honest at or over 3.75 | 0 of 10,740 | 0 of 10,740 | 0 of 10,740 |
+| honest at or over 3.0 | 8 (0.07%) | 16 (0.15%) | - |
+| honest at or over 2.0 | 178 (1.66%) | 216 (2.01%) | - |
+| naive 20% | 0.7% | 1.5% | 2.2% |
+| naive 30% | 5.7% | 11.2% | 16.1% |
+| naive 50% | 57.4% | 69.4% | - |
+| selective 10% | 2.8% | 4.1% | 3.6% |
+| selective 20% | 43.8% | 49.6% | 48.7% |
+| selective 30% | 81.9% | 86.1% | 87.1% |
+| camouflaged, any rate | 0.0% | 0.0% | 0.0% |
+| one whole engine game | 36.9% | 45.9% | 46.9% |
+| two | 58.9% | 69.2% | - |
+| three | 75.9% | 84.5% | - |
+
+The honest tail at 3.0 is now what a standard normal has (0.135%); the
+old score's was thinner than normal there and the new one is not, which
+is calibration, not a cost. At 3.75 nothing moved. The 2.0 line ("worth
+a closer look") is paid for: one honest player-event in 50 instead of
+one in 60, and the rarity printed beside the score is measured on this
+score, so the report says so itself.
+
+**Variants** (the benchmark's own procedure: chosen on the tuning half
+of 5,507, reported on the final half of 5,233; naive up to 30% now in
+the pooled "realistic" set). The weighting at θ = 0.1 and 0.5 is the
+same as 0.3 to within a tenth of a point; the plain count is half a
+point worse at 3.75 and more at the 1% budget. MM alone or MM+EV alone
+catch the most naive cheating (naive 30%: 30% and 22%) and pay for it
+with 1-3 honest player-events at 3.75 and a worse selective row; the
+fitted grid vector `[1, 0, 0.25]` the same way. MM-heavy `[2, 1, 1]`:
++0.64 points at the budget and +0.69 at 3.75, no honest player-event at
+3.75 on either half, the verdict's candidate; adopted. The probes of §9
+all still lose. The scan at offset 0 still wins.
+
+**Calibration by band**, three-fold cross-validation of the whole corpus
+(`--holdout 0.333334`, offsets 0, 1/3, 2/3; 15,813 held-out player-events
+in all, weights 2,1,1): at or over 3.75, 1 (0.006%); 3.0, 24 (0.15%);
+2.0, 329 (2.1%). Per band the mean is within ±0.13 of zero from 1400 up.
+The 1200 band (114 events over the three folds) averages about +0.2 and
+reaches 2 in 4.4%, down from +0.49 and worse in the first form; the 1000
+band (60 events) about +0.3 and 8%. Sixty player-events is what the
+corpus has under 1200 and no model fitted on it can be shown right or
+wrong there to better than a quarter of a standard deviation; the bands
+are kept, and the report's rarity for them is the corpus's, as for every
+band.
