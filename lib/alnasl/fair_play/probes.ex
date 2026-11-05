@@ -7,7 +7,7 @@ defmodule Alnasl.FairPlay.Probes do
   correlation with the others, and any weighting of the lot is a proper
   z (`score/2`).
 
-  ## The six sums, in this order (`tests/0`)
+  ## The twelve sums, in this order (`tests/0`)
 
     1. **MM**, 2. **EV**, 3. **ASD** - the shipped three, exactly as
        `Alnasl.FairPlay.Stats` computes them;
@@ -21,7 +21,12 @@ defmodule Alnasl.FairPlay.Probes do
        `P(error)` over its mean on the training plies. A move within 40 cp
        of the best is unremarkable where everybody finds one and
        remarkable where people usually go wrong; the plain ASD weighs both
-       alike.
+       alike;
+    7. **plain MM**, 8. **plain EV**: the match tests with every ply
+       weighing one, as they were before the likelihood-ratio weighting
+       (`Alnasl.FairPlay.Model.weight/2`);
+    9.-12. **MM and EV at θ = 0.1 and θ = 0.5**: the same weighting tuned
+       against a lighter and a heavier cheater than the model's own.
 
   The error threshold (0.5) and the blunder threshold (1.0) were picked
   before anything was measured, round numbers either side of where a club
@@ -44,7 +49,23 @@ defmodule Alnasl.FairPlay.Probes do
 
   alias Alnasl.FairPlay.{Cluster, Model, Scan, Selection, Stats}
 
-  @tests [:mm, :ev, :asd, :error, :blunder, :hard_asd]
+  @tests [
+    :mm,
+    :ev,
+    :asd,
+    :error,
+    :blunder,
+    :hard_asd,
+    :mm_plain,
+    :ev_plain,
+    :mm_w1,
+    :ev_w1,
+    :mm_w5,
+    :ev_w5
+  ]
+  # The likelihood-ratio weightings tried beside the model's own
+  # (`Alnasl.FairPlay.Model.weight/2`): none, a tenth, a half.
+  @thetas [nil, 0.1, 0.5]
   @error 0.5
   @blunder 1.0
 
@@ -152,10 +173,17 @@ defmodule Alnasl.FairPlay.Probes do
       {mean, var} = Model.loss_moments(model, record)
       pe = logistic_p(probes.error, x)
 
+      p = Model.p_match(model, record)
+      q = Model.p_ev(model, record)
+
       %{
         game: record[:game],
-        p: Model.p_match(model, record),
-        q: Model.p_ev(model, record),
+        p: p,
+        q: q,
+        wp: Model.weight(model, p),
+        wq: Model.weight(model, q),
+        wps: Enum.map(@thetas, &Model.weight(&1, p)),
+        wqs: Enum.map(@thetas, &Model.weight(&1, q)),
         mean: mean,
         sd: :math.sqrt(max(var, 0.0)),
         pe: pe,
@@ -170,25 +198,32 @@ defmodule Alnasl.FairPlay.Probes do
     Enum.zip_with(counted, expected, fn record, x ->
       loss = Stats.scaled_loss(record)
       w = x.hard
+      mm = indicator(Stats.engine_match?(record)) - x.p
+      ev = indicator(Stats.ev_match?(record)) - x.q
 
       %{
         game: x.game,
-        e: [
-          indicator(Stats.engine_match?(record)) - x.p,
-          indicator(Stats.ev_match?(record)) - x.q,
-          x.mean - loss,
-          x.pe - indicator(loss >= @error),
-          x.pb - indicator(loss >= @blunder),
-          w * (x.mean - loss)
-        ],
-        s: [
-          bernoulli(x.p),
-          bernoulli(x.q),
-          x.sd,
-          bernoulli(x.pe),
-          bernoulli(x.pb),
-          w * x.sd
-        ]
+        e:
+          [
+            x.wp * mm,
+            x.wq * ev,
+            x.mean - loss,
+            x.pe - indicator(loss >= @error),
+            x.pb - indicator(loss >= @blunder),
+            w * (x.mean - loss)
+          ] ++ Enum.flat_map(Enum.zip(x.wps, x.wqs), fn {a, b} -> [a * mm, b * ev] end),
+        s:
+          [
+            x.wp * bernoulli(x.p),
+            x.wq * bernoulli(x.q),
+            x.sd,
+            bernoulli(x.pe),
+            bernoulli(x.pb),
+            w * x.sd
+          ] ++
+            Enum.flat_map(Enum.zip(x.wps, x.wqs), fn {a, b} ->
+              [a * bernoulli(x.p), b * bernoulli(x.q)]
+            end)
       }
     end)
   end

@@ -78,12 +78,17 @@ defmodule Alnasl.FairPlay.Model do
 
   @type t :: %__MODULE__{}
 
+  # The likelihood-ratio weighting of the match tests (`weight/2`): the
+  # share of moves the cheater it is tuned against takes from the engine.
+  @theta 0.3
+
   defstruct engine: nil,
             bench: nil,
             nodes: nil,
             match: nil,
             ev: nil,
-            loss: %{cells: %{}, bands: %{}, global: {0.0, 0.0, 0}},
+            loss: %{mean: nil, cells: %{}, bands: %{}, global: {0.0, 0.0, 0}},
+            theta: @theta,
             dispersion: nil,
             scan: nil,
             union: nil,
@@ -92,14 +97,19 @@ defmodule Alnasl.FairPlay.Model do
             meta: %{}
 
   @min_cell 30
-  @format 2
+  @format 3
   # The knots of the rating spline: a hinge `max(rating − knot, 0)/400`
   # each, on top of the straight line.
   @knots [1200, 1400, 1600, 1800, 2000, 2200, 2400, 2600]
   @feature_names ~w(intercept rating) ++
                    Enum.map(@knots, &"rating>#{&1}") ++
                    ~w(scaled_gap near_count material rating*scaled_gap rating*near_count) ++
-                   ~w(abs_eval opponent think think_known)
+                   ~w(abs_eval opponent think think_known) ++
+                   ~w(eval move move>40 spread few_lines clock clock_known)
+  # The floors under what the loss regression may predict: a mean of
+  # nothing and a variance of nothing are both lies.
+  @min_loss_mean 0.005
+  @min_loss_var 1.0e-4
   @attribution "Parameters derived from Lichess broadcast games (database.lichess.org), " <>
                  "licensed CC BY-SA 4.0; this file is under the same licence."
 
@@ -128,15 +138,64 @@ defmodule Alnasl.FairPlay.Model do
     gap = Stats.scaled_gap(record)
     near = min(record.near_count || 0, 3) / 1
     think = record[:think]
+    move = (move_number(record) - 30) / 20
+    clock = record[:clock_before_ms]
 
     [1.0, r] ++
       Enum.map(@knots, &(max(record.rating - &1, 0) / 400)) ++
       [gap, near, record.material / 78, r * gap, r * near] ++
-      [abs_eval(record), opponent(record), think || 0.0, if(think, do: 1.0, else: 0.0)]
+      [abs_eval(record), opponent(record), think || 0.0, if(think, do: 1.0, else: 0.0)] ++
+      [
+        eval(record),
+        move |> max(-1.5) |> min(2.5),
+        max(move - 0.5, 0.0),
+        spread(record),
+        if(length(record[:best] || []) < 4, do: 1.0, else: 0.0),
+        if(is_integer(clock), do: min(clock, 3_600_000) / 3_600_000, else: 0.0),
+        if(is_integer(clock), do: 1.0, else: 0.0)
+      ]
   end
+
+  # The move number: the record's, or from the ply (the label files keep
+  # only that), or the middle of a game when neither is known.
+  defp move_number(%{move_number: n}) when is_integer(n), do: n
+  defp move_number(%{ply: ply}) when is_integer(ply), do: div(ply + 1, 2)
+  defp move_number(_record), do: 30
 
   defp abs_eval(%{best: [%{cp: cp} | _]}), do: min(abs(cp), 300) / 100
   defp abs_eval(_record), do: 0.0
+
+  # The evaluation with its sign, from the mover's side, in pawns.
+  defp eval(%{best: [%{cp: cp} | _]}), do: (cp / 100) |> max(-3.0) |> min(3.0)
+  defp eval(_record), do: 0.0
+
+  # The scaled gap from the best line to the last the engine gave: how
+  # far the four choices are spread. One line: as wide as it gets.
+  defp spread(%{best: [%{cp: best} | _] = lines}) when length(lines) > 1 do
+    %{cp: last} = List.last(lines)
+    min(max(best - last, 0) / 100 / (1 + abs(best) / 100), 5.0)
+  end
+
+  defp spread(_record), do: 5.0
+
+  @doc """
+  The weight of a match test's ply under the likelihood-ratio weighting:
+  `log(1 + θ/((1 − θ)·p))`, the log of the odds a cheater who takes a
+  share `θ` of their moves from the engine, and otherwise plays like the
+  player, would have produced a match here against the player alone. A
+  match where the model gave the move a 20% chance says more than one
+  where it gave 80%, and this says how much more; the plain count weighs
+  them alike. `θ` nil or 0: every ply weighs one, the plain test.
+  """
+  @spec weight(t() | number() | nil, float()) :: float()
+  def weight(%__MODULE__{theta: theta}, p), do: weight(theta, p)
+  def weight(theta, _p) when theta in [nil, 0, 0.0], do: 1.0
+
+  def weight(theta, p) when is_number(theta) and theta > 0 and theta < 1,
+    do: :math.log(1 + theta / ((1 - theta) * max(p, 1.0e-6)))
+
+  @doc "The likelihood-ratio weighting the fit uses unless told otherwise."
+  def default_theta, do: @theta
 
   defp opponent(%{opponent_rating: opp, rating: own}) when is_integer(opp) and opp > 0,
     do: ((opp - own) / 400) |> max(-2.0) |> min(2.0)
@@ -192,11 +251,17 @@ defmodule Alnasl.FairPlay.Model do
   @doc "The model's chance that this ply is within 0.01 of the best."
   def p_ev(%__MODULE__{ev: beta}, record), do: logistic(dot(beta, features(record)))
 
-  @doc "`{mean, variance}` of the scaled loss expected at this ply."
+  @doc """
+  `{mean, variance}` of the scaled loss expected at this ply: the mean
+  from the loss regression over `features/1` (floored at a small positive
+  number: a loss cannot be expected to be negative), the variance from
+  the table of squared residuals per rating band and position type,
+  falling back to the band, then to all plies.
+  """
   def loss_moments(%__MODULE__{loss: loss}, record) do
     band = band(record.rating)
 
-    {mean, var, _n} =
+    {cell_mean, var, _n} =
       case loss.cells[cell(band, kind(record))] do
         {_, _, n} = found when n >= @min_cell ->
           found
@@ -208,7 +273,13 @@ defmodule Alnasl.FairPlay.Model do
           end
       end
 
-    {mean, var}
+    mean =
+      case loss[:mean] do
+        beta when is_list(beta) -> max(dot(beta, features(record)), @min_loss_mean)
+        _none -> cell_mean
+      end
+
+    {mean, max(var, @min_loss_var)}
   end
 
   @doc "The 200-point band a rating is in, from 1000 to 2800."
@@ -325,9 +396,41 @@ defmodule Alnasl.FairPlay.Model do
     %__MODULE__{
       match: Task.await(match, :infinity),
       ev: ev,
-      loss: loss_table(counted),
+      loss: loss_table(counted, rows, lambda),
+      theta: Keyword.get(opts, :theta, @theta),
       meta: %{"plies" => length(counted)}
     }
+  end
+
+  @doc """
+  Ridge least squares: the coefficients of `rows` on `ys`, `(XᵀX + λI)⁻¹ Xᵀy`.
+  """
+  @spec least_squares([[float()]], [float()], float()) :: [float()]
+  def least_squares([], _ys, _lambda), do: List.duplicate(0.0, length(@feature_names))
+
+  def least_squares([first | _] = rows, ys, lambda) do
+    k = length(first)
+    zero = for _ <- 1..k, do: List.duplicate(0.0, k)
+
+    {xtx, xty} =
+      rows
+      |> Enum.zip(ys)
+      |> Enum.reduce({zero, List.duplicate(0.0, k)}, fn {x, y}, {a, b} ->
+        a =
+          Enum.zip_with(a, x, fn row, xi ->
+            Enum.zip_with(row, x, fn aij, xj -> aij + xi * xj end)
+          end)
+
+        b = Enum.zip_with(b, x, fn bi, xi -> bi + y * xi end)
+        {a, b}
+      end)
+
+    xtx =
+      xtx
+      |> Enum.with_index()
+      |> Enum.map(fn {row, i} -> List.update_at(row, i, &(&1 + lambda)) end)
+
+    solve(xtx, xty)
   end
 
   defp cross_fitted({a, b}, opts) when length(a) >= 2 and length(b) >= 2 do
@@ -447,28 +550,47 @@ defmodule Alnasl.FairPlay.Model do
   defp swap(m, i, i), do: m
   defp swap(m, i, j), do: m |> put_elem(i, elem(m, j)) |> put_elem(j, elem(m, i))
 
-  defp loss_table(counted) do
-    with_loss = Enum.map(counted, &{&1, Stats.scaled_loss(&1)})
+  # The expected loss: a regression on the features for the mean, and
+  # the squared residuals about it per band and position type for the
+  # variance, where a cell of 30 plies has something to say. The mean is
+  # what moves the ASD test; the old table knew the band and the number of
+  # good moves and nothing about the gap, the evaluation or the clock, and
+  # the lowest bands paid for it.
+  defp loss_table(counted, rows, lambda) do
+    losses = Enum.map(counted, &Stats.scaled_loss/1)
+    mean = least_squares(rows, losses, lambda)
+
+    with_residual =
+      counted
+      |> Enum.zip(rows)
+      |> Enum.zip_with(losses, fn {r, x}, loss ->
+        predicted = max(dot(mean, x), @min_loss_mean)
+        {r, loss - predicted}
+      end)
 
     %{
+      mean: mean,
       cells:
-        with_loss
+        with_residual
         |> Enum.group_by(fn {r, _} -> cell(band(r.rating), kind(r)) end, &elem(&1, 1))
-        |> Map.new(fn {key, losses} -> {key, moments(losses)} end),
+        |> Map.new(fn {key, residuals} -> {key, moments(residuals)} end),
       bands:
-        with_loss
+        with_residual
         |> Enum.group_by(fn {r, _} -> band(r.rating) end, &elem(&1, 1))
-        |> Map.new(fn {key, losses} -> {key, moments(losses)} end),
-      global: with_loss |> Enum.map(&elem(&1, 1)) |> moments()
+        |> Map.new(fn {key, residuals} -> {key, moments(residuals)} end),
+      global: with_residual |> Enum.map(&elem(&1, 1)) |> moments()
     }
   end
 
+  # `{mean, variance about zero, n}` of residuals: the variance is of the
+  # residual itself, not about its own mean, so a cell the regression
+  # misses by a little pays for it in spread rather than hiding it.
   defp moments([]), do: {0.0, 0.0, 0}
 
   defp moments(xs) do
     n = length(xs)
     mean = Enum.sum(xs) / n
-    var = Enum.reduce(xs, 0.0, &((&1 - mean) * (&1 - mean) + &2)) / max(n - 1, 1)
+    var = Enum.reduce(xs, 0.0, &(&1 * &1 + &2)) / max(n - 1, 1)
     {mean, var, n}
   end
 
@@ -513,7 +635,9 @@ defmodule Alnasl.FairPlay.Model do
       "features" => @feature_names,
       "match" => m.match,
       "ev" => m.ev,
+      "theta" => m.theta,
       "loss" => %{
+        "mean" => m.loss[:mean],
         "cells" => Map.new(m.loss.cells, fn {k, v} -> {k, triple.(v)} end),
         "bands" => Map.new(m.loss.bands, fn {k, v} -> {Integer.to_string(k), triple.(v)} end),
         "global" => triple.(m.loss.global)
@@ -537,7 +661,9 @@ defmodule Alnasl.FairPlay.Model do
        nodes: j["nodes"],
        match: Enum.map(j["match"], &(&1 / 1)),
        ev: Enum.map(j["ev"], &(&1 / 1)),
+       theta: j["theta"],
        loss: %{
+         mean: j["loss"]["mean"] && Enum.map(j["loss"]["mean"], &(&1 / 1)),
          cells: Map.new(j["loss"]["cells"], fn {k, v} -> {k, triple.(v)} end),
          bands: Map.new(j["loss"]["bands"], fn {k, v} -> {String.to_integer(k), triple.(v)} end),
          global: triple.(j["loss"]["global"])

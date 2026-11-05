@@ -53,7 +53,9 @@ defmodule Alnasl.FairPlay.Calibration do
   record N as the bench instead of running it (for a test engine that has
   none; a real run should let it be measured).
 
-  fit: `--holdout FRACTION` (0.2), `--out FILE`, `--engine-id sf19`, and
+  fit: `--holdout FRACTION` (0.2), `--out FILE`, `--engine-id sf19`,
+  `--theta T` (the likelihood-ratio weighting of the match tests,
+  `Alnasl.FairPlay.Model.weight/2`; 0 for the plain count), and
   `--band-thresholds FRACTION` for the per-band variant
   (`Alnasl.FairPlay.BandScale`): that share of the *training* events is
   kept out of the fit and used only to set each band's threshold, and the
@@ -114,6 +116,7 @@ defmodule Alnasl.FairPlay.Calibration do
     bench: :integer,
     model: :string,
     threshold: :float,
+    theta: :float,
     band_thresholds: :float
   ]
 
@@ -667,6 +670,7 @@ defmodule Alnasl.FairPlay.Calibration do
           engine: meta["id"],
           bench: meta["bench"],
           nodes: meta["nodes"],
+          theta: Keyword.get(opts, :theta, Model.default_theta()),
           meta: %{
             "engine_name" => meta["name"],
             "games" => length(train),

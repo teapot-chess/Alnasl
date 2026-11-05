@@ -204,7 +204,7 @@ defmodule Alnasl.FairPlay.PowerTest do
     # And a cheat moves every test the right way: fewer errors, fewer
     # blunders, less loss where it is hard.
     assert Enum.zip_with(result.cheats[{:naive, 0.5}].zs, result.honest.zs, &(&1 > &2)) ==
-             List.duplicate(true, 6)
+             List.duplicate(true, 12)
   end
 
   test "a run: cheats only in held-out events, tables at each threshold, variants judged on the final half",
@@ -252,7 +252,7 @@ defmodule Alnasl.FairPlay.PowerTest do
     for {a, b} <- Enum.zip(naive.rows, hd(summary.power).rows), do: assert(a.above >= b.above)
 
     v = summary.variants
-    assert length(v.rows) == 9 + 7 + 3 + 1
+    assert length(v.rows) == 9 + 13 + 3 + 1
     assert "scan, offset 0.5" in Enum.map(v.rows, & &1.variant)
     assert Enum.all?(v.rows, &(length(&1.final_one_game_by_games_at_3) == 3))
     assert "fitted" in Enum.map(v.rows, & &1.variant)

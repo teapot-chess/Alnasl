@@ -101,11 +101,15 @@ defmodule Alnasl.FairPlay.ProbesTest do
     numbers = Stats.player(records, model)
     obs = observe(records, model, probes)
 
-    assert [mm, ev, asd, _, _, _] = obs.zs
+    assert [mm, ev, asd | rest] = obs.zs
+    assert length(rest) == 9
     assert_in_delta mm, numbers.mm_z, 1.0e-9
     assert_in_delta ev, numbers.ev_z, 1.0e-9
     assert_in_delta asd, numbers.asd_z, 1.0e-9
-    assert_in_delta Probes.score(obs, [1.0, 1.0, 1.0, 0.0, 0.0, 0.0]), numbers.event_score, 1.0e-9
+
+    assert_in_delta Probes.score(obs, Alnasl.FairPlay.Power.pad([1.0, 1.0, 1.0])),
+                    numbers.event_score,
+                    1.0e-9
 
     # And the benchmark's score is the report's, union correction and all.
     assert_in_delta Alnasl.FairPlay.Power.shipped(
@@ -123,7 +127,14 @@ defmodule Alnasl.FairPlay.ProbesTest do
                Model.dispersion(model)[level] |> Enum.at(i) |> Enum.at(j)
     end
 
-    assert length(probes.dispersion.r0) == 6
+    assert length(probes.dispersion.r0) == 12
+
+    # The plain match tests (7, 8) are the weighted ones with every ply
+    # at one: the same sign, and at theta 0 the same number.
+    plain = %{model | theta: nil}
+    plain_numbers = Stats.player(records, plain)
+    [_, _, _, _, _, _, mm0, ev0 | _] = obs.zs
+    assert mm0 * plain_numbers.mm_z > 0 and ev0 * plain_numbers.ev_z > 0
   end
 
   test "errors and blunders by the scaled loss; a cheat that never errs scores above the honest",
@@ -138,7 +149,7 @@ defmodule Alnasl.FairPlay.ProbesTest do
     {:ok, cheat} = Power.inject(counted(records), {:camouflaged, 1.0}, :s, window: 40)
     cheat = observe(cheat, model, probes)
 
-    [_, _, _, err, bln, hard] = Enum.zip_with(cheat.zs, honest.zs, &(&1 - &2))
+    [_, _, _, err, bln, hard | _] = Enum.zip_with(cheat.zs, honest.zs, &(&1 - &2))
     assert err > 0 and bln > 0 and hard > 0
   end
 

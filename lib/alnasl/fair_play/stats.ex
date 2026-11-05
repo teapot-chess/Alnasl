@@ -166,18 +166,29 @@ defmodule Alnasl.FairPlay.Stats do
     residuals(counted, Enum.map(counted, &scaled_loss/1), model)
   end
 
+  # The match tests weigh each ply by the model's likelihood ratio
+  # (`Alnasl.FairPlay.Model.weight/2`): a match the model thought unlikely
+  # counts for more. The sum stays linear in the indicators, so the
+  # variance is `Alnasl.FairPlay.Cluster`'s with the weights folded into
+  # the spreads.
   defp residuals(counted, losses, model) do
     Enum.zip_with(counted, losses, fn record, loss ->
       p = Model.p_match(model, record)
       q = Model.p_ev(model, record)
       {mean, var} = Model.loss_moments(model, record)
+      wp = Model.weight(model, p)
+      wq = Model.weight(model, q)
 
       %{
         game: record[:game],
         p: p,
         expected_loss: mean,
-        e: [indicator(engine_match?(record)) - p, indicator(ev_match?(record)) - q, mean - loss],
-        s: [:math.sqrt(p * (1 - p)), :math.sqrt(q * (1 - q)), :math.sqrt(max(var, 0.0))]
+        e: [
+          wp * (indicator(engine_match?(record)) - p),
+          wq * (indicator(ev_match?(record)) - q),
+          mean - loss
+        ],
+        s: [wp * :math.sqrt(p * (1 - p)), wq * :math.sqrt(q * (1 - q)), :math.sqrt(max(var, 0.0))]
       }
     end)
   end
