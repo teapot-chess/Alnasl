@@ -131,16 +131,36 @@ centipawn loss / (1 + |eval|/100), capped at 5.00.
   - the rating times the gap and times the number of good moves,
   - how far from level the position is, the opponent's rating against
     the player's, and the share of the remaining clock the move took
-    (with a flag for when that is unknown).
+    (with a flag for when that is unknown),
+  - and, since the third form (2026-11-05): the evaluation with its sign
+    from the mover's side (a losing player plays differently from a
+    winning one at the same distance from level), the move number (a
+    hinge at 40), the scaled spread from the best line to the fourth, a
+    flag for fewer than four lines, the clock before the move in hours
+    and a flag for it being known.
 
   Players rated under 1000 are not scored (`:low_rating`): the corpus
   holds six such player-games.
-- **Expected scaled loss.** Its mean and variance per rating band and
-  position type.
+- **Expected scaled loss.** Its mean a ridge regression on the same
+  features (floored at 0.005); its variance the squared residuals about
+  that mean per rating band and position type, falling back to the band
+  and then to all plies. Until the third form the mean was the band's
+  table too, and the lowest bands paid for what a table cannot know.
 - **The three tests:**
-  - **MM**: `(Σ match − Σ p) / sqrt(V)`.
+  - **MM**: `(Σ w(match − p)) / sqrt(V)`, each move weighed by
+    `w = log(1 + θ/((1 − θ)p))`, the log of the odds that a player who
+    takes a share `θ` (0.3) of their moves from the engine and otherwise
+    plays like the player would have produced a match here, against the
+    player alone (`Alnasl.FairPlay.Model.weight/2`). A match where the
+    model gave the move a 20% chance says about three times as much as
+    one where it gave 80%; the plain count, which the first two forms
+    used, gave both a point. The sum stays linear in the indicators, so
+    the variance below is unchanged in form, with the weights folded
+    into the spreads.
   - **EV**: the same, but a move within 0.01 of the best counts as a match.
-  - **ASD**: `(Σ E[d] − Σ d) / sqrt(V)`.
+  - **ASD**: `(Σ E[d] − Σ d) / sqrt(V)`, unweighted: the move a selective
+    cheater fixes is the one that would have lost most, and a weight by
+    the model's own expectation would discount exactly those.
 
   `V` is not `Σ p(1−p)`: moves of one game, and games of one event, are
   not independent. Each player-event's covariance of the three sums is
@@ -151,7 +171,9 @@ centipawn loss / (1 + |eval|/100), capped at 5.00.
   Those values are **cross-fitted**: measured only on events the
   regression that judged them had not seen.
 - **Combined.** `wᵀz / sqrt(wᵀCw)`, `C` being the three tests' correlation
-  in this player-event, from the same covariance. Phase 1 divided by a
+  in this player-event, from the same covariance; `w` is `[2, 1, 1]` since
+  the third form, the vector the benchmark (`docs/fair-play-calibration-run.md`,
+  §11) chose on its tuning half and confirmed on its final half. Phase 1 divided by a
   correlation that assumed every z had variance 1; phase 2 by one global
   covariance measured in-sample, which gave every player-event the
   inflation of the average one. Both are gone; a model file of format 1
@@ -250,8 +272,11 @@ a deleted report.
      features, per-game variance, cross-fitting, model format 2, the
      held-out hits by name (`mix fair_play.hits`), and per-band
      thresholds as a variant that the report does not use;
-   - still to come: the bigger calibration itself (run sheet written),
-     rapid and blitz models.
+   - the model's third form (2026-11-05, format 3): the likelihood-ratio
+     weighting of the match tests, the loss regression, seven more
+     features, MM weighed double in the combined score, twelve tests in
+     the benchmark (`docs/fair-play-calibration-run.md`, §11);
+   - still to come: rapid and blitz models.
 3. **Phase 3:** Maia (the Lc0 network trained per rating) as the human
    expectation beside Stockfish.
 
