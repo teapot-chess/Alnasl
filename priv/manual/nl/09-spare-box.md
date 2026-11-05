@@ -42,6 +42,10 @@ Een reservekastje neemt vanzelf over als het actieve kastje te lang stil is. Is 
 
 Wat het reservekastje niet uit de cloud krijgt: de sleutels voor de uitslagensite, Lichess en het paringsprogramma. Die blijven op het kastje waaraan ze gegeven zijn. Verbind het reservekastje vóór het toernooi één keer met het paringsprogramma, zodat de uitslagen na een overname blijven binnenkomen.
 
+### Een tweede kopie {#replica}
+
+De cloud krijgt elke zet binnen enkele seconden zolang het internet werkt, en geen enkele als het wegvalt: een kastje dat offline stukgaat, neemt de zetten die het nog niet verstuurde mee. Een kastje kan daarom ook een tweede kopie van zijn hele database bijhouden, ongeveer elke seconde, in een opslag van jezelf: een S3-bucket, of MinIO op een server in de zaal of thuis. Een reservekastje dat overneemt, leest ook die kopie en vult aan wat de cloud miste. Op het Pi-image is dat het bestand `alnasl-replica.txt` op de SD-kaart (er staat een voorbeeld); geef elk kastje van de zaal, ook het reservekastje, hetzelfde bestand. Zonder dat bestand werkt een overname precies zoals hierboven.
+
 ## Een ander kastje nam over {#superseded}
 
 Een kastje dat merkt dat een ander kastje zijn zaal draait, stopt: het leest geen borden, stuurt geen uitslagen, en zegt **Een ander kastje nam over**. Dat geldt ook als het na een lange tijd zonder lijn terugkomt met zetten die het nooit stuurde: de zaal is zonder dat kastje verdergegaan, en twee kastjes die één zaal schrijven is erger dan één kastje dat een paar zetten mist.

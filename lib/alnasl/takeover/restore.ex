@@ -32,16 +32,20 @@ defmodule Alnasl.Takeover.Restore do
   alias Alnasl.Tournaments.{Placement, Tournament}
 
   @doc """
-  Applies `state` (a map, or `nil` when the cloud has none) and `events`.
-  `{:ok, %{games, boards, tournaments}}` - counts, and the serials of the
-  boards restored, for whatever runs after a takeover - or `{:error, why}`.
+  Applies `state` (a map, or `nil` when the cloud has none) and `events`,
+  topped up with `replica` - the same box's state read out of its Litestream
+  replica (`Alnasl.Takeover.Replica`), or `nil` - per game, see
+  `top_up/2`. `{:ok, %{games, boards, tournaments, from_replica}}` - counts,
+  and the serials of the boards restored, for whatever runs after a takeover
+  - or `{:error, why}`.
   """
-  def apply(state, events) do
-    state = state || %{}
+  def apply(state, events, replica \\ nil) do
+    {state, replica} = base(state, replica)
 
     Repo.transaction(fn ->
       tmap = tournaments(state)
-      games = state |> Map.get("games", []) |> fold(events, state)
+      folded = state |> Map.get("games", []) |> fold(events, state)
+      {games, from_replica} = top_up(folded, replica_games(replica))
       written = write_games(games, tmap)
       boards = write_boards(Map.get(state, "boards", []), tmap)
       placements(Map.get(state, "placements", []), tmap)
@@ -49,13 +53,84 @@ defmodule Alnasl.Takeover.Restore do
 
       for {_from, id} <- tmap, do: Tournaments.notify(id)
 
-      %{games: written, boards: boards, tournaments: map_size(tmap)}
+      %{games: written, boards: boards, tournaments: map_size(tmap), from_replica: from_replica}
     end)
   rescue
     error ->
       Logger.error("takeover: restoring failed: #{Exception.message(error)}")
       {:error, Exception.message(error)}
   end
+
+  # --- the replica ---------------------------------------------------------------------
+
+  # The state to start from. The cloud's, when it has one: it is fenced by
+  # the lease, and the tournaments, boards and placements in it are at most
+  # fifteen seconds old. A replica adds the tournaments the cloud has not
+  # heard of yet (its games would have nowhere to go otherwise). With no
+  # state in the cloud at all, the replica's is all there is.
+  defp base(state, nil), do: {state || %{}, nil}
+
+  defp base(state, %{} = replica) when state in [nil, %{}],
+    do: {Map.put(replica, "games", []), replica}
+
+  defp base(state, %{} = replica) do
+    known = MapSet.new(Map.get(state, "tournaments", []), &(is_map(&1) && &1["id"]))
+
+    extra =
+      Enum.filter(
+        Map.get(replica, "tournaments", []),
+        &(is_map(&1) and not MapSet.member?(known, &1["id"]))
+      )
+
+    {Map.update(state, "tournaments", extra, &(&1 ++ extra)), replica}
+  end
+
+  defp replica_games(nil), do: %{}
+
+  defp replica_games(replica) do
+    for g <- Map.get(replica, "games", []), is_map(g), is_binary(g["key"]), into: %{} do
+      {g["key"], g}
+    end
+  end
+
+  @doc false
+  # The cloud's games (state and events, folded) topped up with the
+  # replica's. Both are copies of one database at two moments, and nothing
+  # here says which moment is later, so a game is taken from the replica
+  # only where it is plainly further on:
+  #
+  #   * the cloud does not have the game at all;
+  #   * the replica has more moves, and the cloud's are where it started;
+  #   * the same moves, and the replica has the result the cloud lacks.
+  #
+  # Anything else - a take-back on one side, two different results - stays
+  # as the cloud has it: the cloud's copy is the one the lease vouches for,
+  # and a board that disagrees says so when it is plugged in.
+  # `{games, how many came from the replica}`.
+  def top_up(games, replica_games) do
+    Enum.reduce(replica_games, {games, 0}, fn {key, theirs}, {acc, n} ->
+      case Map.fetch(acc, key) do
+        :error ->
+          {Map.put(acc, key, theirs), n + 1}
+
+        {:ok, ours} ->
+          if ahead?(theirs, ours), do: {Map.put(acc, key, theirs), n + 1}, else: {acc, n}
+      end
+    end)
+  end
+
+  defp ahead?(theirs, ours) do
+    t = sans(theirs)
+    o = sans(ours)
+
+    cond do
+      length(t) > length(o) -> Enum.take(t, length(o)) == o
+      t == o -> theirs["status"] == "finished" and ours["status"] != "finished"
+      true -> false
+    end
+  end
+
+  defp sans(game), do: game |> plies() |> Enum.map(&(is_map(&1) && &1["san"]))
 
   # --- tournaments -------------------------------------------------------------------
 
