@@ -1069,6 +1069,18 @@ defmodule AlnaslWeb.Words do
         boards: d["boards"]
       )
 
+  defp log("takeover.replica_used", d),
+    do:
+      gettext("The replica was newer than the cloud for %{games} games; those came from it.",
+        games: d["games"]
+      )
+
+  defp log("takeover.replica_stopped", d),
+    do:
+      gettext("Replicating the database stopped (exit %{status}); trying again.",
+        status: d["status"]
+      )
+
   defp log("takeover.restore_failed", d),
     do:
       gettext("Copying the hall from the cloud failed (%{why}); this box stays a spare.",

@@ -105,6 +105,40 @@ if System.get_env("ALNASL_TAKEOVER_CLOUD") in ~w(1 true yes) do
   config :alnasl, takeover_cloud: true
 end
 
+# The replica (`Alnasl.Takeover.Replica`, docs/takeover.md "The replica"):
+# Litestream copies the active box's database about once a second to
+# ALNASL_TAKEOVER_REPLICA (s3://bucket/prefix, sftp://..., file:///...),
+# each box under its own uid; a spare that takes over reads it to add what
+# the cloud had not been sent yet. ALNASL_TAKEOVER_REPLICA_ENDPOINT and
+# _REGION for an S3-compatible store that is not AWS (MinIO, say);
+# ALNASL_TAKEOVER_REPLICA_SYNC how often (Litestream's sync-interval, 1s).
+# The store's credentials are Litestream's own LITESTREAM_ACCESS_KEY_ID and
+# LITESTREAM_SECRET_ACCESS_KEY, read by Litestream, never by Alnasl.
+# ALNASL_LITESTREAM the binary (else `litestream` on the PATH).
+if replica = System.get_env("ALNASL_TAKEOVER_REPLICA") do
+  blank = fn name ->
+    case System.get_env(name) do
+      nil -> nil
+      value -> if String.trim(value) == "", do: nil, else: String.trim(value)
+    end
+  end
+
+  replica = String.trim(replica)
+
+  if replica != "" do
+    config :alnasl, :takeover_replica, %{
+      url: replica,
+      endpoint: blank.("ALNASL_TAKEOVER_REPLICA_ENDPOINT"),
+      region: blank.("ALNASL_TAKEOVER_REPLICA_REGION"),
+      sync: blank.("ALNASL_TAKEOVER_REPLICA_SYNC") || "1s"
+    }
+  end
+end
+
+if litestream = System.get_env("ALNASL_LITESTREAM") do
+  config :alnasl, litestream: String.trim(litestream)
+end
+
 # Who is an admin of this installation - everything, every hall - without
 # a row saying so: the addresses here, comma-separated. On the server they
 # are the people who may invite others, and who may sign in with 02cloud

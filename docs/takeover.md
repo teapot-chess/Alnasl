@@ -8,7 +8,9 @@ Code: `Alnasl.Takeover` (the box's record and status),
 `Alnasl.Takeover.Link` (the box's process), `Alnasl.Takeover.Snapshot` and
 `Alnasl.Takeover.Restore` (the whole state, out and in),
 `Alnasl.Takeover.Cloud` and `AlnaslWeb.TakeoverController` (the cloud),
-`Alnasl.Takeover.Hooks` (what runs after a takeover). Pages: `/spare` on a
+`Alnasl.Takeover.Hooks` (what runs after a takeover),
+`Alnasl.Takeover.Replica` and `Alnasl.Takeover.Replicator` (the Litestream
+replica). Pages: `/spare` on a
 box (`AlnaslWeb.SpareLive`), the hall's Boxes tab in the cloud
 (`AlnaslWeb.HallsLive`), the status line in the bar. Manual: "A spare box"
 (`priv/manual/09-spare-box.md`, and `nl/`).
@@ -112,6 +114,57 @@ check `Alnasl.Takeover.driving?/0`), queues nothing more, and says
 time offline with moves it never sent: two boxes writing one hall is
 worse than one box missing some moves, and those moves are on the boards.
 
+## The replica
+
+The stream reaches the cloud every step (5 s) when the line is up, and
+not at all when it is down: a box that dies offline takes its queue with
+it. The replica is a second copy that does not wait for the cloud.
+
+`Alnasl.Takeover.Replicator` runs Litestream (`litestream replicate`, a
+port) while the box is **active**, paired, and has a replica configured;
+it stops it (SIGTERM, on which Litestream sends what it has left) as soon
+as the box steps down, stands by, leaves its hall or is removed. Litestream
+copies the whole SQLite database about once a second
+(`ALNASL_TAKEOVER_REPLICA_SYNC`, `1s`) to
+`ALNASL_TAKEOVER_REPLICA/<box uid>`: an S3 bucket, MinIO on a server of
+one's own (the fallback store under Tanzu, at home or in the hall), SFTP,
+or a directory. Each box under its own uid, so a superseded box still
+running somewhere offline overwrites nobody's copy but its own. The
+configuration Alnasl writes (`<data dir>/litestream.yml`, 0600) has no
+credentials: Litestream reads `LITESTREAM_ACCESS_KEY_ID` and
+`LITESTREAM_SECRET_ACCESS_KEY` from the environment it inherits, and
+Alnasl never looks at them.
+
+At a takeover the spare pulls the cloud's state and events as before and
+then, when a replica is configured, restores the copy of the box that ran
+the hall (the uid in the newest event, else the one that sent the state)
+into a scratch file (`litestream restore -if-replica-exists`), brings it
+up to its own schema with its own migrations, and reads it with
+`Snapshot.build/1` - the same shape the cloud's state has
+(`Alnasl.Takeover.Replica`). `Restore.apply/3` then tops the cloud's games
+up with it, per game:
+
+| the replica's copy of a game | kept |
+|---|---|
+| not in the cloud at all | the replica's |
+| more moves, and the cloud's moves are where it starts | the replica's |
+| the same moves, finished where the cloud's is still live | the replica's |
+| anything else (fewer moves, a take-back on either side, another result) | the cloud's |
+
+Both are copies of one database at two moments and nothing says which
+moment is later, so only a game plainly further on comes from the
+replica; the cloud's copy is the one the lease vouches for. Tournaments,
+boards, placements and settings stay the cloud's (at most 15 seconds old);
+the replica only adds the tournaments the cloud has not heard of, and is
+the whole state when the cloud has none.
+
+The replica can only help: no Litestream on the box, no replica yet, a
+store that does not answer, a copy that will not open, or more than 30
+seconds (`:takeover_replica_timeout_ms`; the lease is 45) - the takeover
+goes on with the cloud's copy, and says so in the log. A replica does not
+take part in the lease: a hall with no line to the cloud still has nobody
+to hand it over.
+
 ## After a takeover
 
 `Alnasl.Takeover.Hooks.after_takeover/1` runs once the restore is
@@ -211,6 +264,17 @@ On the box (the Pi image), in the service's environment:
 | `ALNASL_TAKEOVER_ROLE` | `active` or `spare` - the role a box takes **when it is paired**. After that the box's own record decides, so a spare that took over stays active across reboots | `active` |
 | `ALNASL_TAKEOVER_SERVER` | the cloud a bare pairing code goes to (a pasted link names its own) | `https://alnasl.zerotwo.cloud` |
 | `ALNASL_TAKEOVER_QUEUE_CAP` | events kept while offline | `50000` |
+| `ALNASL_TAKEOVER_REPLICA` | where Litestream copies the database (`s3://bucket/prefix`, `sftp://`, `gs://`, `abs://`, `file:///`); unset, no replica | unset |
+| `ALNASL_TAKEOVER_REPLICA_ENDPOINT`, `_REGION` | an S3-compatible store that is not AWS | unset |
+| `ALNASL_TAKEOVER_REPLICA_SYNC` | Litestream's sync-interval | `1s` |
+| `LITESTREAM_ACCESS_KEY_ID`, `LITESTREAM_SECRET_ACCESS_KEY` | the store's key, for Litestream only | unset |
+| `ALNASL_LITESTREAM` | the Litestream binary | `litestream` on the PATH |
+
+The Pi image (photon-image, v7.5) sets all of it: `spare` as the box's
+mode gives `ALNASL_TAKEOVER_ROLE=spare`, Litestream 0.5.18 is in the image
+pinned by its SHA-256, and the replica's settings come from a file on the
+boot partition into a root-only environment file (photon-image
+docs/v7-plan.md, section 5).
 
 The key file lands in the data directory (`<data dir>/takeover.key`); the
 data directory must be on the persistent data partition, which it already
@@ -244,4 +308,9 @@ fencing, the queue, the restore and the pages. It does not check:
   hall is without a box during it;
 - the image setting `ALNASL_TAKEOVER_ROLE=spare` and the key surviving an
   OS update on the data partition;
-- the cloud behind its tunnel (Cloudflare in front of `/takeover/*`).
+- the cloud behind its tunnel (Cloudflare in front of `/takeover/*`);
+- Litestream itself: the tests use a stand-in that copies a real SQLite
+  file. A real `litestream replicate` on a Pi under a full hall, the
+  restore from MinIO against the clock of the lease, and Litestream
+  0.5.18's flags (`restore -config -if-replica-exists -o`) on the box are
+  untried.
