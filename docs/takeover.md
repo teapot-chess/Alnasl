@@ -271,7 +271,7 @@ On the box (the Pi image), in the service's environment:
 | `ALNASL_LITESTREAM` | the Litestream binary | `litestream` on the PATH |
 
 The Pi image (photon-image, v7.5) sets all of it: `spare` as the box's
-mode gives `ALNASL_TAKEOVER_ROLE=spare`, Litestream 0.5.18 is in the image
+mode gives `ALNASL_TAKEOVER_ROLE=spare`, Litestream 0.5.17 is in the image
 pinned by its SHA-256, and the replica's settings come from a file on the
 boot partition into a root-only environment file (photon-image
 docs/v7-plan.md, section 5).
@@ -312,5 +312,5 @@ fencing, the queue, the restore and the pages. It does not check:
 - Litestream itself: the tests use a stand-in that copies a real SQLite
   file. A real `litestream replicate` on a Pi under a full hall, the
   restore from MinIO against the clock of the lease, and Litestream
-  0.5.18's flags (`restore -config -if-replica-exists -o`) on the box are
+  0.5.17's flags (`restore -config -if-replica-exists -o`) on the box are
   untried.
