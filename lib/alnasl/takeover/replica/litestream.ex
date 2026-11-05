@@ -12,12 +12,22 @@ defmodule Alnasl.Takeover.Replica.Litestream do
   (`config :alnasl, :takeover_replica_runner`).
   """
 
-  @doc "The binary's path, or `nil`."
+  @doc """
+  The binary's path, or `nil`. `ALNASL_LITESTREAM` must be an absolute path
+  to an existing file called `litestream` (`litestream.exe` on Windows):
+  the setting names a program, not a command line.
+  """
   def binary do
     case Application.get_env(:alnasl, :litestream) do
-      path when is_binary(path) and path != "" -> if File.regular?(path), do: path
+      path when is_binary(path) and path != "" -> if trusted?(path), do: path
       _unset -> System.find_executable("litestream")
     end
+  end
+
+  @doc false
+  def trusted?(path) do
+    Path.type(path) == :absolute and Path.basename(path) in ~w(litestream litestream.exe) and
+      File.regular?(path)
   end
 
   def available?, do: binary() != nil
