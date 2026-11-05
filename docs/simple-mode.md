@@ -110,7 +110,7 @@ For 4 to 7 inch screens: 800x480 (the official Pi DSI panels), 1024x600,
 ### When it is on
 
 `data-compact` on `<html>`, set by `assets/js/theme.js` before the first
-paint, like the colour theme. Automatic: the window is at most 620 px high,
+paint, like the colour theme. Automatic: the window is at most 620 px high and at least as wide as it is high,
 or at most 760 by 760 and not portrait (720x720 squares, not phones). On a
 phone held upright nothing changes; turned sideways it is compact, which
 is what that shape needs too.
