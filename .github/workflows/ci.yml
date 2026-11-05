@@ -153,6 +153,7 @@ jobs:
       # each, for the artifact below; the step stays red either way.
       - name: Run the browser tests
         run: |
+# One VM, six runners: a fixed port lets two browser runs collide (eaddrinuse).          n="${RUNNER_NAME##*-r}"; case "$n" in ''|*[!0-9]*) ;; *) export E2E_PORT=$((4100 + n)) ;; esac
           mix test.e2e && exit 0
           PW_TRACE=true PW_SCREENSHOT=true mix test.e2e --failed || true
           exit 1
