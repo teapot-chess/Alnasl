@@ -633,3 +633,38 @@ corpus has under 1200 and no model fitted on it can be shown right or
 wrong there to better than a quarter of a standard deviation; the bands
 are kept, and the report's rarity for them is the corpus's, as for every
 band.
+
+**The frozen model.** Fitted 2026-11-05 20:42-20:49 UTC on the lab VM,
+code at `fairplay-v3` 82ce485, `--holdout 0.33 --theta 0.3 --weights
+2,1,1`: 33,353 games fitted, 16,631 held out, 5,056 held-out
+player-events. `/root/w-v3/frozen/model.json`, sha256
+`dff97f80a5f8dc4e59c59c74e5944b8810b78325972ba521f8a0e0b46e167008`,
+shipped as `priv/fair_play/model-sf19.json`; threshold 3.75, unchanged.
+Its held-out table: 2.0, 118 (2.33%); 2.5, 30; 3.0, 10 (0.20%); 3.5, 1;
+3.75 and up, 0 (upper 0.07%). Per band the mean is within ±0.10 of zero
+from 1200 up (1000: 11 events, −0.35). Its power (`--holdout 0.33
+--model frozen`, 5,056 events, `power-frozen.log`) at 3.75: naive 20%
+3.1%, 30% 19.7%, 50% 81.4%; selective 10% 4.7%, 20% 53.5%, 30% 88.5%;
+camouflaged 0.0% at every rate; one whole engine game 45.9%, two 69.8%,
+three 85.3%. The benchmark's verdict on this split: keep the default
+(the 2,1,1 chosen on the other split holds; nothing beats it without
+more honest hits).
+
+**The final gate, not yet run.** Rule, written down before any of it was
+scored: 13,000 broadcast games of 2026-05 to 2026-09 (months no model
+has seen: the development games end in 2025-05 and `/root/w-final`'s in
+2026-04), labelled with the exact `/root/w-final` labeller (same source,
+same Stockfish 19, 1,000,000 nodes) in three shards - `--shard 1/2` and
+`4/4` on the lab VM (`/root/w-final2/labels.jsonl`, `labels-4of4.jsonl`,
+started 2026-11-05 19:34 UTC), `--shard 2/4` on the CI machine
+(`/home/aurora/w-final2/labels-2of4.jsonl`, started 19:44 UTC, six
+engines at nice 19) - are scored once with `mix fair_play.check --model
+/root/w-v3/frozen/model.json` by `/root/w-v3/runs/final-check.sh`, which
+waits for the three files and writes `final-check.log` with the
+timestamps and the model's sha256. The CI shard is copied over by hand
+and marked with `labels-2of4.done`. About 4,000 player-events: the gate
+passes with none or one at 3.75 or more (one gives an upper bound of
+0.14%, just under 1 in 700). A second scoring of these games would make
+them development games; `/root/w-final2/SPENT-never-score-again` is
+touched when the check has run. The result goes here when it exists;
+until then the model is a candidate and nothing ships.
