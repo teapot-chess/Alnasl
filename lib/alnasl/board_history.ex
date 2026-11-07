@@ -100,6 +100,21 @@ defmodule Alnasl.BoardHistory do
   """
   @spec merge(list(), keyword()) :: result()
   def merge(events, opts) when is_list(events) do
+    case merge_detail(events, opts) do
+      {result, _agreed} -> result
+    end
+  end
+
+  def merge(_events, _opts), do: {:unmatched, :not_a_history}
+
+  @doc """
+  Like `merge/2`, with a second element: how many of the game's plies the
+  memory's line agrees with, move for move, from the first (all of them for
+  `{:extend, _}`; `0` for a draft or an unmatched memory, which agree with
+  nothing the game may rely on).
+  """
+  @spec merge_detail(list(), keyword()) :: {result(), non_neg_integer()}
+  def merge_detail(events, opts) when is_list(events) do
     start_fen = opts[:start_fen] || Chess.start_fen()
     known = opts[:plies] || []
     items = timeline(events, opts[:flipped?] || false)
@@ -109,13 +124,20 @@ defmodule Alnasl.BoardHistory do
 
     lines = fn -> lines(items, tracker_opts(opts[:tracker] || [], Chess.start_fen())) end
 
-    cond do
-      standard? and Enum.member?(items, :start) -> from_start(lines.(), known)
-      true -> from_anchor(items, known, start_fen, tracker_opts, lines)
+    result =
+      cond do
+        standard? and Enum.member?(items, :start) -> from_start(lines.(), known)
+        true -> from_anchor(items, known, start_fen, tracker_opts, lines)
+      end
+
+    case result do
+      {:nothing, agreed} -> {:nothing, agreed}
+      {:extend, _plies} = extend -> {extend, length(known)}
+      other -> {other, 0}
     end
   end
 
-  def merge(_events, _opts), do: {:unmatched, :not_a_history}
+  def merge_detail(_events, _opts), do: {{:unmatched, :not_a_history}, 0}
 
   # --- the timeline ------------------------------------------------------------
 
@@ -213,7 +235,7 @@ defmodule Alnasl.BoardHistory do
 
     case compare(sans(newest), sans) do
       :same ->
-        :nothing
+        {:nothing, length(known)}
 
       :extends when older_fits? and known != [] ->
         draft(:ambiguous, Chess.start_fen(), newest, known)
@@ -223,7 +245,7 @@ defmodule Alnasl.BoardHistory do
 
       :behind ->
         case Enum.find(older, &(known != [] and compare(sans(&1), sans) == :extends)) do
-          nil -> :nothing
+          nil -> {:nothing, length(sans(newest))}
           line -> draft(:earlier_game, Chess.start_fen(), line, known)
         end
 
@@ -256,7 +278,7 @@ defmodule Alnasl.BoardHistory do
     case compare(sans(played), sans(known)) do
       :extends -> {:extend, Enum.drop(played, n)}
       :conflict -> draft(:conflict, start_fen, played, known)
-      _same_or_behind -> :nothing
+      _same_or_behind -> {:nothing, common(sans(played), sans(known), 0)}
     end
   end
 
@@ -282,7 +304,7 @@ defmodule Alnasl.BoardHistory do
         case compare(sans(played), sans(known)) do
           :extends -> {:extend, Enum.drop(played, length(known))}
           :conflict -> draft(:conflict, start_fen, played, known)
-          _same_or_behind -> :nothing
+          _same_or_behind -> {:nothing, common(sans(played), sans(known), 0)}
         end
 
       nil ->

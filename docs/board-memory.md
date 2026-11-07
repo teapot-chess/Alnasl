@@ -68,7 +68,33 @@ the two part (or a restart from the memory's start position), sent as a
 replacement of the game; it is refused when the game has changed since in
 the moves the draft relies on.
 
-Nothing is ever written to a board: `0x85` (clear the memory) is not sent,
+### Waiting for it, and confirming a guess
+
+The memory arrives some seconds after the first dump (about 20 s on the
+real board above), and the tracker would reconstruct a gap from that dump
+at once, by guessing when several lines of moves fit. So the board's
+process waits (`Alnasl.BoardServer`): after a (re)connect through a driver
+that reads memories (`dgt_serial`, `dgt_bus`, `remote`), a reading that
+would make the tracker reconstruct or guess moves is not given to the
+session; the session stays as it was, and the readings are held until the
+memory comes. Then:
+
+- `{:extend, plies}`: the moves are played in from the memory, marked
+  `memory`, never `guessed`; no question to the arbiter.
+- `:nothing`, a draft or `{:unmatched, _}`: the held readings are given to
+  the tracker as they stand, which is the old behaviour.
+- No memory within `:history_hold_ms` (25 s; `board.history_late` in the
+  log), or a driver that has none (simulator, replay): the same.
+
+A guess made anyway (after the wait ran out) is cleaned up by a late
+memory: plies marked `guessed` that the memory's line agrees with, move
+for move, lose the mark and get `memory` (`board.history_confirmed`, with
+the count). A memory that agrees with the game and has nothing to confirm
+is logged quietly (`board.history_matches`); one that cannot be held up
+against the game says why (`board.history_unmatched`).
+
+Nothing is ever written to a board:
+ `0x85` (clear the memory) is not sent,
 not even as an option. Clearing a memory that is the only record of a game
 is the kind of help nobody asked for.
 
@@ -78,7 +104,7 @@ logs `board.history_failed` and goes on.
 
 ## Verified, and not
 
-Verified against the real thing: the two memories read from boards 6310
+Verified against the real thing: **`0x49` on a single board** (2026-11-07, DGT 06310, firmware 1.9, one board on a serial port): the memory came about 20 s after the first dump, about 7.9 KB, 3,775 events, parsed cleanly, and the merge agreed with the game. The layout is the loop's `0x86` reply, as assumed. And the two memories read from boards 6310
 and 12799 on 2026-10-12 (`test/fixtures/captures/real-loop-06-*.jsonl`),
 1461 and 1313 bytes. Each replays in Arkab to the board that board showed
 in the dump taken the same day, and 12799's replays in Alnasl to an 80-ply
@@ -90,9 +116,6 @@ Checked with synthetic memories only:
   does (stops, wraps, drops the oldest), is not known. Wrapped memories are
   tested by cutting the real ones at clock and field bytes.
 - **Power-up in the middle of a game**, made with Arkab's emulator.
-- **`0x49` on a single board.** The command is in DGT's published protocol;
-  no board on its own line has been asked it yet. Its reply is assumed to
-  have the same layout as the loop's `0x86` reply.
 - **Timing on a full loop.** Twelve memories one after another, with the
   polls in between, run against the emulator. How long a real full memory
   takes on a real loop, and whether a board answers its ordinary questions

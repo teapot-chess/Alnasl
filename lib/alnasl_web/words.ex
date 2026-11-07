@@ -589,6 +589,11 @@ defmodule AlnaslWeb.Words do
 
   # --- the log -----------------------------------------------------------------
 
+  defp history_reason("game_does_not_replay"), do: gettext("the game does not replay")
+  defp history_reason("no_anchor"), do: gettext("it shows nowhere the game has been")
+  defp history_reason("not_a_history"), do: gettext("it is not a memory")
+  defp history_reason(other), do: to_string(other)
+
   @doc "A line of the log as a sentence."
   def log(%Log.Event{kind: kind} = event), do: log(kind, Log.data(event))
 
@@ -610,6 +615,35 @@ defmodule AlnaslWeb.Words do
     do:
       gettext(
         "The board's own memory has another version of this game. It waits on the game page for the arbiter."
+      )
+
+  defp log("board.history_confirmed", d),
+    do:
+      ngettext(
+        "The board's own memory confirms %{count} move that was guessed. It was right, and the mark is gone.",
+        "The board's own memory confirms %{count} moves that were guessed. They were right, and the marks are gone.",
+        d["count"] || 0
+      )
+
+  defp log("board.history_matches", _d),
+    do: gettext("The board's own memory matches the game.")
+
+  defp log("board.history_unmatched", d),
+    do:
+      gettext("The board's own memory could not be held up against the game (%{reason}).",
+        reason: history_reason(d["reason"])
+      )
+
+  defp log("board.history_waiting", _d),
+    do:
+      gettext(
+        "The game has moved on while the board was away. Waiting for the board's own memory before guessing."
+      )
+
+  defp log("board.history_late", _d),
+    do:
+      gettext(
+        "The board's own memory did not come in time. The missed moves were worked out from the board instead."
       )
 
   defp log("board.history_failed", d),

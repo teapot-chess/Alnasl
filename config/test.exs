@@ -133,3 +133,7 @@ config :alnasl, :offsite_backup_req_options,
 
 # Crashes are half the point of some tests; they are not reports.
 config :alnasl, :error_reports, false
+
+# A board's memory is waited for before a gap is guessed; the tests that
+# want the wait set it themselves.
+config :alnasl, :history_hold_ms, 0

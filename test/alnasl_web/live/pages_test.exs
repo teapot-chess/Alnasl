@@ -717,7 +717,7 @@ defmodule AlnaslWeb.PagesTest do
            seating.joined seating.undone table.game_carried table.game_fresh table.game_left
            bridge.joined bridge.removed bridge.renamed bridge.moved game.deleted hall.created hall.deleted account.first account.invited
            account.joined account.made account.temporary_password account.refused account.throttled
-           board.history_merged board.history_draft board.history_failed draft.accepted draft.dismissed
+           board.history_merged board.history_draft board.history_failed board.history_confirmed board.history_matches board.history_unmatched board.history_waiting board.history_late draft.accepted draft.dismissed
            takeover.box_paired takeover.box_removed takeover.taken_over takeover.handed_over
            takeover.paired takeover.standing_by takeover.left takeover.handed_over_here
            takeover.silent_taken takeover.took_over takeover.restore_failed takeover.superseded

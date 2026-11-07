@@ -42,6 +42,18 @@ defmodule Alnasl.BoardServer do
   sent like any others; anything else becomes a draft beside the game
   (`Alnasl.MemoryDrafts`) for the arbiter to accept or dismiss. The game is
   never overwritten by a memory on its own say-so.
+
+  ## Waiting for the memory
+
+  A board that has just been (re)connected through a driver that reads
+  memories is about to hand over its memory. If the first readings show the
+  game has run ahead, the moves in between are not guessed at once: the
+  readings are held back (the session is left as it was) until the memory
+  arrives, which then supplies the moves as they were played - no guess, no
+  question for the arbiter. Only if the memory does not come within
+  `:history_hold_ms` (25 s), or cannot be used, is the gap reconstructed the
+  old way. Moves already guessed that the memory then agrees with lose
+  their mark (`Alnasl.Games.confirm_guessed/2`).
   """
 
   use GenServer, restart: :transient
@@ -116,6 +128,12 @@ defmodule Alnasl.BoardServer do
       # What the board's memory offers the arbiter for this game, if
       # anything (`MemoryDrafts.summary/1`).
       draft: nil,
+      # Waiting for the board's memory before a gap is guessed: the
+      # monotonic time the wait ends (`nil`: not waiting), whether a gap
+      # is actually being held back, and the clock reading that came with it.
+      hold: nil,
+      held?: false,
+      held_clock: nil,
       time: {0, System.monotonic_time(:millisecond), 1.0, nil},
       last_t: 0,
       warning: nil,
@@ -211,7 +229,7 @@ defmodule Alnasl.BoardServer do
   def handle_info(:tick, state) do
     Process.send_after(self(), :tick, @tick_ms)
     t = now(state)
-    {:noreply, state |> advance(t) |> heartbeat(t)}
+    {:noreply, state |> expire_hold() |> advance(t) |> heartbeat(t)}
   end
 
   # Tells the site, at most four times a second.
@@ -287,6 +305,7 @@ defmodule Alnasl.BoardServer do
   defp driver_event(state, :connected, _t) do
     Recorder.record(state.board.id, {:status, :connected})
     unless state.connected?, do: Log.add(:info, "board.connected", %{}, ref(state))
+    state = if state.connected?, do: state, else: wait_for_memory(state)
     dirty(%{state | connected?: true, last_seen: DateTime.utc_now(:second)})
   end
 
@@ -372,11 +391,11 @@ defmodule Alnasl.BoardServer do
   # The board's own memory. Whatever is wrong with it, this process goes on
   # and the game stays as it was.
   defp driver_event(state, {:history, events}, _t) when is_list(events) do
-    recover(state, events)
+    state |> recover(events) |> release()
   rescue
     error ->
       Log.add(:error, "board.history_failed", %{reason: Exception.message(error)}, ref(state))
-      state
+      release(state)
   end
 
   defp driver_event(state, _other, _t), do: state
@@ -389,16 +408,20 @@ defmodule Alnasl.BoardServer do
   defp recover(state, events) do
     game = state.game
 
-    result =
-      Alnasl.BoardHistory.merge(events,
+    known = Games.plies(game)
+
+    {result, agreed} =
+      Alnasl.BoardHistory.merge_detail(events,
         start_fen: game.start_fen,
-        plies: Games.plies(game),
+        plies: known,
         flipped?: state.board.flipped,
         tracker: Settings.tracker_opts()
       )
 
     case result do
       {:extend, plies} ->
+        {game, confirmed} = Games.confirm_guessed(game, agreed)
+        log_confirmed(state, confirmed)
         {game, _} = Games.apply_event(game, {:moves, plies}, System.os_time(:millisecond))
         sans = Enum.map(plies, & &1.san)
         Log.add(:warn, "board.history_merged", %{moves: sans, count: length(sans)}, ref(state))
@@ -425,9 +448,100 @@ defmodule Alnasl.BoardServer do
             state
         end
 
-      _nothing_or_unmatched ->
+      :nothing ->
+        {game, confirmed} = Games.confirm_guessed(game, agreed)
+
+        if confirmed > 0 do
+          log_confirmed(state, confirmed)
+
+          state
+          |> resume(game)
+          |> enqueue(now(state), true)
+          |> refeed()
+          |> dirty()
+        else
+          Log.add(:info, "board.history_matches", %{}, ref(state))
+          state
+        end
+
+      {:unmatched, reason} ->
+        Log.add(:info, "board.history_unmatched", %{reason: to_string(reason)}, ref(state))
         state
     end
+  end
+
+  defp log_confirmed(_state, 0), do: :ok
+
+  defp log_confirmed(state, count),
+    do: Log.add(:info, "board.history_confirmed", %{count: count}, ref(state))
+
+  # --- waiting for the memory ----------------------------------------------------
+
+  # Drivers that read a board's memory when they open it.
+  @remembering ~w(dgt_serial dgt_bus remote)
+
+  defp wait_for_memory(%{board: %{driver: driver}} = state) when driver in @remembering do
+    case Application.get_env(:alnasl, :history_hold_ms, 25_000) do
+      ms when is_integer(ms) and ms > 0 ->
+        %{state | hold: System.monotonic_time(:millisecond) + ms, held?: false, held_clock: nil}
+
+      _off ->
+        state
+    end
+  end
+
+  defp wait_for_memory(state), do: state
+
+  # The wait is over: the memory did not come in time.
+  defp expire_hold(%{hold: hold} = state) when is_integer(hold) do
+    if System.monotonic_time(:millisecond) >= hold do
+      if state.held?, do: Log.add(:warn, "board.history_late", %{}, ref(state))
+      release(state)
+    else
+      state
+    end
+  end
+
+  defp expire_hold(state), do: state
+
+  # No more waiting. What was held back is read now, as it stands.
+  defp release(%{hold: nil} = state), do: state
+
+  defp release(state) do
+    {held?, clock} = {state.held?, state.held_clock}
+    state = %{state | hold: nil, held?: false, held_clock: nil}
+
+    state =
+      if held? and state.session do
+        t = now(state)
+        state = if state.seen, do: feed(state, t, {:position, state.seen}), else: state
+        if clock, do: feed(state, t, {:clock, clock}), else: state
+      else
+        state
+      end
+
+    dirty(state)
+  end
+
+  # A reading that would make the tracker reconstruct moves: guessed, or
+  # worked out from the squares.
+  defp reconstructs?(events) do
+    Enum.any?(events, fn
+      {:moves, plies} -> Enum.any?(plies, &(:guessed in &1.flags or :recovered in &1.flags))
+      _other -> false
+    end)
+  end
+
+  defp hold_back(state, event) do
+    if not state.held?, do: Log.add(:info, "board.history_waiting", %{}, ref(state))
+
+    clock =
+      case event do
+        {:clock, reading} -> reading
+        _other -> state.held_clock
+      end
+
+    %{state | held?: true, held_clock: clock}
   end
 
   # The game as it is saved now, with a tracker caught up with it.
@@ -601,12 +715,23 @@ defmodule Alnasl.BoardServer do
   defp play(state, t, event) do
     state = advance(state, t)
     t = max(t, state.last_t)
-    {session, events} = Session.handle(state.session, t, event)
-    apply_events(%{state | session: session, last_t: t}, events, t)
+
+    if state.held? do
+      hold_back(state, event)
+    else
+      {session, events} = Session.handle(state.session, t, event)
+
+      if state.hold != nil and reconstructs?(events) do
+        hold_back(state, event)
+      else
+        apply_events(%{state | session: session, last_t: t}, events, t)
+      end
+    end
   end
 
   # Ticks the session at each of its own deadlines up to `t`.
   defp advance(%{session: nil} = state, _t), do: state
+  defp advance(%{held?: true} = state, _t), do: state
   defp advance(%{game: %{status: "finished"}} = state, _t), do: state
 
   defp advance(state, t) do
@@ -614,8 +739,13 @@ defmodule Alnasl.BoardServer do
       due when is_integer(due) and due <= t ->
         due = max(due, state.last_t)
         {session, events} = Session.handle(state.session, due, :tick)
-        state = apply_events(%{state | session: session, last_t: due}, events, due)
-        if Session.deadline(state.session) == due, do: state, else: advance(state, t)
+
+        if state.hold != nil and reconstructs?(events) do
+          hold_back(state, :tick)
+        else
+          state = apply_events(%{state | session: session, last_t: due}, events, due)
+          if Session.deadline(state.session) == due, do: state, else: advance(state, t)
+        end
 
       _none ->
         state
