@@ -401,8 +401,12 @@
         "postponed_boards": { "type": "integer", "minimum": 1 },
         "double_forfeit": { "const": true },
         "lineups_later": {
-          "description": "true when the arbiter holds line-ups back until the match starts and this match has no result yet: `boards` and `board_positions` are then empty and the match's pairings are absent from the round's `boards`. Absent otherwise (including a bye).",
+          "description": "true when this match's boards are held back: the arbiter holds line-ups back until the match starts and it has no result yet, or its line-ups are not confirmed (then `lineups_confirmed` is false too). `boards` and `board_positions` are then empty and the match's pairings are absent from the round's `boards`. Absent otherwise (including a bye).",
           "const": true
+        },
+        "lineups_confirmed": {
+          "description": "false when the two line-ups of this team match are not both confirmed yet, so its boards are held back (`lineups_later` is then true as well, for a reader that predates this key). Absent once they are, and on a bye.",
+          "const": false
         }
       }
     },
@@ -461,6 +465,7 @@
             "properties": {
               "rank": { "$ref": "#/definitions/nullableInteger" },
               "player": { "$ref": "#/definitions/no" },
+              "rank_label": { "description": "The place as the arbiter's screen shows it when a place is shared, such as \"2=\". Present only when it differs from the bare rank.", "type": "string" },
               "points": { "type": "number" },
               "tiebreaks": {
                 "description": "Positional against standings.tiebreaks.",
@@ -514,6 +519,7 @@
             "properties": {
               "rank": { "$ref": "#/definitions/nullableInteger" },
               "team": { "$ref": "#/definitions/no" },
+              "withdrawn": { "description": "Withdrew having played fewer than half its matches (FIDE General Regulations for Competitions 6.6): its results do not count and it is ranked last. Present, as true, on that row only.", "const": true },
               "mp": { "type": "number" },
               "gp": { "type": "number" },
               "tiebreaks": { "type": "array", "items": { "type": ["number", "null"] } },
