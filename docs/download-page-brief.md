@@ -173,7 +173,7 @@ Do not use any board maker's name or logo on the page.
   section, <https://github.com/teapot-chess/Alnasl#install>
 - The arbiter's guide to setting up electronic boards is a chapter of the
   OpenPairings manual, which is public (no login):
-  <https://pairings.zerotwo.cloud/help>, chapter "Setting up electronic
+  <https://pairings.cloud/help>, chapter "Setting up electronic
   boards" (`/help/setting-up-boards`; and `/help/live-boards` for what
   live boards are). Open the chapter's address once before linking to it:
   it appears with the OpenPairings deploy that follows this release.
