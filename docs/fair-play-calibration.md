@@ -102,9 +102,15 @@ mix fair_play.fit --holdout 0.2 --out priv/fair_play/model-sf19.json labels-*.js
   split in two by a hash of the event, a model fitted on each half, the
   correlations measured on the other half. Nothing is measured on the
   games it was fitted on.
-- The model file is format 2 and lists its features. A format-1 file is
-  refused (the report then says "not calibrated"), and so is a file whose
-  features are not the code's.
+- The model file is format 3 and lists its features. A format-1 or
+  format-2 file is refused (the report then says "not calibrated"), and
+  so is a file whose features are not the code's.
+- `--theta T` sets the likelihood-ratio weighting of the match tests
+  (plan §5; 0.3 unless told, 0 for the plain count), `--weights A,B,C`
+  the three tests' weights in the combined score (`2,1,1` for the shipped
+  model; `1,1,1` unless told). Neither is something to choose on a
+  held-out set: the benchmark below is where a different value earns its
+  place.
 
 ### Who scored high
 
@@ -210,13 +216,16 @@ the same thresholds (the false positives, same events), and the mean change
 in each z (MM, EV, ASD): which test noticed. Then, at 3.0, each profile at
 20% (and one whole game) by counted moves, games and rating.
 
-**Probes.** Beside the three shipped tests, the benchmark scores three
+**Probes.** Beside the three shipped tests, the benchmark scores nine
 more (`Alnasl.FairPlay.Probes`): error avoidance (fewer moves losing 0.5
 or more than `P(error)` predicts, a logistic model on the model's
 features), blunder avoidance (the same at 1.0), and hard ASD (the ASD
-residual weighted by `P(error)`). They are fitted on the training events,
+residual weighted by `P(error)`); then, since the third model, the plain
+match count (MM and EV with every move weighing one, the first two forms'
+tests) and the likelihood-ratio weighting at θ = 0.1 and 0.5 beside the
+model's own. They are fitted on the training events,
 their correlations with everything else cross-fitted like the model's,
-and they go into the variants below as weight vectors over the six. The
+and they go into the variants below as weight vectors over the twelve. The
 per-game scan is scored too, from a calibration measured the same way,
 so a model file without one can still be judged with it.
 

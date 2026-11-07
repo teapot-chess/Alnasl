@@ -86,13 +86,21 @@ defmodule Alnasl.FairPlay.ModelTest do
     # Every match is also an equal-top move here and nothing else is.
     for {a, b} <- Enum.zip(model.match, model.ev), do: assert_in_delta(a, b, 1.0e-9)
 
-    # The loss table: a 1600 player at near count 0 expects what such plies lost.
+    # The expected loss: a regression on the features, so over the plies
+    # of a cell it averages to what such plies lost, give or take the
+    # floor under it; and the variance of that cell is of the residuals.
     cell =
       Enum.filter(plies, &(Model.band(&1.rating) == 1600 and Model.kind(&1) == 0))
 
     mean = (cell |> Enum.map(&Stats.scaled_loss/1) |> Enum.sum()) / length(cell)
-    {got_mean, _var} = Model.loss_moments(model, %{rating: 1650, near_count: 0})
-    assert_in_delta got_mean, mean, 1.0e-12
+
+    predicted =
+      (cell |> Enum.map(&elem(Model.loss_moments(model, &1), 0)) |> Enum.sum()) / length(cell)
+
+    assert_in_delta predicted, mean, 0.02
+    {_, var} = Model.loss_moments(model, hd(cell))
+    assert var > 0
+    assert is_list(model.loss.mean) and length(model.loss.mean) == length(Model.feature_names())
 
     # The correlations the variance is built from: plies drawn from the
     # model itself are independent, so the move-level dispersion of MM is
@@ -124,6 +132,63 @@ defmodule Alnasl.FairPlay.ModelTest do
       |> Model.prepare()
 
     assert Enum.map(records, & &1.think) == [0.1, 0.0, nil, nil, nil, nil, nil]
+  end
+
+  test "the weight of a match: the log odds of a part-time engine user against the player" do
+    # A match the model gave a 20% chance counts for more than one it gave
+    # 80%, and a heavier cheater flattens the difference.
+    assert Model.weight(0.3, 0.2) > Model.weight(0.3, 0.8)
+    assert_in_delta Model.weight(0.3, 0.2), :math.log(1 + 0.3 / (0.7 * 0.2)), 1.0e-12
+
+    assert Model.weight(0.5, 0.2) / Model.weight(0.5, 0.8) <
+             Model.weight(0.1, 0.2) / Model.weight(0.1, 0.8)
+
+    # No weighting: every ply weighs one.
+    assert Model.weight(nil, 0.2) == 1.0 and Model.weight(0, 0.9) == 1.0
+    assert Model.weight(%Model{theta: nil}, 0.3) == 1.0
+    # A chance of nothing does not blow up.
+    assert Model.weight(0.3, 0.0) < 20
+  end
+
+  test "the features of the third form: the signed evaluation, the move number, the spread" do
+    named = fn record -> Enum.zip(Model.feature_names(), Model.features(record)) |> Map.new() end
+
+    base = %{
+      rating: 1800,
+      best: [
+        %{move: "a", cp: -120},
+        %{move: "b", cp: -200},
+        %{move: "c", cp: -230},
+        %{move: "d", cp: -400}
+      ],
+      near_count: 0,
+      material: 40,
+      ply: 41,
+      clock_before_ms: 1_800_000
+    }
+
+    f = named.(base)
+    assert f["eval"] == -1.2
+    assert f["abs_eval"] == 1.2
+    # Ply 41 is White's 21st move.
+    assert_in_delta f["move"], (21 - 30) / 20, 1.0e-12
+    assert f["move>40"] == 0.0
+    # Best to the fourth line: 280 cp, scaled by the evaluation.
+    assert_in_delta f["spread"], 2.8 / 2.2, 1.0e-12
+    assert f["few_lines"] == 0.0
+    assert f["clock"] == 0.5 and f["clock_known"] == 1.0
+
+    # A record from the boards says its move number; a late move bends.
+    f = named.(Map.merge(base, %{move_number: 60, best: [%{move: "a", cp: 50}]}))
+    assert_in_delta f["move"], 1.5, 1.0e-12
+    assert_in_delta f["move>40"], 1.0, 1.0e-12
+    assert f["spread"] == 5.0 and f["few_lines"] == 1.0
+
+    # No clock, no ply: zeros, and the middle of a game.
+    f = named.(Map.drop(base, [:ply, :clock_before_ms]))
+    assert f["clock"] == 0.0 and f["clock_known"] == 0.0 and f["move"] == 0.0
+    # A mate score is clipped like any other.
+    assert named.(%{base | best: [%{move: "a", cp: 9990}]})["eval"] == 3.0
   end
 
   test "the features beyond the position: how level, the opponent, the clock" do
@@ -213,7 +278,7 @@ defmodule Alnasl.FairPlay.ModelTest do
 
     assert again.scan == model.scan
 
-    # A format-2 file from before the scan reads as a model without one.
+    # A file without a scan reads as a model without one.
     {:ok, older} =
       model
       |> Model.to_json()
@@ -257,8 +322,13 @@ defmodule Alnasl.FairPlay.ModelTest do
     tmp_dir: dir
   } do
     json = Model.to_json(%Model{match: [], ev: []})
-    assert json["format"] == 2
+    assert json["format"] == 3
     assert json["features"] == Model.feature_names()
+    assert json["theta"] == Model.default_theta()
+
+    # A format-2 file (the plain count, the loss table) is refused too.
+    two = %{"format" => 2, "features" => ~w(intercept rating scaled_gap)}
+    assert Model.from_json(two) == {:error, {:outdated_format, 2}}
 
     # Phase 1's files: one rating line, independent moves.
     old = %{"format" => 1, "features" => ~w(intercept rating scaled_gap near_count material)}

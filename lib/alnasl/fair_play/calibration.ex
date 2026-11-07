@@ -53,7 +53,11 @@ defmodule Alnasl.FairPlay.Calibration do
   record N as the bench instead of running it (for a test engine that has
   none; a real run should let it be measured).
 
-  fit: `--holdout FRACTION` (0.2), `--out FILE`, `--engine-id sf19`, and
+  fit: `--holdout FRACTION` (0.2), `--out FILE`, `--engine-id sf19`,
+  `--theta T` (the likelihood-ratio weighting of the match tests,
+  `Alnasl.FairPlay.Model.weight/2`; 0 for the plain count), `--weights
+  A,B,C` (of MM, EV and ASD in the combined score; 1,1,1 unless the
+  benchmark said otherwise), and
   `--band-thresholds FRACTION` for the per-band variant
   (`Alnasl.FairPlay.BandScale`): that share of the *training* events is
   kept out of the fit and used only to set each band's threshold, and the
@@ -114,6 +118,8 @@ defmodule Alnasl.FairPlay.Calibration do
     bench: :integer,
     model: :string,
     threshold: :float,
+    theta: :float,
+    weights: :string,
     band_thresholds: :float
   ]
 
@@ -158,6 +164,7 @@ defmodule Alnasl.FairPlay.Calibration do
     Enum.flat_map(parsed, fn
       {:engine_arg, arg} -> [engine_args: arg]
       {:shard, text} -> [shard: text]
+      {:weights, text} -> [weights: weights(text)]
       other -> [other]
     end)
     |> then(fn opts ->
@@ -166,6 +173,17 @@ defmodule Alnasl.FairPlay.Calibration do
         args -> opts |> Keyword.delete(:engine_args) |> Keyword.put(:engine_args, args)
       end
     end)
+  end
+
+  # "2,1,1" as the three weights of the combined score.
+  defp weights(text) do
+    case text |> String.split(",", trim: true) |> Enum.map(&Float.parse(String.trim(&1))) do
+      [{a, ""}, {b, ""}, {c, ""}] ->
+        [a, b, c]
+
+      _ ->
+        raise ArgumentError, "--weights must be three numbers, like 2,1,1, not #{inspect(text)}"
+    end
   end
 
   defp describe(:usage),
@@ -667,6 +685,8 @@ defmodule Alnasl.FairPlay.Calibration do
           engine: meta["id"],
           bench: meta["bench"],
           nodes: meta["nodes"],
+          theta: Keyword.get(opts, :theta, Model.default_theta()),
+          weights: Keyword.get(opts, :weights, [1.0, 1.0, 1.0]),
           meta: %{
             "engine_name" => meta["name"],
             "games" => length(train),

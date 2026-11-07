@@ -97,6 +97,7 @@ defmodule Alnasl.FairPlay.Power do
     tune: :float,
     budget: :float,
     limit: :integer,
+    theta: :float,
     out: :string
   ]
 
@@ -108,8 +109,9 @@ defmodule Alnasl.FairPlay.Power do
   `--window CP` (40), `--seed N` (1), `--tune F` (the tuning share of the
   held-out events, 0.5), `--budget F` (the false-positive budget a
   threshold is set to on the tuning half, 0.01), `--limit N` (only N
-  held-out player-events, for a quick look), `--out FILE` (everything,
-  as json).
+  held-out player-events, for a quick look), `--theta T` (the
+  likelihood-ratio weighting of a model fitted here; the model's default
+  otherwise), `--out FILE` (everything, as json).
   """
   def main(argv \\ System.argv(), opts \\ [halt: true]) do
     {parsed, paths, invalid} = OptionParser.parse(argv, strict: @switches)
@@ -228,7 +230,8 @@ defmodule Alnasl.FairPlay.Power do
           Model.fit(Calibration.keyed_events(train),
             engine: meta["id"],
             bench: meta["bench"],
-            nodes: meta["nodes"]
+            nodes: meta["nodes"],
+            theta: Keyword.get(opts, :theta, Model.default_theta())
           )
 
         {:ok, model, "fitted here on the #{length(train)} training games"}
@@ -443,14 +446,22 @@ defmodule Alnasl.FairPlay.Power do
 
   # The probes (`Alnasl.FairPlay.Probes`), in its order: MM, EV, ASD,
   # error avoidance, blunder avoidance, hard ASD.
+  # Then plain MM and EV (no weighting), and the weighting at θ = 0.1
+  # and 0.5 (`Alnasl.FairPlay.Probes`).
   @probed [
-    {"+error", [1.0, 1.0, 1.0, 1.0, 0.0, 0.0]},
-    {"+blunder", [1.0, 1.0, 1.0, 0.0, 1.0, 0.0]},
-    {"+hard ASD", [1.0, 1.0, 1.0, 0.0, 0.0, 1.0]},
-    {"hard ASD for ASD", [1.0, 1.0, 0.0, 0.0, 0.0, 1.0]},
-    {"+error+hard ASD", [1.0, 1.0, 1.0, 1.0, 0.0, 1.0]},
-    {"error only", [0.0, 0.0, 0.0, 1.0, 0.0, 0.0]},
-    {"hard ASD only", [0.0, 0.0, 0.0, 0.0, 0.0, 1.0]}
+    {"+error", [1.0, 1.0, 1.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]},
+    {"+blunder", [1.0, 1.0, 1.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]},
+    {"+hard ASD", [1.0, 1.0, 1.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]},
+    {"hard ASD for ASD", [1.0, 1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]},
+    {"+error+hard ASD", [1.0, 1.0, 1.0, 1.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]},
+    {"error only", [0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]},
+    {"hard ASD only", [0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]},
+    {"plain MM,EV", [0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0, 1.0, 0.0, 0.0, 0.0, 0.0]},
+    {"LR theta 0.1", [0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 1.0, 0.0, 0.0]},
+    {"LR theta 0.5", [0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 1.0]},
+    {"model + plain", [1.0, 1.0, 1.0, 0.0, 0.0, 0.0, 1.0, 1.0, 0.0, 0.0, 0.0, 0.0]},
+    {"MM,EV only", [1.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]},
+    {"ASD-heavy LR", [1.0, 1.0, 2.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]}
   ]
 
   # The scan is added to the event score as `max(score, scan − offset)`:
@@ -591,11 +602,14 @@ defmodule Alnasl.FairPlay.Power do
 
   @doc """
   The scenarios the variants are judged on: the ones a cheater who wants
-  to keep playing would use - selective and camouflaged up to 30%, and a
-  single whole game. A naive 50% engine user is caught by everything and
-  says nothing about the difference between two scores.
+  to keep playing would use - naive, selective and camouflaged up to 30%,
+  and a single whole game. A naive 50% engine user is caught by
+  everything and says nothing about the difference between two scores.
+  (Naive up to 30% joined the pool with the third model: it was the
+  profile the score was weakest on, and leaving it out of the judging
+  would have been a way of not noticing.)
   """
-  def realistic?({kind, rate}) when kind in [:selective, :camouflaged],
+  def realistic?({kind, rate}) when kind in [:naive, :selective, :camouflaged],
     do: rate <= @realistic_max_rate
 
   def realistic?({:whole_games, k}), do: k == 1
@@ -865,7 +879,8 @@ defmodule Alnasl.FairPlay.Power do
       "",
       "detection (share of cheating player-events at or over; 95% exact) and the mean change in each z:",
       pad.("scenario", 18) <>
-        pad.("events", 8) <> header <> "dMM   dEV   dASD  dERR  dBLN  dHASD dSCAN",
+        pad.("events", 8) <>
+        header <> "dMM   dEV   dASD  dERR  dBLN  dHASD dMM0  dEV0  dMM.1 dEV.1 dMM.5 dEV.5 dSCAN",
       pad.("honest (FP)", 18) <>
         pad.("#{s.events}", 8) <>
         Enum.map_join(s.false_positives, "", fn r ->
