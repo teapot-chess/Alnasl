@@ -1,5 +1,5 @@
 [
-  {"repo": "openpairings", "from": "openpairings-internal", "name": "alnasl-link-v1"},
-  {"repo": "Arkab", "from": "Arkab-internal", "name": "bridge-protocol-v1"},
-  {"repo": "openpairings", "from": "openpairings-internal", "name": "publish-v1"}
+  {"repo": "openpairings", "name": "alnasl-link-v1"},
+  {"repo": "Arkab", "name": "bridge-protocol-v1"},
+  {"repo": "openpairings", "name": "publish-v1"}
 ]

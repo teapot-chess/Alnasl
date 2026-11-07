@@ -10,7 +10,7 @@ defmodule Mix.Tasks.Contracts.Sync do
   fetched from
   `https://raw.githubusercontent.com/teapot-chess/<repo>/main/priv/contracts/<name>/`,
   then every file it lists (`<repo>` is the entry's `"from"` when it has
-  one: a private twin, read with the token in `CONTRACTS_TOKEN`), and the
+  one: a private provider, read with the token in `CONTRACTS_TOKEN`), and the
   vendored directory
   `priv/contracts/vendor/<repo, lowercase>/<name>/` becomes exactly that:
   files the index no longer lists are deleted. Bytes are kept as they come;
@@ -21,7 +21,7 @@ defmodule Mix.Tasks.Contracts.Sync do
 
   The vendored directory and the schemas' `$id` keep the `repo` name even
   when the bytes come from `"from"`, so moving a provider into a private
-  twin changes where the copy is fetched, not what it is called.
+  repository changes where the copy is fetched, not what it is called.
   """
 
   use Mix.Task
@@ -86,7 +86,7 @@ defmodule Mix.Tasks.Contracts.Sync do
     end
   end
 
-  # A public provider needs nothing. A private twin needs a token that can
+  # A public provider needs nothing. A private one needs a token that can
   # read it, and saying so beats GitHub's 404, which is how it says "private".
   defp headers(%{"from" => from}) do
     case System.get_env("CONTRACTS_TOKEN") do

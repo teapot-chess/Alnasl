@@ -1,5 +1,9 @@
 Alnasl
-Copyright (c) 2026 teapot-chess. All rights reserved; see LICENSE.
+Copyright 2026 Jorian Burssens.
+
+Alnasl is licensed under the Functional Source License, Version 1.1, Apache 2.0
+Future License (FSL-1.1-ALv2); see LICENSE. Each version becomes available
+under the Apache License, Version 2.0 two years after its release.
 
 It includes the following, which keep their own notices:
 
@@ -9,10 +13,10 @@ It includes the following, which keep their own notices:
    lib/alnasl/pgn_reader.ex       from OpenResults, lib/openresults/live_boards/pgn_reader.ex
    test/alnasl/chess_test.exs     from OpenResults, test/openresults/chess_test.exs
 
-   Copyright (c) 2026 teapot-chess, the same owner as Alnasl. Changes: the module names;
+   Copyright (c) 2026 teapot-chess, the same owner as Alnasl (OpenResults remains
+   proprietary and is not part of this repository). Changes: the module names;
    in chess.ex, `pseudo_legal_moves/1`, `moves_from/2` and `legal?/2` were
-   made public for the tracker's recovery search. OpenResults is
-   likewise all rights reserved.
+   made public for the tracker's recovery search.
 
 2. The "cburnett" chess pieces
 

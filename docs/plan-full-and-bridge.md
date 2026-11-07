@@ -3,7 +3,7 @@
 > **Revised 2026-10-16, after the maintainer's decision.** There is no
 > "bridge mode" switch in Alnasl. Instead:
 >
-> - **Arkab** (own repository, teapot-chess/Arkab, all rights reserved) is the small
+> - **Arkab** (own repository, teapot-chess/Arkab, FSL-1.1-ALv2) is the small
 >   program: the board drivers, the serial transport, the bus/loop discovery,
 >   the capture recorder, the store-and-forward queue, the outgoing link to
 >   one or more Alnasls, and one small status/join page. No tracker, no
@@ -202,7 +202,7 @@ Each step ships on its own and leaves the box working.
    its two run modes; bridge mode runs that repository's code, which
    Alnasl takes as a dependency, and the protocol is defined there too, so
    any full Alnasl and any bridge agree on it.
-4. **The bridge repository is Arkab** (teapot-chess/Arkab), with the same licence as Alnasl (Apache-2.0 when this was written, all rights reserved since 2026-11-01).
+4. **The bridge repository is Arkab** (teapot-chess/Arkab), with the same licence as Alnasl (Apache-2.0 when this was written, FSL-1.1-ALv2 now).
 
 ## Keep it simple (maintainer, 2026-10-16: "not 20 key add places")
 

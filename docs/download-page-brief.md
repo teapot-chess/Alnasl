@@ -156,10 +156,12 @@ distrusts. Do not tell people to switch off their antivirus.
 
 ## Licence
 
-All rights reserved, copyright 2026 teapot-chess; the source is private. The
-program itself is free of charge. Do not call it open source or print a
-licence name on the page. Releases published before 2026-11-01 keep the
-Apache 2.0 licence they were published under.
+Copyright 2026 Jorian Burssens; the source is available under the Functional
+Source License (FSL-1.1-ALv2), free for any use except offering a competing
+product or service, and each release turns into Apache-2.0 two years after it
+is published. The program itself is free of charge. Do not call it open
+source (source available is the accurate term); name the licence and link
+LICENSE.
 
 Do not use any board maker's name or logo on the page.
 
