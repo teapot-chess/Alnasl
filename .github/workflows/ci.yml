@@ -274,6 +274,7 @@ jobs:
     runs-on: ubuntu-24.04
     env:
       MIX_ENV: test
+      CONTRACTS_TOKEN: ${{ secrets.SIBLINGS_TOKEN }}
 
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -297,4 +298,9 @@ jobs:
       # files, if it is not byte for byte the vendored copy. The fix is
       # `mix contracts.sync`, the tests, and whatever they then say.
       - name: Compare the vendored contracts with the providers'
+        if: env.CONTRACTS_TOKEN != ''
         run: mix contracts.check
+
+      - name: Skipped, no SIBLINGS_TOKEN
+        if: env.CONTRACTS_TOKEN == ''
+        run: echo "::notice::SIBLINGS_TOKEN is not available to this run (a fork pull request, for one), and the openpairings contracts live in a private repository, so the comparison is skipped."
