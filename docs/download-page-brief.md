@@ -156,12 +156,10 @@ distrusts. Do not tell people to switch off their antivirus.
 
 ## Licence
 
-Copyright 2026 Jorian Burssens; the source is available under the Functional
-Source License (FSL-1.1-ALv2), free for any use except offering a competing
-product or service, and each release turns into Apache-2.0 two years after it
-is published. The program itself is free of charge. Do not call it open
-source (source available is the accurate term); name the licence and link
-LICENSE.
+Copyright 2026 Jorian Burssens; the source is published for reference under
+the Microsoft Reference Source License (Ms-RSL), and the builds we publish are
+free of charge to use for running chess events. Do not call it open source
+(reference source is the accurate term); name the licence and link LICENSE.
 
 Do not use any board maker's name or logo on the page.
 
@@ -173,7 +171,7 @@ Do not use any board maker's name or logo on the page.
   section, <https://github.com/teapot-chess/Alnasl#install>
 - The arbiter's guide to setting up electronic boards is a chapter of the
   OpenPairings manual, which is public (no login):
-  <https://pairings.zerotwo.cloud/help>, chapter "Setting up electronic
+  <https://pairings.cloud/help>, chapter "Setting up electronic
   boards" (`/help/setting-up-boards`; and `/help/live-boards` for what
   live boards are). Open the chapter's address once before linking to it:
   it appears with the OpenPairings deploy that follows this release.
