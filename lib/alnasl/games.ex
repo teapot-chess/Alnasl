@@ -601,6 +601,33 @@ defmodule Alnasl.Games do
     end
   end
 
+  @doc """
+  The board's own memory agrees with the first `upto` plies: those of them
+  marked `:guessed` (and `:alone`, which only qualifies a guess) lose the
+  mark and are marked `:memory` instead. Returns `{game, count}`, `count`
+  being the moves that were guessed and are not any more; the game is
+  saved only when there are some.
+  """
+  def confirm_guessed(%Game{} = game, upto) do
+    stored = Jason.decode!(game.plies)
+
+    {plies, count} =
+      stored
+      |> Enum.with_index()
+      |> Enum.map_reduce(0, fn {ply, i}, count ->
+        flags = ply["flags"] || []
+
+        if i < upto and "guessed" in flags do
+          kept = flags -- ["guessed", "alone"]
+          {Map.put(ply, "flags", Enum.uniq(kept ++ ["memory"])), count + 1}
+        else
+          {ply, count}
+        end
+      end)
+
+    if count == 0, do: {game, 0}, else: {save(game, %{plies: plies}), count}
+  end
+
   defp encode(plies, now) do
     Enum.map(plies, fn ply ->
       %{
