@@ -52,6 +52,7 @@ Traversal.FileModule: Directory Traversal in `File.mkdir_p!`,lib/alnasl/games.ex
 Traversal.FileModule: Directory Traversal in `File.mkdir_p!`,lib/alnasl/games.ex:799,48E1821
 Traversal.FileModule: Directory Traversal in `File.mkdir_p!`,lib/alnasl/games.ex:800,72E134F
 Traversal.FileModule: Directory Traversal in `File.mkdir_p!`,lib/alnasl/games.ex:838,5350E5D
+Traversal.FileModule: Directory Traversal in `File.mkdir_p!`,lib/alnasl/games.ex:865,5CF6D62
 Traversal.FileModule: Directory Traversal in `File.mkdir_p!`,lib/alnasl/hall_replays.ex:86,6003025
 Traversal.FileModule: Directory Traversal in `File.mkdir_p!`,lib/alnasl/ops/offsite_backup.ex:219,42ACFE6
 Traversal.FileModule: Directory Traversal in `File.mkdir_p!`,lib/alnasl/paths.ex:14,566248B
@@ -187,6 +188,7 @@ Traversal.FileModule: Directory Traversal in `File.write`,lib/alnasl/games.ex:81
 Traversal.FileModule: Directory Traversal in `File.write`,lib/alnasl/games.ex:813,4ECD175
 Traversal.FileModule: Directory Traversal in `File.write`,lib/alnasl/games.ex:814,3939623
 Traversal.FileModule: Directory Traversal in `File.write`,lib/alnasl/games.ex:852,514D5A5
+Traversal.FileModule: Directory Traversal in `File.write`,lib/alnasl/games.ex:879,36A0659
 Traversal.FileModule: Directory Traversal in `File.write`,lib/alnasl/hall_replays.ex:151,6FE94C7
 Traversal.FileModule: Directory Traversal in `File.write`,lib/alnasl/launcher_details.ex:210,7E9C8BD
 Traversal.FileModule: Directory Traversal in `File.write`,lib/alnasl/launcher_details.ex:212,7E7CB8E
