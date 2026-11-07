@@ -14,4 +14,4 @@ salmon, and table headers get a yellow band and striped rows.
 - Tiles, boards, clocks and the move list get outlines and never move. The
   rest switches its animations off when the computer asks for reduced motion.
 
-Licence: all rights reserved for `theme.css` and `theme.json`; OFL 1.1 for the fonts.
+Licence: FSL-1.1-ALv2 for `theme.css` and `theme.json`; OFL 1.1 for the fonts.

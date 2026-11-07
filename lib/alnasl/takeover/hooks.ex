@@ -23,8 +23,9 @@ defmodule Alnasl.Takeover.Hooks do
   require Logger
 
   @doc """
-  `summary`: `%{epoch, games, tournaments, boards}` - `boards` the serials
-  of the boards whose table and game were restored.
+  `summary`: `%{epoch, games, tournaments, boards, from_replica}` - `boards`
+  the serials of the boards whose table and game were restored,
+  `from_replica` how many games the Litestream replica was further on for.
   """
   def after_takeover(summary) do
     Alnasl.Takeover.notify({:took_over, summary})

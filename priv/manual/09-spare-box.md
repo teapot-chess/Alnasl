@@ -42,6 +42,10 @@ A spare takes over by itself when the active box has been silent too long. If th
 
 What the spare does not get from the cloud: the keys to the results site, Lichess and the pairing program. Those stay on the box they were given to. Connect the spare to the pairing program once, before the tournament, so that results go on arriving after a takeover.
 
+### A second copy {#replica}
+
+The cloud gets every move within seconds while the internet is up, and none while it is down: a box that dies offline takes the moves it had not sent with it. A box can also keep a second copy of its whole database, about once a second, in a store of your own: an S3 bucket, or MinIO on a server in the hall or at home. A spare that takes over reads that copy too and adds what the cloud was missing. On the Pi image this is the file `alnasl-replica.txt` on the SD card (an example is there); give every box of the hall, the spare too, the same file. Without it, a takeover works exactly as above.
+
 ## Another box took over {#superseded}
 
 A box that finds another box running its hall stops: it reads no boards, sends no results, and says **Another box took over**. That holds even when it comes back after a long time without a line, with moves it never sent: the hall has moved on without it, and two boxes writing one hall is worse than one box missing some moves.

@@ -36,7 +36,7 @@ defmodule Alnasl.Takeover.Link do
   require Logger
 
   alias Alnasl.{Boards, Destination, Log, Settings, Takeover, Updates}
-  alias Alnasl.Takeover.{Client, Hooks, Restore, Snapshot, Stream}
+  alias Alnasl.Takeover.{Client, Hooks, Replica, Restore, Snapshot, Stream}
 
   @tick_ms 5_000
   @slow_tick_ms 30_000
@@ -383,8 +383,15 @@ defmodule Alnasl.Takeover.Link do
 
     case pull(config, key, epoch, nil, nil, []) do
       {:ok, state, events} ->
-        case Restore.apply(state, events) do
+        # The replica, when there is one, tops the cloud's copy up with the
+        # seconds the cloud had not been sent yet (docs/takeover.md).
+        replica = if Replica.config(), do: Replica.fetch(Replica.source_uid(state, events))
+
+        case Restore.apply(state, events, replica) do
           {:ok, summary} ->
+            if summary.from_replica > 0,
+              do: Log.add(:info, "takeover.replica_used", %{games: summary.from_replica})
+
             Takeover.put_config(
               Map.merge(config, %{
                 "role" => "active",

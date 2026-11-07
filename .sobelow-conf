@@ -15,11 +15,17 @@
 #     operator's own paths by `mix ops.age`.)
 #     (`Alnasl.AccessPin` and `Alnasl.PinRequest` touch two fixed names in the data
 #     dir; the request file's contents are a PIN, never a path.)
+#     (`Alnasl.Takeover.Replica` writes `<data dir>/litestream.yml` and works in
+#     `<data dir>/replica-restore` on names it makes itself; the box uid that
+#     goes into the replica URL is regex-checked and never becomes a path here.)
 #   * XSS.* - bodies are fixed SVG/PDF/ndjson/escaped-HTML builders, release notes through Alnasl.Markdown (allowlisted tags) or the app's own
 #     bundled manual; content types are literals.
 #   * DOS.StringToAtom - atoms come from the app's own literals, bundled data or a
 #     regex-bounded letter set, never from a request.
 #   * CI.System - fixed commands with an argument list (no shell string).
+#     (`Alnasl.Takeover.Replica.Litestream` runs the operator's ALNASL_LITESTREAM,
+#     accepted only as an absolute path to an existing file named litestream,
+#     else `litestream` from the PATH; fixed subcommand and flags, no shell.)
 #   * Config.CSWH - the socket origin is checked in config.
 #   * Config.CSP - no script-src policy is set; Phoenix's default
 #     put_secure_browser_headers is on the browser pipeline. Reported, not fixed:

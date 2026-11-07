@@ -99,9 +99,11 @@ defmodule Alnasl.Application do
   # A box paired with a hall in the cloud streams it there, or stands by as
   # its spare (`Alnasl.Takeover.Link`). Not in the tests, which step it by
   # hand.
+  # Beside it, Litestream while the box is active and has a replica
+  # (`Alnasl.Takeover.Replicator`); it starts nothing otherwise.
   defp takeover_link do
     if Application.get_env(:alnasl, :takeover_link, true),
-      do: [Alnasl.Takeover.Link],
+      do: [Alnasl.Takeover.Link, Alnasl.Takeover.Replicator],
       else: []
   end
 
