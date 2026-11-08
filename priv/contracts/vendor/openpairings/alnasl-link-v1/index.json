@@ -1,13 +1,23 @@
 {
   "contract": "alnasl-link",
   "version": 1,
+  "revision": 2,
   "files": [
     "box-request.schema.json",
     "box-response.schema.json",
+    "command-answer-request.schema.json",
+    "command-answer-response.schema.json",
+    "commands-response.schema.json",
     "common.schema.json",
     "error.schema.json",
     "examples/box-request.json",
     "examples/box-response.json",
+    "examples/command-answer-request.failed.json",
+    "examples/command-answer-request.json",
+    "examples/command-answer-response.failed.json",
+    "examples/command-answer-response.json",
+    "examples/commands-response.json",
+    "examples/error.command-not-found.json",
     "examples/error.invalid-grant.json",
     "examples/error.json",
     "examples/error.pairing-changed.json",
@@ -20,7 +30,10 @@
     "examples/grant-request.json",
     "examples/grant-response.json",
     "examples/link-response.account.json",
+    "examples/link-response.commands.json",
     "examples/link-response.json",
+    "examples/tables-request.json",
+    "examples/tables-response.json",
     "examples/tournament-response.json",
     "examples/tournament-response.published.json",
     "games-request.schema.json",
@@ -28,6 +41,8 @@
     "grant-request.schema.json",
     "grant-response.schema.json",
     "link-response.schema.json",
+    "tables-request.schema.json",
+    "tables-response.schema.json",
     "tournament-response.schema.json"
   ]
 }

@@ -1,0 +1,28 @@
+{
+  "commands": [
+    {
+      "args": {
+        "flipped": true
+      },
+      "board": 12,
+      "created_at": "2026-11-08T00:46:07Z",
+      "expires_at": "2026-11-08T00:48:07Z",
+      "game": "00a722bb88fcf0a2e72c8c331952c630",
+      "id": 1,
+      "kind": "flip",
+      "tournament": 1
+    },
+    {
+      "args": {
+        "plies": 1
+      },
+      "board": 12,
+      "created_at": "2026-11-08T00:46:07Z",
+      "expires_at": "2026-11-08T00:48:07Z",
+      "game": "00a722bb88fcf0a2e72c8c331952c630",
+      "id": 2,
+      "kind": "takeback",
+      "tournament": 1
+    }
+  ]
+}

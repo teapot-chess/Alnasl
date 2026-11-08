@@ -100,6 +100,16 @@
           }
         }
       }
+    },
+    "revision": {
+      "type": "integer",
+      "minimum": 1,
+      "description": "Additions to API 1 this server speaks: 2 = tables, commands. Absent on an older server."
+    },
+    "commands": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "Revision 2: how many commands wait for this code (GET /commands). The ETag covers it."
     }
   }
 }

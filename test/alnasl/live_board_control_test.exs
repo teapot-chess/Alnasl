@@ -283,6 +283,7 @@ defmodule Alnasl.LiveBoardControlTest do
       :ok = TablesReporter.report_now()
 
       assert [table] = FakeOpenPairings.tables(17)
+      Alnasl.Contract.assert_valid!(:link, "tables-request", %{"tables" => [table]})
 
       assert %{
                "board" => id,

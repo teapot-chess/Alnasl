@@ -539,7 +539,11 @@ defmodule Alnasl.FakeOpenPairings do
          {:ok, t} <- reach(target, id) do
       case body do
         %{"tables" => tables} when is_list(tables) and length(tables) <= 256 ->
-          case Enum.find_value(tables, &bad_table/1) do
+          case tables
+               |> Enum.with_index()
+               |> Enum.find_value(fn {table, i} ->
+                 if field = bad_table(table), do: "tables[#{i}]: #{field}"
+               end) do
             nil ->
               Agent.update(__MODULE__, &put_in(&1.tables[t.id], tables))
               {200, [], %{"status" => "ok", "stored" => length(tables)}}
