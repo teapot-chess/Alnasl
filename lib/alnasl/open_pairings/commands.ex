@@ -129,7 +129,7 @@ defmodule Alnasl.OpenPairings.Commands do
     {status, error, detail} =
       case result do
         :ok -> {"done", nil, nil}
-        {:error, code, detail} -> {"failed", code, detail && String.slice(detail, 0, 200)}
+        {:error, code, detail} -> {"failed", code, String.slice(detail, 0, 200)}
       end
 
     kind = command["kind"]

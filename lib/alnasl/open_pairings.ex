@@ -39,6 +39,12 @@ defmodule Alnasl.OpenPairings do
   alias Alnasl.OpenPairings.{Client, Code, Duplicates, Sync}
   alias Alnasl.Tournaments.{Link, Tournament}
 
+  @doc """
+  The processes of the link: the poller (which also carries out the
+  arbiter's commands) and the tables reporter (board link revision 2).
+  """
+  def children, do: [Alnasl.OpenPairings.Poller, Alnasl.OpenPairings.TablesReporter]
+
   # --- codes -------------------------------------------------------------------
 
   @doc """
