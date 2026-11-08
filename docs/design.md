@@ -1377,6 +1377,35 @@ refresh is not sent: the contract asks for reports on a move, a state
 change or a clock correction, and the pairing program shows no running
 clock.
 
+**Live board control (revision 2).** An OpenPairings that says
+`"revision": 2` in `GET /link` is sent the box's tables and may hand it
+commands; one that does not is sent neither, and nothing else changes.
+`Alnasl.OpenPairings.TablesReporter` posts, per linked tournament, the whole
+list of its boards (`POST /tournaments/:id/tables`): the snapshot of each
+board mapped to the contract's fields - the tile's word as `state`
+(`recovered` split into `guessed` when the last ply is a guess), the
+alarms from the tracker's detail, the clock alarm, the set-up check, the
+unseen pieces and the pairing flag, the pending memory draft, the guessed
+plies, the FEN, the last move as squares. On change, coalesced to one
+request every two seconds per tournament, and every thirty seconds
+regardless (the heartbeat that says the box is alive); a clock that only
+ran down is not a change. It asks the board processes and the network in a
+task, one at a time, and sleeps when no link speaks revision 2.
+
+The listing also says how many commands wait (`commands`, kept on the link
+so a `304` keeps it). When it is not zero the poller fetches them (`GET
+/commands`) and `Alnasl.OpenPairings.Commands` carries each out against
+`Alnasl.Boards`, as the same button on the board's page would: the
+command's tournament must be one of the link's, the board must play in it
+(`other_tournament`), and a named game must still be the board's
+(`wrong_game`). The outcome is written to `remote_commands` by link and
+command id *before* `POST /commands/:id` answers; a command handed out
+again (the box fell over, the answer was lost) is answered again from that
+row and not carried out twice. Every one is logged, `command.done` or
+`command.failed`, "arbiter via OpenPairings". `finish` closes the game on
+the box; the tournament's result stays the arbiter's, entered in
+OpenPairings - a board never enters one, through this door either.
+
 **One tournament, one row, however many codes.** Two codes can reach one
 tournament: a group's and the tournament's own, a desktop copy's code for
 this computer and the one for the hall's network. Two rows meant two
@@ -1449,6 +1478,7 @@ Alnasl.Supervisor
 ├─ LichessBroadcast.Sender     the same process, for Lichess
 ├─ OpenPairings.Sender         the same process, for the pairing program
 ├─ OpenPairings.Poller         asks each connect code what it reaches, at its pace
+├─ OpenPairings.TablesReporter  tells revision-2 pairing programs what the boards show
 └─ Endpoint                    the management site
 ```
 

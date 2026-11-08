@@ -35,6 +35,11 @@ defmodule Alnasl.Tournaments.Link do
     field :error, :string
     field :last_ok_at, :utc_datetime
     field :last_try_at, :utc_datetime
+    # Board link revision 2 (live board control): the revision the pairing
+    # program speaks (`nil`: an older one, which gets no tables and has no
+    # commands), and how many commands wait for this code.
+    field :revision, :integer
+    field :commands, :integer, default: 0
     # The hall whose arbiter added it; its tournaments are that hall's.
     field :hall_id, :integer
     timestamps(type: :utc_datetime)

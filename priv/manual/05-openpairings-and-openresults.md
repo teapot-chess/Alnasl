@@ -49,6 +49,30 @@ The line under the bar, the Boards page, the Live page and "Ready for round N?" 
 
 Per game: the moves, the clocks, the PGN, and the result the board saw, with how many moves Alnasl reconstructed or guessed. It is shown beside the pairing there, in red when it differs from the result the arbiter entered. A board never enters a result.
 
+
+### Steering the boards from OpenPairings and Manubrium {#live-board-control}
+
+With an OpenPairings that knows live board control, Alnasl also tells it what every board of the tournament shows: the position, the last move, the clocks, whether it answers, and anything the arbiter should look at (out of sync, a move out of turn or illegal, the clock, a wrong set-up, pieces not seen, a pairing that changed, guessed moves, a draft from the board's memory). It sends that when something changes, at most every two seconds, and every thirty seconds anyway, so the arbiter sees the box is alive. The owner and editors of the tournament see it in OpenPairings and in Manubrium, the phone app, and can act on a board from there:
+
+| On the phone | What Alnasl does on the box |
+| --- | --- |
+| Keep the guessed moves | As "Keep it as it stands" on the game page: the moves stay, now as the arbiter's |
+| Take the guessed moves back | Takes them back, only when they are the last moves of the game |
+| Use / set aside the board's memory | As the two buttons under a draft on the game page |
+| Set the position | Starts the game from that position |
+| Take moves back | Takes back one to twenty moves |
+| Turn the board round | Reads the board the other way up, and remembers it |
+| Link / unlink | Puts the board on a board of a round of that tournament, or takes it off |
+| Restart | Starts the board's driver again (a board with a memory is asked for it again) |
+| Look again | As "Resync from here" on the game page: the board is held up against the game afresh |
+| Finish the game | Closes the game on the box with that result |
+
+Alnasl checks each request first: the board must play in that tournament on this box, and must still feed the game the arbiter saw; otherwise nothing happens and the phone says why. Each request is carried out once, even if it arrives twice, and every one is in the log as "Arbiter via OpenPairings". The box asks for them itself, as it asks for everything: nothing connects to the box.
+
+A board never enters a result, not even this way. "Finish the game" ends the game on the box only; what the board saw goes to OpenPairings like any other report, and the tournament's result is the arbiter's, entered in OpenPairings (where one tap takes the board's result, if it is right).
+
+An older OpenPairings simply gets none of this, and everything else works as before.
+
 ### Two codes for one tournament {#two-codes}
 
 Two codes that reach one tournament, a group's and the tournament's own, or a desktop copy's code for this computer and for the hall's network, make one tournament in Alnasl, not two. The second code says "This code reaches ..., which Alnasl already has through ...". When the old code was withdrawn and a new one made, press "Use this code" under the new one: the tournament keeps its boards and games, and the old code goes when it reaches nothing else. When the new code is another hall's and the tournament is not played there yet, the same place offers "Also play it in this hall": still one tournament, now in both halls (see [Tournaments and halls](06-accounts-and-halls.md#placements)).

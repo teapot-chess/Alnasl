@@ -392,7 +392,7 @@ msgstr ""
 #: lib/alnasl_web/live/wizard_components.ex:506
 #: lib/alnasl_web/live/wizard_components.ex:512
 #: lib/alnasl_web/tour.ex:168
-#: lib/alnasl_web/words.ex:1430
+#: lib/alnasl_web/words.ex:1462
 #, elixir-autogen, elixir-format
 msgid "Boards"
 msgstr ""
@@ -511,7 +511,7 @@ msgstr ""
 msgid "Connected and known boards"
 msgstr ""
 
-#: lib/alnasl_web/words.ex:1435
+#: lib/alnasl_web/words.ex:1467
 #, elixir-autogen, elixir-format
 msgid "Connection"
 msgstr ""
@@ -583,7 +583,7 @@ msgid "Every move is written down by Alnasl before it is sent, and stays here un
 msgstr ""
 
 #: lib/alnasl_web/live/log_live.ex:159
-#: lib/alnasl_web/words.ex:1429
+#: lib/alnasl_web/words.ex:1461
 #, elixir-autogen, elixir-format
 msgid "Everything"
 msgstr ""
@@ -813,7 +813,7 @@ msgstr ""
 #: lib/alnasl_web/live/pgn_live.ex:426
 #: lib/alnasl_web/live/pgn_live.ex:442
 #: lib/alnasl_web/live/pgn_live.ex:540
-#: lib/alnasl_web/words.ex:1431
+#: lib/alnasl_web/words.ex:1463
 #, elixir-autogen, elixir-format
 msgid "Moves"
 msgstr ""
@@ -1194,7 +1194,7 @@ msgstr ""
 msgid "Repair"
 msgstr ""
 
-#: lib/alnasl_web/words.ex:1434
+#: lib/alnasl_web/words.ex:1466
 #, elixir-autogen, elixir-format
 msgid "Repairs"
 msgstr ""
@@ -1251,7 +1251,7 @@ msgstr ""
 #: lib/alnasl_web/live/outbox_live.ex:20
 #: lib/alnasl_web/live/outbox_live.ex:282
 #: lib/alnasl_web/tour.ex:233
-#: lib/alnasl_web/words.ex:1433
+#: lib/alnasl_web/words.ex:1465
 #, elixir-autogen, elixir-format
 msgid "Results"
 msgstr ""
@@ -2468,7 +2468,7 @@ msgstr ""
 msgid "Clock wrong way"
 msgstr ""
 
-#: lib/alnasl_web/words.ex:1432
+#: lib/alnasl_web/words.ex:1464
 #, elixir-autogen, elixir-format
 msgid "Clocks"
 msgstr ""
@@ -2975,7 +2975,7 @@ msgstr ""
 msgid "Optional. Alnasl pushes each game of one round to a Lichess broadcast round as it changes - besides the results site, and without waiting for it. On Lichess, make the broadcast and its round first; leave the round's source empty."
 msgstr ""
 
-#: lib/alnasl_web/words.ex:1436
+#: lib/alnasl_web/words.ex:1468
 #, elixir-autogen, elixir-format
 msgid "Other destinations"
 msgstr ""
@@ -3126,7 +3126,7 @@ msgid "Table number of %{name}"
 msgstr ""
 
 #: lib/alnasl_web/tour.ex:185
-#: lib/alnasl_web/words.ex:1437
+#: lib/alnasl_web/words.ex:1469
 #, elixir-autogen, elixir-format
 msgid "Table numbers"
 msgstr ""
@@ -3263,7 +3263,7 @@ msgstr ""
 msgid "Which round of the tournament it is"
 msgstr ""
 
-#: lib/alnasl_web/words.ex:1418
+#: lib/alnasl_web/words.ex:1450
 #, elixir-autogen, elixir-format
 msgid "a destination"
 msgstr ""
@@ -3310,7 +3310,7 @@ msgstr ""
 msgid "table %{t} plays board %{b}"
 msgstr ""
 
-#: lib/alnasl_web/words.ex:1414
+#: lib/alnasl_web/words.ex:1446
 #, elixir-autogen, elixir-format
 msgid "the results site"
 msgstr ""
@@ -4316,12 +4316,12 @@ msgstr ""
 msgid "Pairing changed in OpenPairings"
 msgstr ""
 
-#: lib/alnasl_web/words.ex:1438
+#: lib/alnasl_web/words.ex:1470
 #, elixir-autogen, elixir-format
 msgid "Pairing program"
 msgstr ""
 
-#: lib/alnasl_web/words.ex:1440
+#: lib/alnasl_web/words.ex:1472
 #, elixir-autogen, elixir-format
 msgid "Pairings"
 msgstr ""
@@ -4617,7 +4617,7 @@ msgstr ""
 #: lib/alnasl_web/live/setup_live.ex:1749
 #: lib/alnasl_web/live/wizard_components.ex:514
 #: lib/alnasl_web/live/wizard_components.ex:522
-#: lib/alnasl_web/words.ex:1439
+#: lib/alnasl_web/words.ex:1471
 #, elixir-autogen, elixir-format
 msgid "Tournaments"
 msgstr ""
@@ -4700,7 +4700,7 @@ msgstr ""
 
 #: lib/alnasl_web/hall.ex:503
 #: lib/alnasl_web/table_words.ex:40
-#: lib/alnasl_web/words.ex:1421
+#: lib/alnasl_web/words.ex:1453
 #, elixir-autogen, elixir-format
 msgid "the hall's own tournament"
 msgstr ""
@@ -5133,17 +5133,17 @@ msgstr ""
 msgid "Data folder"
 msgstr ""
 
-#: lib/alnasl_web/words.ex:1475
+#: lib/alnasl_web/words.ex:1507
 #, elixir-autogen, elixir-format
 msgid "From source (a checkout)"
 msgstr ""
 
-#: lib/alnasl_web/words.ex:1471
+#: lib/alnasl_web/words.ex:1503
 #, elixir-autogen, elixir-format
 msgid "Installed (Windows installer)"
 msgstr ""
 
-#: lib/alnasl_web/words.ex:1472
+#: lib/alnasl_web/words.ex:1504
 #, elixir-autogen, elixir-format
 msgid "Installed as a service (Linux)"
 msgstr ""
@@ -5231,7 +5231,7 @@ msgstr ""
 msgid "OpenPairings: other version"
 msgstr ""
 
-#: lib/alnasl_web/words.ex:1474
+#: lib/alnasl_web/words.ex:1506
 #, elixir-autogen, elixir-format
 msgid "Portable copy (a release folder)"
 msgstr ""
@@ -5533,12 +5533,12 @@ msgstr ""
 msgid "Board %{n}: this game is the one that leaves Alnasl now."
 msgstr ""
 
-#: lib/alnasl_web/words.ex:1380
+#: lib/alnasl_web/words.ex:1412
 #, elixir-autogen, elixir-format
 msgid "Close this game without a result and start a new one? The new game becomes the game of the pairing and is the one sent to the results site, OpenPairings and Lichess; this one is kept in Alnasl."
 msgstr ""
 
-#: lib/alnasl_web/words.ex:1389
+#: lib/alnasl_web/words.ex:1421
 #, elixir-autogen, elixir-format
 msgid "Close this game without a result and start an extra one? The extra game stays in Alnasl."
 msgstr ""
@@ -5580,7 +5580,7 @@ msgstr ""
 msgid "Open the results site"
 msgstr ""
 
-#: lib/alnasl_web/words.ex:1402
+#: lib/alnasl_web/words.ex:1434
 #, elixir-autogen, elixir-format
 msgid "Send this game instead? It becomes the game of the pairing and replaces what the results site, OpenPairings and Lichess hold for this board; the game that was sent is kept in Alnasl."
 msgstr ""
@@ -5591,7 +5591,7 @@ msgstr ""
 msgid "Send this one instead"
 msgstr ""
 
-#: lib/alnasl_web/words.ex:1376
+#: lib/alnasl_web/words.ex:1408
 #, elixir-autogen, elixir-format
 msgid "Start a new game on this board? It becomes the game of the pairing and is the one sent to the results site, OpenPairings and Lichess; this one is kept in Alnasl."
 msgstr ""
@@ -5611,7 +5611,7 @@ msgstr ""
 msgid "The results site, OpenPairings and Lichess know one game of a board and a round, and they hold another one for this board. Nothing of this game is sent."
 msgstr ""
 
-#: lib/alnasl_web/words.ex:1396
+#: lib/alnasl_web/words.ex:1428
 #, elixir-autogen, elixir-format
 msgid "This game has a result. Start a new game that replaces it as the game of the pairing? The result already sent is replaced by the new game; this one is kept in Alnasl."
 msgstr ""
@@ -5748,7 +5748,7 @@ msgstr ""
 msgid "Mac: download the new zip from the page above, stop Alnasl, and put the new Alnasl.app in place of the old one in Applications. Your data is not in the app and is used as it is."
 msgstr ""
 
-#: lib/alnasl_web/words.ex:1473
+#: lib/alnasl_web/words.ex:1505
 #, elixir-autogen, elixir-format
 msgid "The Mac app (Alnasl.app)"
 msgstr ""
@@ -5934,7 +5934,7 @@ msgstr ""
 msgid "Accounts"
 msgstr ""
 
-#: lib/alnasl_web/words.ex:1485
+#: lib/alnasl_web/words.ex:1517
 #, elixir-autogen, elixir-format
 msgid "Adds and removes bridges, invites people, and everything an arbiter does."
 msgstr ""
@@ -5990,7 +5990,7 @@ msgstr ""
 msgid "Every page asks who you are. People, roles and invitations are on the page of each hall."
 msgstr ""
 
-#: lib/alnasl_web/words.ex:1490
+#: lib/alnasl_web/words.ex:1522
 #, elixir-autogen, elixir-format
 msgid "Follows the games and changes nothing."
 msgstr ""
@@ -6000,7 +6000,7 @@ msgstr ""
 msgid "Forgot your password? Alnasl sends no mail: an admin can give you a temporary one."
 msgstr ""
 
-#: lib/alnasl_web/words.ex:1488
+#: lib/alnasl_web/words.ex:1520
 #, elixir-autogen, elixir-format
 msgid "Games, corrections, rounds, and the links to OpenPairings and the results site."
 msgstr ""
@@ -6339,12 +6339,12 @@ msgstr ""
 msgid "Your role in this hall lets you follow the games, not change them."
 msgstr ""
 
-#: lib/alnasl_web/words.ex:1479
+#: lib/alnasl_web/words.ex:1511
 #, elixir-autogen, elixir-format
 msgid "arbiter"
 msgstr ""
 
-#: lib/alnasl_web/words.ex:1478
+#: lib/alnasl_web/words.ex:1510
 #, elixir-autogen, elixir-format
 msgid "owner"
 msgstr ""
@@ -6361,7 +6361,7 @@ msgstr ""
 msgid "until %{date}"
 msgstr ""
 
-#: lib/alnasl_web/words.ex:1480
+#: lib/alnasl_web/words.ex:1512
 #, elixir-autogen, elixir-format
 msgid "viewer"
 msgstr ""
@@ -10452,4 +10452,79 @@ msgstr ""
 #: lib/alnasl_web/words.ex:592
 #, elixir-autogen, elixir-format
 msgid "the game does not replay"
+msgstr ""
+
+#: lib/alnasl_web/words.ex:1382
+#, elixir-autogen, elixir-format
+msgid "A command from OpenPairings could not be carried out: %{why}"
+msgstr ""
+
+#: lib/alnasl_web/words.ex:1371
+#, elixir-autogen, elixir-format
+msgid "Arbiter via OpenPairings: %{what}. Done."
+msgstr ""
+
+#: lib/alnasl_web/words.ex:1375
+#, elixir-autogen, elixir-format
+msgid "Arbiter via OpenPairings: %{what}. Not done: %{why}"
+msgstr ""
+
+#: lib/alnasl_web/words.ex:1401
+#, elixir-autogen, elixir-format
+msgid "finish the game on the box"
+msgstr ""
+
+#: lib/alnasl_web/words.ex:1390
+#, elixir-autogen, elixir-format
+msgid "keep the guessed moves"
+msgstr ""
+
+#: lib/alnasl_web/words.ex:1397
+#, elixir-autogen, elixir-format
+msgid "link the board to a game"
+msgstr ""
+
+#: lib/alnasl_web/words.ex:1400
+#, elixir-autogen, elixir-format
+msgid "look at the board afresh"
+msgstr ""
+
+#: lib/alnasl_web/words.ex:1399
+#, elixir-autogen, elixir-format
+msgid "restart the board"
+msgstr ""
+
+#: lib/alnasl_web/words.ex:1393
+#, elixir-autogen, elixir-format
+msgid "set the board's memory aside"
+msgstr ""
+
+#: lib/alnasl_web/words.ex:1394
+#, elixir-autogen, elixir-format
+msgid "set the position"
+msgstr ""
+
+#: lib/alnasl_web/words.ex:1395
+#, elixir-autogen, elixir-format
+msgid "take moves back"
+msgstr ""
+
+#: lib/alnasl_web/words.ex:1391
+#, elixir-autogen, elixir-format
+msgid "take the guessed moves back"
+msgstr ""
+
+#: lib/alnasl_web/words.ex:1396
+#, elixir-autogen, elixir-format
+msgid "turn the board round"
+msgstr ""
+
+#: lib/alnasl_web/words.ex:1398
+#, elixir-autogen, elixir-format
+msgid "unlink the board"
+msgstr ""
+
+#: lib/alnasl_web/words.ex:1392
+#, elixir-autogen, elixir-format
+msgid "use the board's memory"
 msgstr ""
