@@ -49,6 +49,30 @@ De regel onder de balk, de pagina Borden, de pagina Live en "Klaar voor ronde N?
 
 Per partij: de zetten, de klokken, de PGN en het resultaat dat het bord zag, met hoeveel zetten Alnasl afgeleid of geraden heeft. Het staat daar naast de paring, in het rood als het verschilt van het resultaat dat de arbiter invoerde. Een bord voert nooit een resultaat in.
 
+
+### De borden sturen vanuit OpenPairings en Manubrium {#live-board-control}
+
+Met een OpenPairings die live bordbediening kent, vertelt Alnasl ook wat elk bord van het toernooi toont: de stelling, de laatste zet, de klokken, of het antwoordt, en alles waar de arbiter naar moet kijken (niet synchroon, een zet buiten de beurt of een onreglementaire zet, de klok, een verkeerde opstelling, stukken die niet gezien worden, een gewijzigde paring, geraden zetten, een versie uit het geheugen van het bord). Het stuurt dat wanneer er iets verandert, hoogstens om de twee seconden, en hoe dan ook om de dertig seconden, zodat de arbiter ziet dat het kastje leeft. De eigenaar en de bewerkers van het toernooi zien het in OpenPairings en in Manubrium, de telefoonapp, en kunnen van daaruit iets met een bord doen:
+
+| Op de telefoon | Wat Alnasl op het kastje doet |
+| --- | --- |
+| De geraden zetten houden | Zoals "Laat het zoals het staat" op de partijpagina: de zetten blijven, nu als die van de arbiter |
+| De geraden zetten terugnemen | Neemt ze terug, alleen als het de laatste zetten van de partij zijn |
+| Het geheugen van het bord gebruiken / opzijzetten | Zoals de twee knoppen onder een versie op de partijpagina |
+| De stelling instellen | Laat de partij in die stelling beginnen |
+| Zetten terugnemen | Neemt één tot twintig zetten terug |
+| Het bord omdraaien | Leest het bord andersom, en onthoudt dat |
+| Koppelen / ontkoppelen | Zet het bord op een bord van een ronde van dat toernooi, of haalt het eraf |
+| Herstarten | Start het stuurprogramma van het bord opnieuw (een bord met een geheugen wordt er opnieuw naar gevraagd) |
+| Opnieuw bekijken | Zoals "Hier hersynchroniseren" op de partijpagina: het bord wordt opnieuw naast de partij gelegd |
+| De partij afsluiten | Sluit de partij op het kastje met dat resultaat |
+
+Alnasl controleert elke vraag eerst: het bord moet op dit kastje in dat toernooi spelen, en nog altijd de partij voeden die de arbiter zag; anders gebeurt er niets en zegt de telefoon waarom. Elke vraag wordt één keer uitgevoerd, ook als ze twee keer aankomt, en elke vraag staat in het logboek als "Arbiter via OpenPairings". Het kastje vraagt ze zelf op, zoals het alles opvraagt: niets maakt verbinding met het kastje.
+
+Een bord voert nooit een resultaat in, ook zo niet. "De partij afsluiten" beëindigt de partij alleen op het kastje; wat het bord zag gaat naar OpenPairings zoals elk ander bericht, en het resultaat van het toernooi is dat van de arbiter, ingevoerd in OpenPairings (waar één tik het resultaat van het bord overneemt, als het klopt).
+
+Een oudere OpenPairings krijgt hier gewoon niets van, en al de rest werkt zoals voordien.
+
 ### Twee codes voor één toernooi {#two-codes}
 
 Twee codes die bij één toernooi komen, die van een groep en die van het toernooi zelf, of de code van een desktopkopie voor deze computer en voor het netwerk van de zaal, maken één toernooi in Alnasl, geen twee. De tweede code zegt "Deze code bereikt ..., dat Alnasl al heeft via ...". Is de oude code ingetrokken en een nieuwe gemaakt, druk dan onder de nieuwe op "Deze code gebruiken": het toernooi houdt zijn borden en partijen, en de oude code verdwijnt als hij niets anders meer bereikt. Hoort de nieuwe code bij een andere zaal en wordt het toernooi daar nog niet gespeeld, dan staat op dezelfde plek "Speel het ook in deze zaal": nog altijd één toernooi, nu in beide zalen (zie [Toernooien en zalen](06-accounts-and-halls.md#placements)).

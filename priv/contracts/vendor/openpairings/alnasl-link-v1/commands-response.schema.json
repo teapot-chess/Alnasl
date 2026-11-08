@@ -1,0 +1,112 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://raw.githubusercontent.com/teapot-chess/openpairings/main/priv/contracts/alnasl-link-v1/commands-response.schema.json",
+  "title": "GET /commands response",
+  "description": "Revision 2. What an arbiter asked of this code's box: pending and sent, not expired, oldest first, at most 50. Fetching marks them sent; a command stays here until it is answered or expires (expires_at, 120 s after it was made). The box remembers the ids it carried out and answers a repeat with the outcome it stored. `GET /link`'s `commands` says when there are any.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "commands"
+  ],
+  "properties": {
+    "commands": {
+      "type": "array",
+      "maxItems": 50,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "tournament",
+          "board",
+          "game",
+          "kind",
+          "args",
+          "created_at",
+          "expires_at"
+        ],
+        "properties": {
+          "id": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "tournament": {
+            "type": "integer",
+            "minimum": 1,
+            "description": "The tournament id, as in GET /link."
+          },
+          "board": {
+            "type": "integer",
+            "minimum": 1,
+            "description": "The box's own board id, as its tables report gave it."
+          },
+          "game": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "maxLength": 64,
+            "description": "The game the arbiter saw on that board; when not null the box checks the board still feeds it (wrong_game)."
+          },
+          "kind": {
+            "type": "string",
+            "description": "Known: confirm_guess, reject_guess, accept_draft, dismiss_draft, set_position, takeback, flip, link, unlink, restart, resync, finish. An unknown kind is answered failed / unknown_kind."
+          },
+          "args": {
+            "type": "object",
+            "description": "By kind: confirm_guess/reject_guess {ply}; accept_draft/dismiss_draft {draft}; set_position {fen}; takeback {plies 1-20}; flip {flipped}; link {round, board_no}; finish {result: 1-0, 0-1, 1/2-1/2 or *}; unlink, restart, resync {}.",
+            "additionalProperties": false,
+            "properties": {
+              "ply": {
+                "type": "integer",
+                "minimum": 1,
+                "maximum": 2000
+              },
+              "draft": {
+                "type": "integer",
+                "minimum": 1
+              },
+              "fen": {
+                "type": "string",
+                "maxLength": 100
+              },
+              "plies": {
+                "type": "integer",
+                "minimum": 1,
+                "maximum": 20
+              },
+              "flipped": {
+                "type": "boolean"
+              },
+              "round": {
+                "type": "integer",
+                "minimum": 1
+              },
+              "board_no": {
+                "type": "integer",
+                "minimum": 1
+              },
+              "result": {
+                "type": "string",
+                "enum": [
+                  "1-0",
+                  "0-1",
+                  "1/2-1/2",
+                  "*"
+                ]
+              }
+            }
+          },
+          "created_at": {
+            "type": "string",
+            "description": "ISO 8601, UTC."
+          },
+          "expires_at": {
+            "type": "string",
+            "description": "ISO 8601, UTC."
+          }
+        }
+      }
+    }
+  }
+}

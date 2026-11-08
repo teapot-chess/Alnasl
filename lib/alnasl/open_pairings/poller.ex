@@ -13,6 +13,10 @@ defmodule Alnasl.OpenPairings.Poller do
   refused is not asked at all (`Alnasl.OpenPairings.polled?/1`): that is
   for the arbiter.
 
+  When the listing says the arbiter has asked something of the boards
+  (board link revision 2), the commands are fetched and carried out
+  (`Alnasl.OpenPairings.Commands`) in the same task.
+
   When a link is new, and whenever the number of boards a tournament has
   been given changes, the pairing program is told about the box (`POST
   /box`), so its settings page can say which box is which.
@@ -149,6 +153,17 @@ defmodule Alnasl.OpenPairings.Poller do
       rescue
         error -> {:error, {:crash, Exception.message(error)}}
       end
+
+    # What the arbiter asked of the boards from OpenPairings (revision 2),
+    # when the listing says something waits.
+    with {:ok, fresh} <- result do
+      try do
+        Alnasl.OpenPairings.Commands.run(fresh)
+      rescue
+        error ->
+          Alnasl.Log.add(:error, "command.failed", %{reason: Exception.message(error)})
+      end
+    end
 
     counts = OpenPairings.board_counts(link)
 

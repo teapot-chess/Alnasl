@@ -50,6 +50,10 @@ defmodule Alnasl.FakeOpenPairings do
           mode: :ok,
           requests: [],
           boxes: [],
+          revision: 2,
+          tables: %{},
+          commands: [],
+          command_n: 0,
           n: 0
         }
       end,
@@ -67,6 +71,9 @@ defmodule Alnasl.FakeOpenPairings do
 
   @doc "`:ok | :down | {:status, 500} | :rate_limited | :not_the_api | {:api, 2}`."
   def mode(mode), do: Agent.update(__MODULE__, &%{&1 | mode: mode})
+
+  @doc "The revision of the link it speaks: 2 (live board control), or `nil` for an OpenPairings from before it."
+  def revision(revision), do: Agent.update(__MODULE__, &%{&1 | revision: revision})
 
   # --- setting the scene -------------------------------------------------------
 
@@ -328,6 +335,51 @@ defmodule Alnasl.FakeOpenPairings do
   def reset_requests, do: Agent.update(__MODULE__, &%{&1 | requests: []})
   def boxes, do: Agent.get(__MODULE__, &Enum.reverse(&1.boxes))
 
+  @doc "The tables a box last sent for tournament `id` (`nil`: none yet)."
+  def tables(id), do: Agent.get(__MODULE__, & &1.tables[id])
+
+  @doc """
+  The arbiter asks something of a board (revision 2): a command for
+  tournament `id`, `pending` until a box fetches it. Returns its id.
+  """
+  def command(id, board, kind, args \\ %{}, game \\ nil) do
+    Agent.get_and_update(__MODULE__, fn s ->
+      n = s.command_n + 1
+      now = DateTime.utc_now(:second)
+
+      command = %{
+        "id" => n,
+        "tournament" => id,
+        "board" => board,
+        "game" => game,
+        "kind" => kind,
+        "args" => args,
+        "created_at" => DateTime.to_iso8601(now),
+        "expires_at" => DateTime.to_iso8601(DateTime.add(now, 120, :second)),
+        "state" => "pending",
+        "answer" => nil
+      }
+
+      {n, %{s | command_n: n, commands: s.commands ++ [command]}}
+    end)
+  end
+
+  @doc "A command as the fake holds it: its `state` and the box's `answer`."
+  def command(n), do: Agent.get(__MODULE__, fn s -> Enum.find(s.commands, &(&1["id"] == n)) end)
+
+  @doc "Puts a command back to `sent`, unanswered: as if the answer never arrived."
+  def unanswer(n) do
+    Agent.update(__MODULE__, fn s ->
+      %{
+        s
+        | commands:
+            Enum.map(s.commands, fn c ->
+              if c["id"] == n, do: %{c | "state" => "sent", "answer" => nil}, else: c
+            end)
+      }
+    end)
+  end
+
   @doc "The document of a tournament as a box would be given it."
   def document(id), do: Agent.get(__MODULE__, &document_of(&1.tournaments[id]))
 
@@ -459,12 +511,126 @@ defmodule Alnasl.FakeOpenPairings do
         end
     }
 
+    # Revision 2 (live board control) adds two fields; an OpenPairings from
+    # before it has neither.
+    listing =
+      case Agent.get(__MODULE__, & &1.revision) do
+        nil -> listing
+        revision -> Map.merge(listing, %{"revision" => revision, "commands" => waiting(target)})
+      end
+
     conditional(conn, hash(listing), listing)
   end
 
   defp route(%{method: "POST", path_info: ["api", "boards", "v1", "box"]}, body, target, _mode) do
     Agent.update(__MODULE__, &%{&1 | boxes: [{target, body} | &1.boxes]})
     {200, [], %{"status" => "ok"}}
+  end
+
+  # --- revision 2: tables and commands -----------------------------------------
+
+  defp route(
+         %{method: "POST", path_info: ["api", "boards", "v1", "tournaments", id, "tables"]},
+         body,
+         target,
+         _mode
+       ) do
+    with :ok <- revision_two(),
+         {:ok, t} <- reach(target, id) do
+      case body do
+        %{"tables" => tables} when is_list(tables) and length(tables) <= 256 ->
+          case tables
+               |> Enum.with_index()
+               |> Enum.find_value(fn {table, i} ->
+                 if field = bad_table(table), do: "tables[#{i}]: #{field}"
+               end) do
+            nil ->
+              Agent.update(__MODULE__, &put_in(&1.tables[t.id], tables))
+              {200, [], %{"status" => "ok", "stored" => length(tables)}}
+
+            field ->
+              error(422, "invalid_request", field)
+          end
+
+        _other ->
+          error(422, "invalid_request", "tables: a list of at most 256")
+      end
+    end
+  end
+
+  defp route(
+         %{method: "GET", path_info: ["api", "boards", "v1", "commands"]},
+         _body,
+         target,
+         _mode
+       ) do
+    with :ok <- revision_two() do
+      ids = MapSet.new(covered(target), & &1.id)
+
+      listed =
+        Agent.get_and_update(__MODULE__, fn s ->
+          listed =
+            s.commands
+            |> Enum.filter(&(&1["state"] in ["pending", "sent"] and &1["tournament"] in ids))
+            |> Enum.take(50)
+
+          sent = MapSet.new(listed, & &1["id"])
+
+          commands =
+            Enum.map(s.commands, fn c ->
+              if c["id"] in sent, do: %{c | "state" => "sent"}, else: c
+            end)
+
+          {listed, %{s | commands: commands}}
+        end)
+
+      {200, [], %{"commands" => Enum.map(listed, &Map.drop(&1, ["state", "answer"]))}}
+    end
+  end
+
+  defp route(
+         %{method: "POST", path_info: ["api", "boards", "v1", "commands", n]},
+         body,
+         target,
+         _mode
+       ) do
+    ids = MapSet.new(covered(target), & &1.id)
+
+    with :ok <- revision_two(),
+         {n, ""} <- Integer.parse(n),
+         %{} = command <- command(n),
+         true <- command["tournament"] in ids do
+      cond do
+        command["state"] in ["done", "failed"] ->
+          {200, [], %{"status" => "ok", "state" => command["state"]}}
+
+        not (is_map(body) and body["status"] in ["done", "failed"]) ->
+          error(422, "invalid_request", "status")
+
+        body["error"] != nil and
+            not (is_binary(body["error"]) and body["error"] =~ ~r/^[a-z_]{1,32}$/) ->
+          error(422, "invalid_request", "error")
+
+        true ->
+          Agent.update(__MODULE__, fn s ->
+            %{
+              s
+              | commands:
+                  Enum.map(s.commands, fn c ->
+                    if c["id"] == n,
+                      do: %{c | "state" => body["status"], "answer" => body},
+                      else: c
+                  end)
+            }
+          end)
+
+          {200, [], %{"status" => "ok", "state" => body["status"]}}
+      end
+    else
+      {:error, _} = refused -> refused
+      {_status, _headers, _body} = refused -> refused
+      _other -> error(404, "command_not_found", "no such command for this code")
+    end
   end
 
   defp route(
@@ -522,6 +688,60 @@ defmodule Alnasl.FakeOpenPairings do
   end
 
   defp route(_conn, _body, _target, _mode), do: {404, [], %{"error" => "not_found"}}
+
+  # An OpenPairings from before revision 2 has no such path: a plain 404.
+  defp revision_two do
+    if Agent.get(__MODULE__, & &1.revision) == nil,
+      do: {404, [], %{"error" => "not_found"}},
+      else: :ok
+  end
+
+  defp waiting(target) do
+    ids = MapSet.new(covered(target), & &1.id)
+
+    Agent.get(__MODULE__, fn s ->
+      Enum.count(s.commands, &(&1["state"] in ["pending", "sent"] and &1["tournament"] in ids))
+    end)
+  end
+
+  @states ~w(live waiting finished no_signal unlinked out_of_sync clock_alarm recovered guessed paused)
+
+  defp bad_table(t) do
+    cond do
+      not is_map(t) ->
+        "a table is an object"
+
+      not (is_integer(t["board"]) and t["board"] >= 1) ->
+        "board"
+
+      not (is_binary(t["name"]) and String.length(t["name"]) <= 80) ->
+        "name"
+
+      not is_boolean(t["connected"]) ->
+        "connected"
+
+      t["state"] not in @states ->
+        "state"
+
+      not (is_list(t["alarms"]) and length(t["alarms"]) <= 8) ->
+        "alarms"
+
+      Enum.any?(t["alarms"], &(not (&1 =~ ~r/^[a-z_]{1,32}$/))) ->
+        "alarms"
+
+      t["last_move"] != nil and not (t["last_move"] =~ ~r/^[a-h][1-8][a-h][1-8][qrbn]?$/) ->
+        "last_move"
+
+      t["running"] not in [nil, "white", "black", "none"] ->
+        "running"
+
+      not is_list(t["guessed_plies"]) ->
+        "guessed_plies"
+
+      true ->
+        nil
+    end
+  end
 
   defp reach(target, id) do
     case Integer.parse(id) do

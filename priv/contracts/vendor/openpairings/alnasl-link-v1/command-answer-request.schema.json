@@ -1,0 +1,33 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://raw.githubusercontent.com/teapot-chess/openpairings/main/priv/contracts/alnasl-link-v1/command-answer-request.schema.json",
+  "title": "POST /commands/:id request",
+  "description": "Revision 2. The box's answer to one command. Known error codes: no_board, not_running, no_game, wrong_game, no_draft, not_guessed, not_last, bad_position, bad_args, refused, other_tournament, unknown_kind, failed.",
+  "type": "object",
+  "required": [
+    "status"
+  ],
+  "properties": {
+    "status": {
+      "type": "string",
+      "enum": [
+        "done",
+        "failed"
+      ]
+    },
+    "error": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "pattern": "^[a-z_]{1,32}$"
+    },
+    "detail": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "maxLength": 200
+    }
+  }
+}

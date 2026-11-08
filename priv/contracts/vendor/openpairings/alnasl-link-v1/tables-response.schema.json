@@ -1,0 +1,21 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://raw.githubusercontent.com/teapot-chess/openpairings/main/priv/contracts/alnasl-link-v1/tables-response.schema.json",
+  "title": "POST /tournaments/:id/tables response",
+  "description": "Revision 2. Stored; `stored` is how many tables were kept. A table whose `game` is not a game of the tournament is kept with `game` null.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "status",
+    "stored"
+  ],
+  "properties": {
+    "status": {
+      "const": "ok"
+    },
+    "stored": {
+      "type": "integer",
+      "minimum": 0
+    }
+  }
+}

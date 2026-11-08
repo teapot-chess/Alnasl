@@ -1,0 +1,202 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://raw.githubusercontent.com/teapot-chess/openpairings/main/priv/contracts/alnasl-link-v1/tables-request.schema.json",
+  "title": "POST /tournaments/:id/tables request",
+  "description": "Revision 2. Every physical board the box has given this tournament, as it is now: the whole list each time (a board left out is gone). Sent on change, at most every 2 s, and at least every 30 s as a heartbeat. At most 256 tables. Fields this schema does not name are ignored.",
+  "type": "object",
+  "required": [
+    "tables"
+  ],
+  "properties": {
+    "tables": {
+      "type": "array",
+      "maxItems": 256,
+      "items": {
+        "type": "object",
+        "required": [
+          "board",
+          "name",
+          "connected",
+          "state"
+        ],
+        "properties": {
+          "board": {
+            "type": "integer",
+            "minimum": 1,
+            "description": "The box's own id for the physical board. Commands name it."
+          },
+          "name": {
+            "type": "string",
+            "maxLength": 80
+          },
+          "table": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "minimum": 1,
+            "maximum": 99999,
+            "description": "The table number the board stands on, or null."
+          },
+          "serial": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "maxLength": 40
+          },
+          "game": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "maxLength": 64,
+            "description": "The `game` id of the tournament document the board feeds, or null."
+          },
+          "round": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "minimum": 1,
+            "maximum": 9999
+          },
+          "board_no": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "minimum": 1,
+            "maximum": 99999
+          },
+          "connected": {
+            "type": "boolean",
+            "description": "The board answers now."
+          },
+          "last_seen": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "ISO 8601, UTC, or null."
+          },
+          "state": {
+            "type": "string",
+            "maxLength": 32,
+            "description": "Known: live, waiting, finished, no_signal, unlinked, out_of_sync, clock_alarm, recovered, guessed, paused. recovered = moves reconstructed (orange), guessed = moves guessed (red). Unknown values are shown as they are."
+          },
+          "flipped": {
+            "type": "boolean"
+          },
+          "alarms": {
+            "type": "array",
+            "maxItems": 8,
+            "items": {
+              "type": "string",
+              "pattern": "^[a-z_]{1,32}$"
+            },
+            "description": "Known: out_of_turn, illegal_move, out_of_sync, clock, setup, pieces_unseen, pairing_changed. Unknown ones are kept and shown raw."
+          },
+          "alarm_detail": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "maxLength": 200,
+            "description": "A sentence about the first alarm, in English."
+          },
+          "draft": {
+            "description": "A board-memory draft waiting for the arbiter, or null.",
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "id"
+                ],
+                "properties": {
+                  "id": {
+                    "type": "integer",
+                    "minimum": 1
+                  },
+                  "reason": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "maxLength": 32
+                  },
+                  "from_ply": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "maximum": 2000
+                  },
+                  "plies": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "maximum": 2000
+                  }
+                }
+              }
+            ]
+          },
+          "guessed_plies": {
+            "type": "array",
+            "maxItems": 200,
+            "items": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 2000
+            },
+            "description": "1-based plies marked guessed now."
+          },
+          "fen": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "maxLength": 100
+          },
+          "last_move": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "pattern": "^[a-h][1-8][a-h][1-8][qrbn]?$"
+          },
+          "white_ms": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "minimum": 0,
+            "maximum": 360000000
+          },
+          "black_ms": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "minimum": 0,
+            "maximum": 360000000
+          },
+          "running": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "enum": [
+              "white",
+              "black",
+              "none",
+              null
+            ]
+          }
+        }
+      }
+    }
+  }
+}

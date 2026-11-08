@@ -1,6 +1,6 @@
 defmodule Alnasl.OpenPairings.Client do
   @moduledoc """
-  The four requests of the board link (`docs/board-link-api.md` in
+  The requests of the board link (`docs/board-link-api.md` in
   OpenPairings, API version 1), and what their answers mean. Nothing here
   remembers anything: it is given a link and says what the pairing program
   said.
@@ -11,6 +11,9 @@ defmodule Alnasl.OpenPairings.Client do
   | `tournament/3` | `GET <root>/tournaments/:id`, with the version held |
   | `box/2` | `POST <root>/box`: the box's name, version and board counts |
   | `report/3` | `POST <root>/tournaments/:id/games`: games, at most 64 |
+  | `tables/3` | `POST <root>/tournaments/:id/tables`: what the boards show (revision 2) |
+  | `commands/1` | `GET <root>/commands`: what the arbiter asked of this box (revision 2) |
+  | `answer/3` | `POST <root>/commands/:id`: how a command went (revision 2) |
 
   Every request carries the secret as a bearer token and says which box is
   asking (`X-Board-Box`, `X-Board-Box-Version`).
@@ -109,6 +112,52 @@ defmodule Alnasl.OpenPairings.Client do
     case Req.post(request(link, "/tournaments/#{id}/games", json: %{"games" => games})) do
       {:ok, %{status: 200, body: %{"results" => results}}} when is_list(results) ->
         {:ok, results}
+
+      other ->
+        error(other)
+    end
+  end
+
+  @doc """
+  What every board the box has given to tournament `id` shows now, the whole
+  list (`Alnasl.OpenPairings.TablesReporter`). `{:ok, stored}` or `{:error,
+  reason}`. An OpenPairings from before revision 2 answers `:not_the_api`.
+  """
+  def tables(%Link{} = link, id, tables) when is_list(tables) do
+    case Req.post(request(link, "/tournaments/#{id}/tables", json: %{"tables" => tables})) do
+      {:ok, %{status: 200, body: %{"status" => "ok"} = body}} -> {:ok, body["stored"]}
+      other -> error(other)
+    end
+  end
+
+  @doc """
+  The commands waiting for this code, oldest first: `{:ok, [command]}` or
+  `{:error, reason}`. Each is a map as the contract gives it (`id`,
+  `tournament`, `board`, `game`, `kind`, `args`, ...).
+  """
+  def commands(%Link{} = link) do
+    case Req.get(request(link, "/commands", [])) do
+      {:ok, %{status: 200, body: %{"commands" => list}}} when is_list(list) ->
+        {:ok, Enum.filter(list, &is_map/1)}
+
+      other ->
+        error(other)
+    end
+  end
+
+  @doc """
+  Answers command `id`: `%{"status" => "done"}` or `%{"status" => "failed",
+  "error" => code, "detail" => text}`. `{:ok, state}` (the state the pairing
+  program now holds), or `{:error, reason}`; `{:error, :command_not_found}`
+  for an id that is not this code's.
+  """
+  def answer(%Link{} = link, id, %{"status" => _} = outcome) do
+    case Req.post(request(link, "/commands/#{id}", json: outcome)) do
+      {:ok, %{status: 200, body: %{"status" => "ok"} = body}} ->
+        {:ok, body["state"]}
+
+      {:ok, %{status: 404, body: %{"error" => "command_not_found"}}} ->
+        {:error, :command_not_found}
 
       other ->
         error(other)

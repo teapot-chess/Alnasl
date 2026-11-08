@@ -68,6 +68,16 @@ the two part (or a restart from the memory's start position), sent as a
 replacement of the game; it is refused when the game has changed since in
 the moves the draft relies on.
 
+The same two answers can come from afar: a pending draft is in the tables
+the box sends to OpenPairings (board link revision 2, `draft`: its id,
+reason, where it parts and its length), and the arbiter's `accept_draft` or
+`dismiss_draft` from OpenPairings or Manubrium is carried out by
+`Alnasl.OpenPairings.Commands` through exactly these two calls, with the
+same refusals (`no_draft` for a draft that is gone or settled, `refused`
+for one the game has moved past). Guessed plies travel the same way
+(`guessed_plies`), and `confirm_guess` / `reject_guess` are "Keep it as it
+stands" and a takeback of the guessed run when it ends the game.
+
 ### Waiting for it, and confirming a guess
 
 The memory arrives some seconds after the first dump (about 20 s on the

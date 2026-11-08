@@ -1367,7 +1367,39 @@ defmodule AlnaslWeb.Words do
   defp log("update.requested", d),
     do: gettext("Update to %{version} started by the arbiter.", version: d["version"])
 
+  defp log("command.done", d),
+    do: gettext("Arbiter via OpenPairings: %{what}. Done.", what: command(d))
+
+  defp log("command.failed", %{"kind" => _} = d),
+    do:
+      gettext("Arbiter via OpenPairings: %{what}. Not done: %{why}",
+        what: command(d),
+        why: d["detail"] || d["error"] || ""
+      )
+
+  defp log("command.failed", d),
+    do:
+      gettext("A command from OpenPairings could not be carried out: %{why}",
+        why: d["reason"] || ""
+      )
+
   defp log(kind, _d), do: kind
+
+  # What an arbiter asked of a board from OpenPairings (or Manubrium), in
+  # words (`Alnasl.OpenPairings.Commands`).
+  defp command(%{"kind" => "confirm_guess"}), do: gettext("keep the guessed moves")
+  defp command(%{"kind" => "reject_guess"}), do: gettext("take the guessed moves back")
+  defp command(%{"kind" => "accept_draft"}), do: gettext("use the board's memory")
+  defp command(%{"kind" => "dismiss_draft"}), do: gettext("set the board's memory aside")
+  defp command(%{"kind" => "set_position"}), do: gettext("set the position")
+  defp command(%{"kind" => "takeback"}), do: gettext("take moves back")
+  defp command(%{"kind" => "flip"}), do: gettext("turn the board round")
+  defp command(%{"kind" => "link"}), do: gettext("link the board to a game")
+  defp command(%{"kind" => "unlink"}), do: gettext("unlink the board")
+  defp command(%{"kind" => "restart"}), do: gettext("restart the board")
+  defp command(%{"kind" => "resync"}), do: gettext("look at the board afresh")
+  defp command(%{"kind" => "finish"}), do: gettext("finish the game on the box")
+  defp command(d), do: to_string(d["kind"] || "?")
 
   @doc "The one sentence a \"new game\" asks to be confirmed with (`nil`: nothing to ask)."
   def new_game_confirm(:replace, finished?) do

@@ -18,7 +18,7 @@ defmodule Alnasl.Contracts.LinkTest do
   alias Alnasl.{Contract, FakeOpenPairings, Games, OpenPairings, Outbox, Tournaments}
   alias Alnasl.Destination.Cursor
   alias Alnasl.Destination.OpenPairings, as: Reports
-  alias Alnasl.OpenPairings.{Client, Connect}
+  alias Alnasl.OpenPairings.{Client, Commands, Connect, TablesReporter}
   alias Alnasl.Tournaments.Link
 
   @root "http://pairings.test/api/boards/v1"
@@ -81,7 +81,7 @@ defmodule Alnasl.Contracts.LinkTest do
       {link, tournament} = link_with("tournament-response")
 
       assert link.state == "ok" and link.kind == "tournament"
-      assert link.server_version == "0.101.3"
+      assert link.server_version == "0.128.0"
       assert tournament.remote_id == 1 and tournament.name == "Board Link Open"
       assert tournament.remote_round == 1
 
@@ -303,6 +303,108 @@ defmodule Alnasl.Contracts.LinkTest do
 
       assert {:ok, listing, _etag} = Client.listing(group)
       Contract.assert_valid!(:link, "link-response", listing)
+    end
+
+    test "answers revision 2 as the contract says: commands, tables, answers" do
+      FakeOpenPairings.add_tournament(17, name: "Open", boards: 2)
+      code = FakeOpenPairings.code(17)
+      n = FakeOpenPairings.command(17, 12, "flip", %{"flipped" => true}, "g17r1b1s0")
+      FakeOpenPairings.command(17, 12, "takeback", %{"plies" => 1})
+
+      raw = fn method, path, body ->
+        Req.request!(
+          [
+            method: method,
+            url: FakeOpenPairings.root() <> path,
+            headers: [{"authorization", "Bearer " <> FakeOpenPairings.secret(code)}],
+            retry: false
+          ] ++
+            if(body, do: [json: body], else: []) ++ Client.req_options()
+        )
+      end
+
+      listing = raw.(:get, "/link", nil)
+      assert Contract.assert_valid!(:link, "link-response", listing.body)["commands"] == 2
+
+      commands = raw.(:get, "/commands", nil)
+      assert commands.status == 200
+      Contract.assert_valid!(:link, "commands-response", commands.body)
+
+      tables = Contract.example(:link, "tables-request")
+      stored = raw.(:post, "/tournaments/17/tables", tables)
+      assert stored.status == 200
+      Contract.assert_valid!(:link, "tables-response", stored.body)
+
+      for name <- ["command-answer-request", "command-answer-request.failed"] do
+        n = if name == "command-answer-request", do: n, else: n + 1
+        answered = raw.(:post, "/commands/#{n}", Contract.example(:link, name))
+        assert answered.status == 200
+        Contract.assert_valid!(:link, "command-answer-response", answered.body)
+      end
+
+      missing = raw.(:post, "/commands/999", %{"status" => "done"})
+      assert missing.status == 404
+      Contract.assert_valid!(:link, "error", missing.body)
+    end
+  end
+
+  describe "revision 2, as the box speaks it" do
+    test "the commands of the example are fetched, and each answer fits command-answer-request" do
+      answers = :ets.new(:answers, [:public, :bag])
+
+      serve(%{
+        {"GET", v1("/commands")} => ok("commands-response"),
+        {"POST", v1("/commands/1")} => fn body ->
+          :ets.insert(answers, {1, body})
+          ok("command-answer-response")
+        end,
+        {"POST", v1("/commands/2")} => fn body ->
+          :ets.insert(answers, {2, body})
+          ok("command-answer-response.failed")
+        end
+      })
+
+      link =
+        Repo.insert!(%Link{root: @root, secret: "oplt_example", revision: 2, commands: 2})
+
+      assert {:ok, commands} = Client.commands(link)
+      assert length(commands) == 2
+
+      # This box holds no tournament 1, so both are refused - by name.
+      assert :ok = Commands.run(link)
+
+      for {id, body} <- :ets.tab2list(answers) do
+        Contract.assert_valid!(:link, "command-answer-request", body)
+        assert body["status"] == "failed" and body["error"] == "other_tournament", "#{id}"
+      end
+
+      assert length(:ets.tab2list(answers)) == 2
+    end
+
+    test "the tables the box builds fit tables-request, and the answer is read" do
+      {_link, tournament} = link_with("tournament-response")
+
+      {:ok, _board} =
+        Alnasl.Boards.create(%{
+          name: "Board 3",
+          driver: "simulator",
+          port: "sim-contract",
+          enabled: false,
+          serial: "06310",
+          table_no: 3,
+          tournament_id: tournament.id,
+          round: 1,
+          board_no: 1
+        })
+
+      tables = TablesReporter.tables(tournament)
+      assert [%{"state" => "no_signal"}] = tables
+      Contract.assert_valid!(:link, "tables-request", %{"tables" => tables})
+
+      link = %Link{root: @root, secret: "oplt_example"}
+      serve(%{{"POST", v1("/tournaments/1/tables")} => ok("tables-response")})
+      assert Client.tables(link, 1, tables) == {:ok, 2}
+      Contract.assert_valid!(:link, "tables-request", sent("POST", v1("/tournaments/1/tables")))
     end
   end
 

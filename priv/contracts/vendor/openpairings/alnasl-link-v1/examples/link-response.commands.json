@@ -1,0 +1,21 @@
+{
+  "api": 1,
+  "commands": 2,
+  "group": null,
+  "kind": "tournament",
+  "poll_seconds": 5,
+  "revision": 2,
+  "server": {
+    "name": "OpenPairings",
+    "version": "0.128.0"
+  },
+  "tournaments": [
+    {
+      "id": 1,
+      "label": null,
+      "name": "Board Link Open",
+      "state": "setup",
+      "version": "b6c33f0fc1640f1fef7b"
+    }
+  ]
+}

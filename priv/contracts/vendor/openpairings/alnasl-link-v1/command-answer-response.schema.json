@@ -1,0 +1,24 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://raw.githubusercontent.com/teapot-chess/openpairings/main/priv/contracts/alnasl-link-v1/command-answer-response.schema.json",
+  "title": "POST /commands/:id response",
+  "description": "Revision 2. Taken. `state` is what OpenPairings holds: an answer repeated changes nothing and gets the state held. 404 command_not_found for an id that is not this code's.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "status",
+    "state"
+  ],
+  "properties": {
+    "status": {
+      "const": "ok"
+    },
+    "state": {
+      "type": "string",
+      "enum": [
+        "done",
+        "failed"
+      ]
+    }
+  }
+}

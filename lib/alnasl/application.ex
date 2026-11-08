@@ -90,7 +90,7 @@ defmodule Alnasl.Application do
       if(autostart?,
         do:
           Alnasl.Destination.child_specs() ++
-            [Alnasl.OpenPairings.Poller, {Task, &Alnasl.Boards.start_all/0}],
+            Alnasl.OpenPairings.children() ++ [{Task, &Alnasl.Boards.start_all/0}],
         else: []
       ) ++
       [AlnaslWeb.Endpoint]

@@ -1,0 +1,48 @@
+{
+  "tables": [
+    {
+      "board": 12,
+      "name": "Board 3",
+      "table": 3,
+      "serial": "06310",
+      "game": "9b1d6c0e4f7a4a1e8d2c5b6a7f809112",
+      "round": 1,
+      "board_no": 1,
+      "connected": true,
+      "last_seen": "2026-11-08T10:15:02Z",
+      "state": "guessed",
+      "flipped": false,
+      "alarms": ["out_of_turn"],
+      "alarm_detail": "White played Nf3 out of turn",
+      "draft": { "id": 7, "reason": "conflict", "from_ply": 2, "plies": 6 },
+      "guessed_plies": [3],
+      "fen": "rnbqkbnr/pppp1ppp/8/4p3/4P3/5N2/PPPP1PPP/RNBQKB1R b KQkq - 1 2",
+      "last_move": "g1f3",
+      "white_ms": 5371000,
+      "black_ms": 5340000,
+      "running": "black"
+    },
+    {
+      "board": 13,
+      "name": "Spare board",
+      "table": null,
+      "serial": "12799",
+      "game": null,
+      "round": null,
+      "board_no": null,
+      "connected": false,
+      "last_seen": "2026-11-08T09:58:40Z",
+      "state": "no_signal",
+      "flipped": true,
+      "alarms": [],
+      "alarm_detail": null,
+      "draft": null,
+      "guessed_plies": [],
+      "fen": null,
+      "last_move": null,
+      "white_ms": null,
+      "black_ms": null,
+      "running": null
+    }
+  ]
+}

@@ -39,6 +39,12 @@ defmodule Alnasl.OpenPairings do
   alias Alnasl.OpenPairings.{Client, Code, Duplicates, Sync}
   alias Alnasl.Tournaments.{Link, Tournament}
 
+  @doc """
+  The processes of the link: the poller (which also carries out the
+  arbiter's commands) and the tables reporter (board link revision 2).
+  """
+  def children, do: [Alnasl.OpenPairings.Poller, Alnasl.OpenPairings.TablesReporter]
+
   # --- codes -------------------------------------------------------------------
 
   @doc """
@@ -97,6 +103,7 @@ defmodule Alnasl.OpenPairings do
   """
   def remove_link(%Link{} = link) do
     for tournament <- Tournaments.of_link(link), do: Tournaments.remove(tournament)
+    Alnasl.OpenPairings.Commands.forget(link)
     Repo.delete(link)
     Log.add(:info, "link.removed", %{server: Code.host(link.root)})
     Tournaments.notify(nil)
@@ -158,7 +165,9 @@ defmodule Alnasl.OpenPairings do
             group_name: get_in(listing, ["group", "name"]),
             poll_seconds: poll_seconds(listing["poll_seconds"]),
             server_name: text(get_in(listing, ["server", "name"])),
-            server_version: text(get_in(listing, ["server", "version"]))
+            server_version: text(get_in(listing, ["server", "version"])),
+            revision: revision(listing["revision"]),
+            commands: waiting(listing["commands"])
           })
           |> Repo.update!()
 
@@ -176,6 +185,21 @@ defmodule Alnasl.OpenPairings do
 
   defp poll_seconds(n) when is_integer(n) and n >= 1 and n <= 3600, do: n
   defp poll_seconds(_other), do: 5
+
+  # Board link revision 2 (live board control). An OpenPairings from before
+  # it says neither: no revision, no commands.
+  defp revision(n) when is_integer(n) and n >= 1, do: n
+  defp revision(_other), do: nil
+
+  defp waiting(n) when is_integer(n) and n >= 0, do: n
+  defp waiting(_other), do: 0
+
+  @doc """
+  Does the pairing program behind this link take the box's tables and hand
+  it commands (board link revision 2)? An older one does neither, and is
+  never sent either.
+  """
+  def controls?(%Link{revision: revision}), do: is_integer(revision) and revision >= 2
 
   defp text(value) when is_binary(value), do: String.slice(value, 0, 80)
   defp text(_other), do: nil
