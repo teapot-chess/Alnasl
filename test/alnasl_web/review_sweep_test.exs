@@ -104,8 +104,10 @@ defmodule AlnaslWeb.ReviewSweepTest do
 
     test "the box as a whole takes forty wrong tries a minute" do
       for n <- 1..40, do: DoorGuard.failed({10, 0, 0, n}, 0)
-      assert {:wait, 60} = DoorGuard.check({10, 9, 9, 9}, 0)
-      assert DoorGuard.check({10, 9, 9, 9}, 61) == :ok
+      assert {:wait, 60} = DoorGuard.check({10, 0, 0, 1}, 0)
+      assert DoorGuard.check({10, 0, 0, 1}, 61) == :ok
+      # A device that has not failed has two tries of its own meanwhile.
+      assert DoorGuard.check({10, 9, 9, 9}, 0) == :ok
     end
 
     test "Setup takes no new PIN shorter than six characters", %{conn: conn} do

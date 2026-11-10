@@ -9,6 +9,7 @@ defmodule Alnasl.SupportTest do
 
   import AlnaslWeb.AccountHelpers, only: [support_admins: 1]
 
+  alias Alnasl.Repo
   alias Alnasl.Support
   alias Alnasl.Support.Upload
 
@@ -43,6 +44,38 @@ defmodule Alnasl.SupportTest do
       refute Support.admin?(%{email: "help@example.org.evil"})
       refute Support.admin?(%{user: nil})
       refute Support.admin?(nil)
+    end
+  end
+
+  describe "the whole installation's cap" do
+    defp fill(rows, size) do
+      now = DateTime.add(@t0, 60)
+
+      Repo.insert_all(
+        Upload,
+        for n <- 1..rows do
+          %{
+            code: "9" <> String.pad_leading(Integer.to_string(n), 5, "0"),
+            content: "x",
+            size: size,
+            ip_hash: "h#{n}",
+            expires_at: DateTime.add(now, 86_400),
+            inserted_at: now
+          }
+        end
+      )
+    end
+
+    test "full by rows: nobody gets in, whatever the address" do
+      fill(Support.max_rows(), 1)
+      assert send_text("one more", "198.51.100.9") == {:error, :full}
+      assert Repo.aggregate(Upload, :count) == Support.max_rows()
+    end
+
+    test "full by bytes" do
+      fill(1, Support.max_total_bytes() - 3)
+      assert send_text("abcd") == {:error, :full}
+      assert {:ok, _} = send_text("abc")
     end
   end
 

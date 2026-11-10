@@ -158,10 +158,17 @@ defmodule Alnasl.Accounts do
     end)
   end
 
-  @doc "The holder changes the password; every other session of the account ends."
+  @doc """
+  The holder changes the password; every other session of the account ends.
+  The current password is asked and checked, so that a session left open
+  (the remember cookie lasts thirty days) cannot lock the owner out - except
+  after a temporary password (`must_change_password`), which is the one case
+  where the holder does not know what to type.
+  """
   def update_password(%User{} = user, attrs) do
     Repo.transaction(fn ->
-      with {:ok, user} <- user |> User.password_changeset(attrs) |> Repo.update() do
+      with :ok <- check_current_password(user, attrs),
+           {:ok, user} <- user |> User.password_changeset(attrs) |> Repo.update() do
         tokens =
           Repo.all(from t in UserToken, where: t.user_id == ^user.id and t.context == "session")
 
@@ -174,6 +181,23 @@ defmodule Alnasl.Accounts do
         {:error, changeset} -> Repo.rollback(changeset)
       end
     end)
+  end
+
+  defp check_current_password(%User{must_change_password: true}, _attrs), do: :ok
+
+  defp check_current_password(%User{} = user, attrs) do
+    given = attrs["current_password"] || attrs[:current_password]
+
+    if User.valid_password?(user, given) do
+      :ok
+    else
+      changeset =
+        user
+        |> User.password_changeset(attrs)
+        |> Ecto.Changeset.add_error(:current_password, "is not your current password")
+
+      {:error, %{changeset | action: :update}}
+    end
   end
 
   @doc """

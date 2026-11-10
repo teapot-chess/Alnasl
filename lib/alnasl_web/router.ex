@@ -45,11 +45,11 @@ defmodule AlnaslWeb.Router do
     get "/log-in", SessionController, :new
     post "/log-in", SessionController, :create
     delete "/log-out", SessionController, :delete
-    get "/log-in/qr/:token", SessionController, :qr
+    get "/log-in/qr/:token", SessionController, :qr_page
+    post "/log-in/qr/:token", SessionController, :qr
 
     get "/auth/keycloak", KeycloakAuthController, :new
     get "/auth/keycloak/callback", KeycloakAuthController, :callback
-
     get "/invite/:token", InvitationController, :show
     post "/invite/:token", InvitationController, :accept
 
@@ -148,7 +148,7 @@ defmodule AlnaslWeb.Router do
 
     get "/unlock", DoorController, :unlock
     post "/unlock", DoorController, :enter
-    get "/lock", DoorController, :lock
+    post "/lock", DoorController, :lock
     # A person's language: a form, not a link, so nothing a crawler or a
     # prefetching browser follows changes it (`DoorController.locale/2`).
     post "/locale", DoorController, :locale

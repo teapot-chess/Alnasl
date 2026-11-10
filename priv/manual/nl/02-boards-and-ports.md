@@ -85,7 +85,7 @@ Een nieuwe pincode stuurt elke andere browser terug naar de pincodepagina: hun o
 
 Een update van Alnasl 0.17 of ouder maakt een nieuwe pincode. De oude werd alleen als hash bewaard, en die kan Instellingen niet tonen. Daarom wordt hij vervangen, en Instellingen zegt dat één keer en toont de nieuwe op het kastje.
 
-Gokken wordt afgeremd: vanaf de vijfde foute pincode moet een adres wachten, eerst vijf seconden en bij elke volgende mislukking dubbel zo lang (hoogstens een kwartier), ook als de volgende poging juist is, en het hele kastje neemt hoogstens veertig foute pincodes per minuut aan.
+Gokken wordt afgeremd: vanaf de vijfde foute pincode moet een adres wachten, eerst vijf seconden en bij elke volgende mislukking dubbel zo lang (hoogstens een kwartier), ook als de volgende poging juist is, en het hele kastje neemt hoogstens veertig foute pincodes per minuut aan. Staat die grens aan, dan krijgt een apparaat dat nog niet is mislukt toch twee eigen pogingen, zodat wie de juiste pincode heeft niet buitengesloten wordt door het gokken van een ander.
 
 De browser van het kastje zelf heeft de pincode nooit nodig, zolang je de site opent als `localhost` (of `127.0.0.1`, of de eigen naam van de computer). Onder elke andere naam wordt de pincode gevraagd, ook op het kastje zelf: zo blijft een webpagina van elders, open in een browser op dezelfde computer, buiten.
 

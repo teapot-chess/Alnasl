@@ -147,7 +147,7 @@ defmodule AlnaslWeb.SpareLive do
             )}
           </p>
           <.form
-            :if={@may_admin}
+            :if={@may_admin and @may_box}
             for={@pair_form}
             id="spare-pair-form"
             phx-submit="pair"
@@ -238,7 +238,7 @@ defmodule AlnaslWeb.SpareLive do
                 {gettext("Take over")}
               </.button>
             </div>
-            <form :if={@may_admin} id="spare-auto-form" phx-change="auto">
+            <form :if={@may_admin and @may_box} id="spare-auto-form" phx-change="auto">
               <input type="hidden" name="auto" value="false" />
               <label>
                 <input
@@ -281,7 +281,7 @@ defmodule AlnaslWeb.SpareLive do
               {gettext("Ask the cloud now")}
             </.button>
             <.button
-              :if={@may_admin}
+              :if={@may_admin and @may_box}
               id="spare-leave"
               small
               variant="danger"

@@ -21,12 +21,15 @@ defmodule AlnaslWeb.UserAuth do
   alias Alnasl.Accounts.{User, UserToken}
 
   @remember_cookie "_alnasl_remember"
-  @remember_options [
-    sign: true,
-    max_age: UserToken.session_days() * 86_400,
-    same_site: "Lax",
-    http_only: true
-  ]
+  defp remember_options do
+    [
+      sign: true,
+      max_age: UserToken.session_days() * 86_400,
+      same_site: "Lax",
+      http_only: true,
+      secure: AlnaslWeb.Endpoint.secure_cookies?()
+    ]
+  end
 
   @doc "Puts `current_scope` on the request: the account signed in (or none) and its hall."
   def fetch_current_scope(conn, _opts) do
@@ -66,7 +69,7 @@ defmodule AlnaslWeb.UserAuth do
     |> renew()
     |> put_session(:hall_id, hall_id)
     |> put_token(token)
-    |> put_resp_cookie(@remember_cookie, token, @remember_options)
+    |> put_resp_cookie(@remember_cookie, token, remember_options())
     |> redirect(to: if(user.must_change_password, do: ~p"/account", else: safe(return_to)))
   end
 
@@ -80,7 +83,7 @@ defmodule AlnaslWeb.UserAuth do
 
     conn
     |> renew()
-    |> delete_resp_cookie(@remember_cookie, @remember_options)
+    |> delete_resp_cookie(@remember_cookie, remember_options())
     |> redirect(to: ~p"/log-in")
   end
 

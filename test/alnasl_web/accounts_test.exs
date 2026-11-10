@@ -123,11 +123,16 @@ defmodule AlnaslWeb.AccountsTest do
 
       # The token itself is only in the link: take it from a fresh one.
       token = Accounts.create_qr_token(owner)
-      phone = get(build_conn(), ~p"/log-in/qr/#{token}?to=/boards/number")
+      # Opening the link (a previewer does) uses nothing up; the button does.
+      page = get(build_conn(), ~p"/log-in/qr/#{token}?to=/boards/number")
+      assert html_response(page, 200) =~ "log-in-qr-form"
+      refute get_session(page, :user_token)
+
+      phone = post(build_conn(), ~p"/log-in/qr/#{token}", %{"to" => "/boards/number"})
       assert redirected_to(phone) == "/boards/number"
       assert get_session(phone, :user_token)
 
-      again = get(build_conn(), ~p"/log-in/qr/#{token}")
+      again = post(build_conn(), ~p"/log-in/qr/#{token}")
       assert redirected_to(again) == "/log-in"
       refute get_session(again, :user_token)
     end
@@ -142,7 +147,7 @@ defmodule AlnaslWeb.AccountsTest do
       )
 
       assert Accounts.use_qr_token(token) == :error
-      assert redirected_to(get(build_conn(), ~p"/log-in/qr/#{token}")) == "/log-in"
+      assert redirected_to(post(build_conn(), ~p"/log-in/qr/#{token}")) == "/log-in"
     end
   end
 
@@ -342,6 +347,31 @@ defmodule AlnaslWeb.AccountsTest do
 
       assert redirected_to(signed) == "/account"
       assert redirected_to(get(recycle(signed), ~p"/boards")) == "/account"
+    end
+
+    test "changing the password asks for the current one", %{conn: conn} do
+      user = user_fixture("keeper@example.org")
+      conn = log_in(conn, user, hall_fixture("Annex"))
+
+      new = %{
+        "password" => "a-brand-new-password",
+        "password_confirmation" => "a-brand-new-password"
+      }
+
+      refused = put(conn, ~p"/account/password", %{"user" => new})
+      assert refused.status == 422
+
+      wrong =
+        put(conn, ~p"/account/password", %{"user" => Map.put(new, "current_password", "nope")})
+
+      assert html_response(wrong, 422) =~ "is not your current password"
+      assert Alnasl.Accounts.get_user_by_email_and_password(user.email, password())
+
+      ok =
+        put(conn, ~p"/account/password", %{"user" => Map.put(new, "current_password", password())})
+
+      assert redirected_to(ok) == "/account"
+      assert Alnasl.Accounts.get_user_by_email_and_password(user.email, "a-brand-new-password")
     end
   end
 end

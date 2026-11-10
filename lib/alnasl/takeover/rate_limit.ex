@@ -42,6 +42,44 @@ defmodule Alnasl.Takeover.RateLimit do
   end
 
   @doc """
+  For limits that count only failures: counts the attempt *before* it is
+  judged, in one atomic step, so that a burst of parallel attempts cannot
+  all pass a look taken before any of them was counted. `{:ok, ref}` -
+  hand `ref` to `refund/1` when the attempt turns out to be no failure -
+  or `{:error, seconds}`, counted as nothing beyond the limit.
+  """
+  def claim(key, limit, window_ms, now \\ System.system_time(:millisecond)) do
+    window = div(now, window_ms)
+    full = {key, window_ms, window}
+
+    if :ets.whereis(@table) == :undefined do
+      {:ok, nil}
+    else
+      # Count first, then judge; a refused attempt takes its own count back,
+      # so refusals do not pile up and a refund is always of a real attempt.
+      count = :ets.update_counter(@table, full, 1, {full, 0})
+
+      if count <= limit do
+        {:ok, full}
+      else
+        :ets.update_counter(@table, full, {2, -1, 0, 0})
+        {:error, max(div((window + 1) * window_ms - now, 1000), 1)}
+      end
+    end
+  end
+
+  @doc "Takes back what `claim/4` counted, for an attempt that was no failure."
+  def refund(nil), do: :ok
+
+  def refund(full) do
+    if :ets.whereis(@table) != :undefined do
+      :ets.update_counter(@table, full, {2, -1, 0, 0}, {full, 0})
+    end
+
+    :ok
+  end
+
+  @doc """
   The same answer as `hit/4` would give, without counting: for limits that
   count only failures, asked before the attempt and hit after a failed one.
   """

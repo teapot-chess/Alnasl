@@ -78,8 +78,10 @@ defmodule Alnasl.Takeover.Client do
         case URI.parse(link) do
           %URI{scheme: scheme, host: host, path: "/takeover/join/" <> code} = uri
           when scheme in ["http", "https"] and is_binary(host) and host != "" ->
-            server = URI.to_string(%URI{scheme: scheme, host: host, port: uri.port})
-            {:ok, server, dashed(code)}
+            with :ok <- Alnasl.PrivateHost.check(uri) do
+              server = URI.to_string(%URI{scheme: scheme, host: host, port: uri.port})
+              {:ok, server, dashed(code)}
+            end
 
           _other ->
             {:error, :bad_link}

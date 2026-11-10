@@ -32,8 +32,8 @@ defmodule Alnasl.Markdown do
 
   # Attribute names are not escapable (an attacker-supplied name is a new
   # attribute, not a value), so they are a closed set too. `style` is here
-  # only because earmark_parser puts table alignment and the step counter
-  # there.
+  # only because earmark_parser puts table alignment and the manual the step
+  # counter there; `attributes/1` lets through those two values and no other.
   @attributes ~w(class style title id rel role aria-label aria-hidden tabindex start data-callout)
 
   @doc "The parser's AST for `markdown` (GFM), for the manual to rewrite before `render_ast/1`."
@@ -68,12 +68,23 @@ defmodule Alnasl.Markdown do
     attrs
     |> Enum.filter(fn
       {"href", value} -> safe_url?(to_string(value))
+      {"style", value} -> safe_style?(to_string(value))
       {name, _value} -> name in @attributes
     end)
     |> Enum.map_join(fn {name, value} ->
       " " <> name <> ~s(=") <> escape_attribute(to_string(value)) <> ~s(")
     end)
   end
+
+  # `style` is allowed for the two things the parser and the manual put
+  # there, and for nothing a document could write itself: table alignment
+  # and the step counter.
+  defp safe_style?(value),
+    do:
+      Regex.match?(
+        ~r/\A(text-align: ?(left|right|center)|counter-reset: step \d{1,3});?\z/,
+        value
+      )
 
   defp safe_url?(url) do
     trimmed = url |> String.trim() |> String.downcase()

@@ -222,10 +222,36 @@ defmodule Alnasl.AccessPinTest do
       assert DoorGuard.claim(ip, 0) == :ok
     end
 
-    test "forty failures a minute across the box, then everybody waits" do
+    test "forty failures a minute across the box, then every address that has failed waits" do
       for n <- 1..40, do: assert(DoorGuard.claim({10, 1, 0, n}, 0) == :ok)
-      assert {:wait, 60} = DoorGuard.claim({10, 9, 9, 9}, 0)
-      assert DoorGuard.claim({10, 9, 9, 9}, 61) == :ok
+      assert {:wait, 60} = DoorGuard.claim({10, 1, 0, 1}, 0)
+      assert DoorGuard.claim({10, 1, 0, 1}, 61) == :ok
+    end
+
+    test "under the box-wide cap an address that has not failed still gets two tries" do
+      for n <- 1..40, do: assert(DoorGuard.claim({10, 1, 0, n}, 0) == :ok)
+      fresh = {10, 9, 9, 9}
+
+      assert DoorGuard.check(fresh, 0) == :ok
+      assert DoorGuard.claim(fresh, 0) == :ok
+      assert DoorGuard.claim(fresh, 0) == :ok
+      assert {:wait, 60} = DoorGuard.claim(fresh, 0)
+      assert {:wait, 60} = DoorGuard.check(fresh, 0)
+
+      # A right PIN on the first try goes in, and the grace is not spent twice.
+      other = {10, 9, 9, 10}
+      assert DoorGuard.claim(other, 0) == :ok
+      DoorGuard.succeeded(other)
+      assert DoorGuard.claim(other, 0) == :ok
+      assert DoorGuard.claim(other, 0) == :ok
+      assert {:wait, 60} = DoorGuard.claim(other, 0)
+    end
+
+    test "the grace is for a device that has not failed: failing first spends it" do
+      ip = {10, 9, 8, 7}
+      assert DoorGuard.claim(ip, 0) == :ok
+      for n <- 1..40, do: DoorGuard.claim({10, 1, 0, n}, 0)
+      assert {:wait, 60} = DoorGuard.claim(ip, 0)
     end
 
     test "a burst cannot outrun the count" do

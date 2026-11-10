@@ -128,7 +128,7 @@ defmodule Alnasl.DuplicateCodesTest do
       # Same id and same version, but another server and another hall: a
       # listing says what its server likes, so this is nobody's twin.
       hall_b = Repo.insert!(%Alnasl.Halls.Hall{name: "Hall B", own: false})
-      stranger = FakeOpenPairings.at(code, "http://pc-in-the-hall:4747/api/boards/v1")
+      stranger = FakeOpenPairings.at(code, "http://pc-in-the-hall.local:4747/api/boards/v1")
 
       assert {:ok, other, [second]} = OpenPairings.add_code(stranger, hall_b.id)
       assert second.id != open.id
@@ -148,7 +148,7 @@ defmodule Alnasl.DuplicateCodesTest do
         set: [listed_version: "older", version: "older"]
       )
 
-      lan = FakeOpenPairings.at(code, "http://pc-in-the-hall:4747/api/boards/v1")
+      lan = FakeOpenPairings.at(code, "http://pc-in-the-hall.local:4747/api/boards/v1")
       {:ok, other, _found} = OpenPairings.add_code(lan)
 
       assert [%{id: id}] = rows(17)

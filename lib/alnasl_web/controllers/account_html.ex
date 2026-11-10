@@ -10,9 +10,11 @@ defmodule AlnaslWeb.AccountHTML do
     <Layouts.door flash={@flash} id="account" title={gettext("Your account")}>
       <div class="stack">
         <p id="account-email" class="mono">{@user.email}</p>
+
         <p :if={@scope.admin?} id="account-admin" class="note">
           {gettext("You are an admin: every hall, and Alnasl itself.")}
         </p>
+
         <ul id="account-halls" class="addresses">
           <li :for={{hall, role} <- @roles} id={"account-hall-#{hall.id}"}>
             <a href={~p"/halls/#{hall.id}/enter"}>{hall.name}</a>
@@ -31,6 +33,14 @@ defmodule AlnaslWeb.AccountHTML do
           method="put"
           class="stack"
         >
+          <.input
+            :if={!@user.must_change_password}
+            field={@form[:current_password]}
+            type="password"
+            label={gettext("Your current password")}
+            autocomplete="current-password"
+            required
+          />
           <.input
             field={@form[:password]}
             type="password"
@@ -58,6 +68,7 @@ defmodule AlnaslWeb.AccountHTML do
           <.button :if={!@user.must_change_password} id="account-back" href={~p"/"}>
             {gettext("Back to the boards")}
           </.button>
+
           <.button id="account-log-out" variant="ghost" href={~p"/log-out"} method="delete">
             {gettext("Sign out")}
           </.button>

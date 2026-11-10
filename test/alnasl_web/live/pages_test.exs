@@ -777,7 +777,7 @@ defmodule AlnaslWeb.PagesTest do
       assert inside |> get(~p"/help") |> html_response(200)
       assert {:ok, _view, _html} = live(inside, ~p"/help")
 
-      locked = inside |> get(~p"/lock") |> recycle() |> from_elsewhere()
+      locked = inside |> post(~p"/lock") |> recycle() |> from_elsewhere()
       assert redirected_to(get(locked, ~p"/help")) == ~p"/unlock"
       kinds = Enum.map(Log.list(), & &1.kind)
       assert "door.unlocked" in kinds and "door.refused" in kinds

@@ -342,17 +342,28 @@ defmodule Alnasl.Takeover.Cloud do
   bad event in it).
   """
   def put_events(%Box{} = box, epoch, events) when is_list(events) do
+    # The lease is read and the events written inside one write transaction
+    # (`in_lease/2`): a `take_over` cannot commit between the two.
     with :ok <- holds(box, epoch),
          {:ok, rows} <- validate_events(box, epoch, events) do
-      Repo.insert_all(Event, rows, on_conflict: :nothing, conflict_target: [:hall_id, :event_id])
-      {:ok, Enum.reduce(rows, 0, &max(&1.seq, &2))}
+      in_lease(box.hall_id, fn lease ->
+        with :ok <- holds(lease, box, epoch) do
+          Repo.insert_all(Event, rows,
+            on_conflict: :nothing,
+            conflict_target: [:hall_id, :event_id]
+          )
+
+          {:ok, Enum.reduce(rows, 0, &max(&1.seq, &2))}
+        end
+      end)
     end
   end
 
   def put_events(_box, _epoch, _events), do: {:error, :invalid}
 
-  defp holds(box, epoch) do
-    lease = lease(box.hall_id)
+  defp holds(box, epoch), do: holds(lease(box.hall_id), box, epoch)
+
+  defp holds(lease, box, epoch) do
     if lease.box_id == box.id and lease.epoch == epoch, do: :ok, else: {:error, :stale}
   end
 
@@ -418,18 +429,21 @@ defmodule Alnasl.Takeover.Cloud do
   already here: `mark` is the last of them.
   """
   def put_state(%Box{} = box, epoch, %{} = data) do
-    with :ok <- holds(box, epoch),
-         {:ok, json} <- Jason.encode(data) do
-      mark =
-        Repo.one(from e in Event, where: e.hall_id == ^box.hall_id, select: max(e.id)) || 0
+    with {:ok, json} <- Jason.encode(data) do
+      in_lease(box.hall_id, fn lease ->
+        with :ok <- holds(lease, box, epoch) do
+          mark =
+            Repo.one(from e in Event, where: e.hall_id == ^box.hall_id, select: max(e.id)) || 0
 
-      Repo.insert!(
-        %State{hall_id: box.hall_id, box_id: box.id, epoch: epoch, mark: mark, data: json},
-        on_conflict: {:replace, [:box_id, :epoch, :mark, :data, :updated_at]},
-        conflict_target: :hall_id
-      )
+          Repo.insert!(
+            %State{hall_id: box.hall_id, box_id: box.id, epoch: epoch, mark: mark, data: json},
+            on_conflict: {:replace, [:box_id, :epoch, :mark, :data, :updated_at]},
+            conflict_target: :hall_id
+          )
 
-      :ok
+          :ok
+        end
+      end)
     end
   end
 
