@@ -33,6 +33,11 @@
         "host": { "type": ["string", "null"] }
       }
     },
+    "kind": {
+      "description": "Added in revision 2. What shape the tournament is. Absent means a round-based tournament (Swiss, round robin, Keizer, a team event), which is every snapshot before revision 2. \"flow\": a Flow tournament - no rounds, whoever is free is paired from a pool - whose games, pool and standings are in `flow`; `rounds` is then [] and `standings` absent. A reader that does not know a kind should say it cannot show the tournament rather than draw an empty round list.",
+      "enum": ["flow"]
+    },
+    "flow": { "$ref": "#/definitions/flow" },
     "tournament": { "$ref": "#/definitions/tournament" },
     "players": { "type": "array", "items": { "$ref": "#/definitions/player" } },
     "rounds": {
@@ -71,6 +76,136 @@
     "board_stats": { "type": "array", "items": { "$ref": "#/definitions/boardStat" } }
   },
   "definitions": {
+    "flow": {
+      "description": "Revision 2, `kind: \"flow\"` only. A Flow tournament as it stands: settings, every game so far, who is waiting, and the standings exactly as the arbiter's app ranks them. Players are named by `no` like everywhere else; in a Flow tournament the numbers follow the order the players were entered in and stay put when someone is added.",
+      "type": "object",
+      "required": ["style", "games", "pool", "standings"],
+      "additionalProperties": true,
+      "properties": {
+        "style": {
+          "description": "normal: plain points. arena: win 2, draw 1, loss 0, doubled while on fire (two wins in a row), berserk +1 for a won game; a fixed end time (`deadline`).",
+          "enum": ["normal", "arena"]
+        },
+        "ranking": {
+          "description": "How `standings` was ranked: points (ties to fewer games), percentage (points per game; nobody without a game is ranked), min_games (points, among players with at least `min_games` games; the others follow unranked), arena (arena points). Informational: `standings` is already in this order.",
+          "enum": ["points", "percentage", "min_games", "arena"]
+        },
+        "min_games": { "type": "integer", "minimum": 0 },
+        "deadline": {
+          "description": "ISO 8601, UTC. No new games from then on; in an arena, the end time. Null: none set.",
+          "$ref": "#/definitions/nullableString"
+        },
+        "ended_at": {
+          "description": "ISO 8601, UTC: when the arbiter pressed End tournament. Null: not ended.",
+          "$ref": "#/definitions/nullableString"
+        },
+        "closed": {
+          "description": "Why no new game starts, or null while games still start: ended (by the arbiter; running games finish and count), deadline_passed, finished (every game has its result).",
+          "enum": [null, "ended", "deadline_passed", "finished"]
+        },
+        "games": {
+          "description": "Every game so far, oldest first (the order they were paired). A board number is reused: board 3 hosts one game after another, so `id` and never `board` identifies a game. A game with `finished_at` null is being played.",
+          "type": "array",
+          "items": { "$ref": "#/definitions/flowGame" }
+        },
+        "pool": {
+          "type": "object",
+          "required": ["waiting", "away"],
+          "additionalProperties": true,
+          "properties": {
+            "waiting": {
+              "description": "Free and waiting to be paired, longest waiting first.",
+              "type": "array",
+              "items": { "$ref": "#/definitions/flowWaiter" }
+            },
+            "away": {
+              "description": "Taking a break: never paired until they are back.",
+              "type": "array",
+              "items": { "$ref": "#/definitions/flowWaiter" }
+            }
+          }
+        },
+        "standings": {
+          "description": "In rank order, ranked rows first; this server never ranks. Empty while results are withheld.",
+          "type": "array",
+          "items": { "$ref": "#/definitions/flowStanding" }
+        }
+      }
+    },
+    "flowGame": {
+      "type": "object",
+      "required": ["id", "board", "white", "black", "result", "started_at", "finished_at"],
+      "additionalProperties": true,
+      "properties": {
+        "id": {
+          "description": "The game's identity for life (the publisher's game uid): stable across publishes, unlike the board.",
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 64
+        },
+        "board": { "type": "integer", "minimum": 1 },
+        "white": { "$ref": "#/definitions/no" },
+        "black": { "$ref": "#/definitions/no" },
+        "result": {
+          "description": "null: still playing, cleared, or withheld. A result can change after `finished_at` (a correction): compare by `id`.",
+          "anyOf": [{ "$ref": "common.schema.json#/definitions/resultToken" }, { "type": "null" }]
+        },
+        "started_at": { "description": "ISO 8601, UTC.", "type": "string" },
+        "finished_at": {
+          "description": "ISO 8601, UTC: when its first result came in. Null while it is being played. Clearing or correcting the result later does not change it.",
+          "$ref": "#/definitions/nullableString"
+        },
+        "points": {
+          "description": "What each side scored, in the tournament's points (arena points in an arena). Absent while there is no result, or when withheld.",
+          "type": "object",
+          "additionalProperties": true,
+          "properties": {
+            "white": { "type": "number" },
+            "black": { "type": "number" }
+          }
+        },
+        "fire": {
+          "description": "Arena only: the sides that scored double in this game because they were on fire. Absent when neither did.",
+          "type": "array",
+          "items": { "enum": ["white", "black"] }
+        },
+        "berserk": {
+          "description": "Arena only: the sides that went berserk in this game. Absent when neither did.",
+          "type": "array",
+          "items": { "enum": ["white", "black"] }
+        }
+      }
+    },
+    "flowWaiter": {
+      "type": "object",
+      "required": ["no"],
+      "additionalProperties": true,
+      "properties": {
+        "no": { "$ref": "#/definitions/no" },
+        "since": {
+          "description": "ISO 8601, UTC: waiting (or away) since. Null when not known.",
+          "$ref": "#/definitions/nullableString"
+        }
+      }
+    },
+    "flowStanding": {
+      "type": "object",
+      "required": ["no", "rank", "points", "games"],
+      "additionalProperties": true,
+      "properties": {
+        "no": { "$ref": "#/definitions/no" },
+        "rank": { "description": "Null for an unranked row (min_games short, or no game under percentage).", "$ref": "#/definitions/nullableInteger" },
+        "points": { "description": "Arena points in an arena, else the tournament's points.", "type": "number" },
+        "games": { "type": "integer", "minimum": 0 },
+        "wins": { "type": "integer", "minimum": 0 },
+        "draws": { "type": "integer", "minimum": 0 },
+        "losses": { "type": "integer", "minimum": 0 },
+        "percentage": { "description": "Wins and half the draws per game, as a percentage. Null with no games.", "type": ["number", "null"] },
+        "performance": { "description": "Mean rating of the rated opponents + 400 x (wins - losses) / games against them. Null without a rated opponent.", "$ref": "#/definitions/nullableInteger" },
+        "fire": { "description": "Arena only: on fire now (the next win scores double).", "type": "boolean" },
+        "streak": { "description": "Arena only: wins in a row now.", "type": "integer", "minimum": 0 }
+      }
+    },
     "nullableString": { "type": ["string", "null"] },
     "nullableInteger": { "type": ["integer", "null"] },
     "no": {
@@ -93,8 +228,8 @@
         "end_date": { "description": "YYYY-MM-DD", "$ref": "#/definitions/nullableString" },
         "rounds_count": { "$ref": "#/definitions/nullableInteger" },
         "system": {
-          "description": "Keizer standings carry different columns; the renderer keys off this. A team Swiss is `swiss` with `team_event: true`.",
-          "enum": ["swiss", "roundrobin", "keizer"]
+          "description": "Keizer standings carry different columns; the renderer keys off this. A team Swiss is `swiss` with `team_event: true`. `flow` (revision 2) comes with the top-level `kind: \"flow\"`.",
+          "enum": ["swiss", "roundrobin", "keizer", "flow"]
         },
         "swiss_variant": {
           "description": "Which Swiss pairing system, beside `system: swiss` only. Absent: not said - every publisher before this field paired the Dutch system (C.04.3). Adding a value here is an additive change.",
