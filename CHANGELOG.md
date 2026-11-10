@@ -19,6 +19,8 @@ section, word for word. See [docs/releasing.md](docs/releasing.md).
 
 ## [Unreleased]
 
+- [Fix] **Built on Arkab 0.6.0.** A bridge that meets a server restored from a backup now takes the server at its word and sends again what the server says it is missing, instead of politely keeping its own count and sending nothing. Plain http to anything outside the hall's own network is refused there too.
+
 - [Security] **Changing the password asks for the current one.** A session left open, and the remember cookie that lasts thirty days, could set a new password and lock the owner out of their own house. Now the form asks for the password you have, except after a temporary one, which is the one case where you cannot know it.
 - [Security] **On a box without accounts, four things are the box's own.** Updates, the tracker's reset, pairing with a hall in the cloud and the off-site backup were open to every phone that had been told the PIN, which in a hall is a fairly large committee. Now only the box's own browser does them; the buttons are gone elsewhere and a hand-made event is refused with a word.
 - [Security] **The write fence of a hall takeover is one step, not two.** The cloud looked up who held the lease, then wrote the events; a takeover in between let a stale box's events in. The look and the write now happen in one write transaction.
