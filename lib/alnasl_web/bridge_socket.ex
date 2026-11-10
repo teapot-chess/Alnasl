@@ -162,6 +162,15 @@ defmodule AlnaslWeb.BridgeSocket do
       for map <- raw, {:ok, event} <- [Protocol.decode_event(map)], do: event
 
     highest = Enum.reduce(raw, seen, &max(&2, seq(&1)))
+
+    undecoded = length(raw) - length(decoded)
+
+    if undecoded > 0,
+      do:
+        Logger.warning(
+          "bridge #{state.bridge.name}: #{undecoded} event(s) did not decode and were dropped"
+        )
+
     fresh = Enum.filter(decoded, &(&1.seq > seen))
 
     case apply_events(state, Enum.chunk_by(fresh, & &1.id), seen) do
