@@ -19,6 +19,8 @@ section, word for word. See [docs/releasing.md](docs/releasing.md).
 
 ## [Unreleased]
 
+## [0.18.0] - 2026-11-10
+
 - [Fix] **Built on Arkab 0.6.0.** A bridge that meets a server restored from a backup now takes the server at its word and sends again what the server says it is missing, instead of politely keeping its own count and sending nothing. Plain http to anything outside the hall's own network is refused there too.
 
 - [Security] **Changing the password asks for the current one.** A session left open, and the remember cookie that lasts thirty days, could set a new password and lock the owner out of their own house. Now the form asks for the password you have, except after a temporary one, which is the one case where you cannot know it.
