@@ -71,6 +71,29 @@
         }
       }
     },
+    "pools": {
+      "description": "Added in revision 3. A Swiss that finishes in pools of 4 (the last rounds are small round robins cut from the Swiss standings): the final ranking pool by pool, as the arbiter's own \"Final ranking - pools of 4\" table shows it. Present only once the pools are cut AND standings.after_round is a pool round; absent before that (the Swiss standings stand), for every other tournament and from an older publisher. Capped exactly as `standings` is: pool games count through `after_round` (always standings.after_round) only, and a withheld player has no row. `standings` carries the same final order as one list, so a reader that ignores `pools` still ranks correctly; `pools` adds the grouping, the pool points and the head-to-head that decided it.",
+      "type": "object",
+      "additionalProperties": true,
+      "required": ["swiss_rounds", "after_round", "pools"],
+      "properties": {
+        "swiss_rounds": {
+          "description": "The Swiss rounds the pools were cut after; rounds after it are pool rounds.",
+          "type": "integer",
+          "minimum": 0
+        },
+        "after_round": {
+          "description": "The round the pool points go through; equal to standings.after_round.",
+          "type": "integer",
+          "minimum": 1
+        },
+        "pools": {
+          "description": "The pools in order: pool 1 takes the first places, pool 2 the next ones.",
+          "type": "array",
+          "items": { "$ref": "#/definitions/swissPool" }
+        }
+      }
+    },
     "teams": { "type": "array", "items": { "$ref": "#/definitions/team" } },
     "team_standings": { "$ref": "#/definitions/teamStandings" },
     "board_stats": { "type": "array", "items": { "$ref": "#/definitions/boardStat" } }
@@ -211,6 +234,34 @@
     "no": {
       "description": "A tournament pairing number (TRF start number) - the only handle that identifies a player or a team anywhere in the document.",
       "type": "integer"
+    },
+    "swissPool": {
+      "description": "Added in revision 3. One pool of a pools-of-4 finish, its rows in final order.",
+      "type": "object",
+      "additionalProperties": true,
+      "required": ["number", "first_place", "last_place", "rows"],
+      "properties": {
+        "number": { "type": "integer", "minimum": 1 },
+        "first_place": { "description": "The first overall place this pool decides.", "type": "integer", "minimum": 1 },
+        "last_place": { "description": "The last overall place this pool decides.", "type": "integer", "minimum": 1 },
+        "rows": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": true,
+            "required": ["player", "rank", "place", "points"],
+            "properties": {
+              "player": { "$ref": "#/definitions/no" },
+              "rank": { "description": "The overall final place, first_place..last_place; the same as the player's standings rank.", "type": "integer", "minimum": 1 },
+              "place": { "description": "The place within the pool, from 1.", "type": "integer", "minimum": 1 },
+              "points": { "description": "Pool points: the pool's own games only, everybody starting the pool at 0.", "type": "number" },
+              "games": { "description": "Pool games with a result.", "type": "integer", "minimum": 0 },
+              "h2h": { "description": "Points among the players level on pool points (the mini-table); null when nobody is level with this player.", "type": ["number", "null"] },
+              "swiss_place": { "description": "The player's place in the Swiss standings the pools were cut from.", "type": "integer", "minimum": 1 }
+            }
+          }
+        }
+      }
     },
     "tournament": {
       "type": "object",

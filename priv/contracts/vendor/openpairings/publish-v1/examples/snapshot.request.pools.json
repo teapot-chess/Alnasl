@@ -1,0 +1,73 @@
+{
+  "schema": "openresults/snapshot",
+  "version": 1,
+  "published_at": "2026-11-01T17:30:00Z",
+  "source": { "app": "openpairings", "version": "0.136.0" },
+  "tournament": {
+    "slug": "contract-pools-2026",
+    "name": "Contract Youth Cup 2026",
+    "city": "Aalst",
+    "federation": "BEL",
+    "start_date": "2026-11-01",
+    "end_date": "2026-11-01",
+    "rounds_count": 5,
+    "system": "swiss",
+    "swiss_variant": "dutch"
+  },
+  "players": [
+    { "no": 1, "name": "Alpha, Anna", "rating": 1500 },
+    { "no": 2, "name": "Bravo, Bart", "rating": 1450 },
+    { "no": 3, "name": "Charlie, Chris", "rating": 1400 },
+    { "no": 4, "name": "Delta, Dirk", "rating": 1350 },
+    { "no": 5, "name": "Echo, Els", "rating": 1300 },
+    { "no": 6, "name": "Foxtrot, Fien", "rating": 1250 },
+    { "no": 7, "name": "Golf, Gust", "rating": 1200 },
+    { "no": 8, "name": "Hotel, Hanne", "rating": 1150 }
+  ],
+  "standings": {
+    "after_round": 5,
+    "manual_order": false,
+    "manual_stale": false,
+    "manual_incomplete": false,
+    "tiebreaks": [{ "code": "BH", "label": "Buchholz" }],
+    "tiebreaks_withheld": false,
+    "rows": [
+      { "rank": 1, "player": 1, "points": 4.0, "tiebreaks": [11.0], "working": {}, "category": null },
+      { "rank": 2, "player": 3, "points": 3.5, "tiebreaks": [11.5], "working": {}, "category": null },
+      { "rank": 3, "player": 2, "points": 3.0, "tiebreaks": [12.0], "working": {}, "category": null },
+      { "rank": 4, "player": 4, "points": 1.5, "tiebreaks": [12.5], "working": {}, "category": null },
+      { "rank": 5, "player": 5, "points": 3.0, "tiebreaks": [9.0], "working": {}, "category": null },
+      { "rank": 6, "player": 6, "points": 2.0, "tiebreaks": [8.5], "working": {}, "category": null },
+      { "rank": 7, "player": 7, "points": 2.0, "tiebreaks": [8.0], "working": {}, "category": null },
+      { "rank": 8, "player": 8, "points": 1.0, "tiebreaks": [8.0], "working": {}, "category": null }
+    ]
+  },
+  "pools": {
+    "swiss_rounds": 2,
+    "after_round": 5,
+    "pools": [
+      {
+        "number": 1,
+        "first_place": 1,
+        "last_place": 4,
+        "rows": [
+          { "player": 1, "rank": 1, "place": 1, "points": 2.5, "games": 3, "h2h": null, "swiss_place": 1 },
+          { "player": 3, "rank": 2, "place": 2, "points": 1.5, "games": 3, "h2h": 1.0, "swiss_place": 3 },
+          { "player": 2, "rank": 3, "place": 3, "points": 1.5, "games": 3, "h2h": 0.0, "swiss_place": 2 },
+          { "player": 4, "rank": 4, "place": 4, "points": 0.5, "games": 3, "h2h": null, "swiss_place": 4 }
+        ]
+      },
+      {
+        "number": 2,
+        "first_place": 5,
+        "last_place": 8,
+        "rows": [
+          { "player": 5, "rank": 5, "place": 1, "points": 3.0, "games": 3, "h2h": null, "swiss_place": 5 },
+          { "player": 6, "rank": 6, "place": 2, "points": 1.0, "games": 3, "h2h": 1.0, "swiss_place": 6 },
+          { "player": 7, "rank": 7, "place": 3, "points": 1.0, "games": 3, "h2h": 1.0, "swiss_place": 7 },
+          { "player": 8, "rank": 8, "place": 4, "points": 1.0, "games": 3, "h2h": 1.0, "swiss_place": 8 }
+        ]
+      }
+    ]
+  }
+}
