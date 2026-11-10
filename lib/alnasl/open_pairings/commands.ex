@@ -92,11 +92,21 @@ defmodule Alnasl.OpenPairings.Commands do
   """
   def handle(%Link{} = link, %{"id" => id} = command) when is_integer(id) do
     outcome =
-      case Repo.get_by(RemoteCommand, link_id: link.id, remote_id: id) do
-        %RemoteCommand{} = known ->
-          known
+      case claim(link, command) do
+        {:known, %RemoteCommand{status: "pending"} = row} ->
+          # Written down and never finished: the box fell over somewhere
+          # between starting and noting the outcome. Whether it happened is
+          # unknown, so it is not done again; the arbiter asks afresh.
+          settle(
+            row,
+            command,
+            {:error, "failed", "the box was interrupted; look at the board"}
+          )
 
-        nil ->
+        {:known, row} ->
+          row
+
+        {:won, row} ->
           result =
             try do
               execute(link, command)
@@ -108,7 +118,7 @@ defmodule Alnasl.OpenPairings.Commands do
               :exit, _reason -> {:error, "failed", "the board did not answer"}
             end
 
-          remember(link, command, result)
+          settle(row, command, result)
       end
 
     answer = outcome(outcome)
@@ -125,7 +135,30 @@ defmodule Alnasl.OpenPairings.Commands do
 
   def handle(_link, _not_a_command), do: nil
 
-  defp remember(link, command, result) do
+  # Writes the command down as `pending` *before* anything is carried out.
+  # Whoever inserts the row carries the command out; anyone else finds it.
+  defp claim(link, command) do
+    kind = command["kind"]
+
+    %RemoteCommand{
+      link_id: link.id,
+      remote_id: command["id"],
+      kind: text(kind, 32) || "?",
+      board_id: if(is_integer(command["board"]), do: command["board"]),
+      status: "pending"
+    }
+    |> Repo.insert(on_conflict: :nothing, conflict_target: [:link_id, :remote_id])
+    |> case do
+      {:ok, %RemoteCommand{id: nil}} ->
+        {:known, Repo.get_by!(RemoteCommand, link_id: link.id, remote_id: command["id"])}
+
+      {:ok, row} ->
+        {:won, row}
+    end
+  end
+
+  # Notes how it went, in the row and in the log.
+  defp settle(%RemoteCommand{} = row, command, result) do
     {status, error, detail} =
       case result do
         :ok -> {"done", nil, nil}
@@ -151,23 +184,7 @@ defmodule Alnasl.OpenPairings.Commands do
         Log.add(:warn, "command.failed", Map.merge(data, %{error: error, detail: detail}), ref)
     end
 
-    %RemoteCommand{
-      link_id: link.id,
-      remote_id: command["id"],
-      kind: text(kind, 32) || "?",
-      board_id: board_id,
-      status: status,
-      error: error,
-      detail: detail
-    }
-    |> Repo.insert(on_conflict: :nothing, conflict_target: [:link_id, :remote_id])
-    |> case do
-      {:ok, %RemoteCommand{id: nil}} ->
-        Repo.get_by!(RemoteCommand, link_id: link.id, remote_id: command["id"])
-
-      {:ok, row} ->
-        row
-    end
+    row |> Ecto.Changeset.change(status: status, error: error, detail: detail) |> Repo.update!()
   end
 
   defp outcome(%RemoteCommand{status: "done"}), do: %{"status" => "done"}

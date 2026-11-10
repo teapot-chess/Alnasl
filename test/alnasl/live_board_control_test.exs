@@ -71,6 +71,26 @@ defmodule Alnasl.LiveBoardControlTest do
       assert count("command.done") == 1
     end
 
+    test "a command written down but never finished is answered failed, not run again",
+         %{board: board} do
+      n = FakeOpenPairings.command(17, board_id(board), "flip", %{"flipped" => true}, nil)
+      link = Tournaments.link_of(by_remote(17))
+
+      # The box fell over after writing the command down and before noting
+      # how it went.
+      Repo.insert!(%RemoteCommand{
+        link_id: link.id,
+        remote_id: n,
+        kind: "flip",
+        board_id: board_id(board),
+        status: "pending"
+      })
+
+      assert %{"status" => "failed"} = carry_out(n)
+      refute Boards.get!(board.id).flipped
+      assert %RemoteCommand{status: "failed"} = Repo.get_by(RemoteCommand, remote_id: n)
+    end
+
     test "takeback: the last moves go", %{board: board} do
       play_on("FAKE1", board.id, ~w(e4 e5 Nf3))
       assert {_n, %{"status" => "done"}} = command(board, "takeback", %{"plies" => 2})

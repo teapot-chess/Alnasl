@@ -1,6 +1,7 @@
 {
   "contract": "publish",
   "version": 1,
+  "revision": 2,
   "files": [
     "claim.response.schema.json",
     "common.schema.json",
@@ -31,6 +32,7 @@
     "examples/relay-key.response.json",
     "examples/routes.json",
     "examples/server.response.json",
+    "examples/snapshot.request.flow.json",
     "examples/snapshot.request.json",
     "examples/snapshot.request.minimal.json",
     "examples/snapshot.request.team.json",

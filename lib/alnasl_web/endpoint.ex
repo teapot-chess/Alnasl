@@ -84,7 +84,14 @@ defmodule AlnaslWeb.Endpoint do
 
   @doc false
   # The endpoint's request log: everything at :info, as before, but the
-  # health check.
+  # health check, and the addresses that carry a single-use credential in the
+  # path (sign-in QR, invitation, join code, takeover code, support download):
+  # a log is read by more people than the credential was meant for.
   def log_level(%Plug.Conn{path_info: ["healthz"]}), do: false
+  def log_level(%Plug.Conn{path_info: ["log-in", "qr" | _]}), do: false
+  def log_level(%Plug.Conn{path_info: ["invite", _ | _]}), do: false
+  def log_level(%Plug.Conn{path_info: ["join", _ | _]}), do: false
+  def log_level(%Plug.Conn{path_info: ["takeover", "join" | _]}), do: false
+  def log_level(%Plug.Conn{path_info: ["support", "download" | _]}), do: false
   def log_level(_conn), do: :info
 end

@@ -152,4 +152,16 @@ defmodule AlnaslWeb.SystemTest do
                conn |> log_in(other) |> live("/system/dashboard/home")
     end
   end
+
+  describe "the request log" do
+    test "leaves out the health check and every address that carries a credential" do
+      for path <-
+            ~w(/healthz /log-in/qr/tok /invite/tok /join/ABC123 /takeover/join/ABC123 /support/download/ABC123) do
+        refute AlnaslWeb.Endpoint.log_level(Plug.Test.conn(:get, path)), path
+      end
+
+      assert AlnaslWeb.Endpoint.log_level(Plug.Test.conn(:get, "/help")) == :info
+      assert AlnaslWeb.Endpoint.log_level(Plug.Test.conn(:get, "/join")) == :info
+    end
+  end
 end
