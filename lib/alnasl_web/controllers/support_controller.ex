@@ -109,6 +109,10 @@ defmodule AlnaslWeb.SupportController do
     conn |> put_resp_header("retry-after", "3600") |> answer(429, "rate_limited")
   end
 
+  defp refuse(conn, :full) do
+    conn |> put_resp_header("retry-after", "3600") |> answer(503, "full")
+  end
+
   defp refuse(conn, _other), do: answer(conn, 503, "try_again")
 
   defp answer(conn, status, error), do: conn |> put_status(status) |> json(%{error: error})

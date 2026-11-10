@@ -87,7 +87,8 @@ defmodule AlnaslWeb.DoorController do
           put_resp_cookie(conn, AlnaslWeb.Hall.locale_cookie(), locale,
             max_age: 365 * 86_400,
             same_site: "Lax",
-            http_only: true
+            http_only: true,
+            secure: AlnaslWeb.Endpoint.secure_cookies?()
           )
       end
 

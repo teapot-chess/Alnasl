@@ -27,6 +27,9 @@ defmodule Alnasl.DoorGuard do
   @base 5
   @cap 900
   @global_limit 40
+  # Tries of its own for an address that has not failed, while the
+  # box-wide cap is on.
+  @grace 2
   @window 60
   # An address that has been quiet this long starts again from nothing.
   @forget 3_600
@@ -45,8 +48,13 @@ defmodule Alnasl.DoorGuard do
       state = prune(state, now)
 
       case wait(state, ip, now) do
-        0 -> {:ok, fail(state, ip, now)}
-        wait -> {{:wait, wait}, state}
+        0 ->
+          {:ok, fail(state, ip, now)}
+
+        wait ->
+          if grace?(state, ip, now),
+            do: {:ok, grace_fail(state, ip, now)},
+            else: {{:wait, wait}, state}
       end
     end)
   catch
@@ -56,9 +64,11 @@ defmodule Alnasl.DoorGuard do
   @doc "`:ok`, or `{:wait, seconds}`: this address may not try yet. Counts nothing."
   def check(ip, now \\ now()) do
     Agent.get(__MODULE__, fn state ->
-      case wait(prune(state, now), ip, now) do
+      state = prune(state, now)
+
+      case wait(state, ip, now) do
         0 -> :ok
-        wait -> {:wait, wait}
+        wait -> if grace?(state, ip, now), do: :ok, else: {:wait, wait}
       end
     end)
   end
@@ -92,6 +102,29 @@ defmodule Alnasl.DoorGuard do
       state
       | ips: Map.put(state.ips, ip, %{fails: fails, last: now, until: until}),
         global: [{now, ip} | state.global]
+    }
+  end
+
+  # The box-wide cap is on, nothing is wrong with this address itself, and it
+  # has not used up its own tries (`@grace`): it has never failed, or its
+  # only failures are the ones it made under the cap.
+  defp grace?(state, ip, now) do
+    ip_wait(state, ip, now) == 0 and
+      case state.ips[ip] do
+        nil -> true
+        %{grace: used} -> used < @grace
+        _failed_before -> false
+      end
+  end
+
+  # A try under the cap: counted against the address, not against the box.
+  defp grace_fail(state, ip, now) do
+    used = (state.ips[ip] || %{grace: 0})[:grace] || 0
+    fails = (state.ips[ip] || %{fails: 0}).fails + 1
+
+    %{
+      state
+      | ips: Map.put(state.ips, ip, %{fails: fails, last: now, until: nil, grace: used + 1})
     }
   end
 

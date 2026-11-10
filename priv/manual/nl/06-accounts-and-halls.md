@@ -4,7 +4,7 @@ Wie wat mag zien en doen. Op een kastje in een zaal zijn er geen accounts tot je
 
 ## Open tot het eerste account {#open-until-the-first-account}
 
-Een kastje zonder accounts is open: iedereen op het netwerk van de zaal mag alles doen, achter de pincode. Zo werkt Alnasl altijd al, en een update verandert dat niet.
+Een kastje zonder accounts is open: iedereen op het netwerk van de zaal mag alles doen, achter de pincode, behalve vier dingen die van het kastje zelf zijn en alleen vanuit de eigen browser van het kastje gaan: de updates, het herstellen van de tracker, koppelen met een zaal in de cloud en de back-up buiten de deur. Zo werkt Alnasl altijd al, en een update verandert dat niet.
 
 Bij Instellingen, Toegang, "Accounts", kun je het eerste account maken. Je wordt eigenaar en beheerder van het kastje, en vanaf dan vraagt elke pagina wie er is, ook het eigen scherm van het kastje. De pincode heeft dan niets meer te zeggen: hij blijft bestaan, en Instellingen, Toegang toont hem aan de beheerders van het kastje, maar niemand wordt er nog om gevraagd.
 
@@ -95,7 +95,7 @@ Met accounts is de QR-code onder "Open deze site op je telefoon" (op Borden en I
 
 ### Een vergeten wachtwoord {#forgotten-password}
 
-Er is geen mail om het mee te herstellen. Een beheerder opent het tabblad **Mensen** van de zaal en geeft het account een tijdelijk wachtwoord; bij de volgende aanmelding wordt om een eigen wachtwoord gevraagd, en elke andere browser die als dit account aangemeld was, wordt afgemeld. Je eigen wachtwoord wijzig je bij Account, in het accountmenu (de knop onderaan de balk, op een telefoon rechtsboven), dat ook zegt welke rol je hebt in de zaal waar je bent.
+Er is geen mail om het mee te herstellen. Een beheerder opent het tabblad **Mensen** van de zaal en geeft het account een tijdelijk wachtwoord; bij de volgende aanmelding wordt om een eigen wachtwoord gevraagd, en elke andere browser die als dit account aangemeld was, wordt afgemeld. Je eigen wachtwoord wijzig je bij Account, in het accountmenu (de knop onderaan de balk, op een telefoon rechtsboven), dat ook zegt welke rol je hebt in de zaal waar je bent. Het wijzigen vraagt eerst om het huidige wachtwoord (niet na een tijdelijk wachtwoord, want dat ken je dan nog niet).
 
 ## De pagina Systeem {#system}
 

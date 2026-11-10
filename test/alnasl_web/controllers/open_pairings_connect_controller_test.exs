@@ -17,7 +17,7 @@ defmodule AlnaslWeb.OpenPairingsConnectControllerTest do
   alias Alnasl.{FakeOpenPairings, Halls, Tournaments}
   alias Alnasl.OpenPairings.Connect
 
-  @address "http://pairings.test"
+  @address "http://pairings.local"
 
   setup do
     pairing_program()
@@ -43,10 +43,10 @@ defmodule AlnaslWeb.OpenPairingsConnectControllerTest do
   describe "the way out" do
     test "sends the browser to the consent page with a way back, a state and the box's name",
          %{conn: conn} do
-      out = start(conn, "  pairings.test/api/boards/v1/ ")
+      out = start(conn, "  pairings.local/api/boards/v1/ ")
       location = redirected_to(out)
 
-      assert String.starts_with?(location, "https://pairings.test/boards/connect?")
+      assert String.starts_with?(location, "https://pairings.local/boards/connect?")
       params = query(out)
       assert params["return_to"] == "http://www.example.com/setup/openpairings/callback"
       assert params["box"] =~ ~r/\AAlnasl - /
@@ -56,7 +56,7 @@ defmodule AlnaslWeb.OpenPairingsConnectControllerTest do
       assert state == params["state"]
 
       # Not remembered yet: only an account that really connected is.
-      refute Connect.default_address(Halls.own_id()) == "https://pairings.test"
+      refute Connect.default_address(Halls.own_id()) == "https://pairings.local"
     end
 
     test "behind the tunnel the way back is the public https address", %{conn: conn} do
@@ -65,7 +65,7 @@ defmodule AlnaslWeb.OpenPairingsConnectControllerTest do
     end
 
     test "not an address: said, and nowhere to go", %{conn: conn} do
-      out = start(conn, "ftp://pairings.test")
+      out = start(conn, "ftp://pairings.local")
       assert redirected_to(out) == ~p"/setup/connections"
       assert flash_error(out) =~ "not the address of an OpenPairings"
     end
@@ -102,7 +102,7 @@ defmodule AlnaslWeb.OpenPairingsConnectControllerTest do
       assert Enum.map(Tournaments.of_link(link), & &1.remote_id) == [17, 18]
 
       {:ok, _view, html} = live(build_conn(), ~p"/setup/connections")
-      assert html =~ "All your tournaments on pairings.test (2)"
+      assert html =~ "All your tournaments on pairings.local (2)"
 
       # The grant was good once.
       assert {:error, :expired} = Connect.redeem(@address, grant)

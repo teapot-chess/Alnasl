@@ -21,7 +21,7 @@ defmodule Alnasl.Contracts.LinkTest do
   alias Alnasl.OpenPairings.{Client, Commands, Connect, TablesReporter}
   alias Alnasl.Tournaments.Link
 
-  @root "http://pairings.test/api/boards/v1"
+  @root "http://pairings.local/api/boards/v1"
 
   # --- a stand-in that answers with the contract's examples --------------------
 
@@ -197,14 +197,14 @@ defmodule Alnasl.Contracts.LinkTest do
       assert {:error, {:refused, 409, "pairing_changed", detail}} = Client.report(link, 1, [])
       assert detail =~ "no longer between these two players"
 
-      assert Connect.redeem("http://pairings.test", "used") == {:error, :expired}
+      assert Connect.redeem("http://pairings.local", "used") == {:error, :expired}
     end
 
     test "a grant is traded for the code it stands for" do
       serve(%{{"POST", v1("/grant")} => ok("grant-response")})
       code = Contract.example(:link, "grant-response")["code"]
 
-      assert Connect.redeem("http://pairings.test", "the-grant") == {:ok, code}
+      assert Connect.redeem("http://pairings.local", "the-grant") == {:ok, code}
       Contract.assert_valid!(:link, "grant-request", sent("POST", v1("/grant")))
     end
   end

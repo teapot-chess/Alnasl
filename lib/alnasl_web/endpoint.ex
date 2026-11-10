@@ -68,7 +68,7 @@ defmodule AlnaslWeb.Endpoint do
 
   plug Plug.MethodOverride
   plug Plug.Head
-  plug Plug.Session, @session_options
+  plug :session
   plug AlnaslWeb.Router
 
   @doc false
@@ -94,4 +94,17 @@ defmodule AlnaslWeb.Endpoint do
   def log_level(%Plug.Conn{path_info: ["takeover", "join" | _]}), do: false
   def log_level(%Plug.Conn{path_info: ["support", "download" | _]}), do: false
   def log_level(_conn), do: :info
+
+  # The session cookie is `secure` when this deployment is served over https
+  # (its public address says so: `url: [scheme: "https"]`); a hall box on
+  # plain http could not keep a cookie marked so.
+  @doc false
+  def session(conn, _opts),
+    do: Plug.Session.call(conn, Plug.Session.init(session_options()))
+
+  @doc false
+  def session_options, do: Keyword.put(@session_options, :secure, secure_cookies?())
+
+  @doc "Is this deployment's public address https, so its cookies carry the `secure` flag?"
+  def secure_cookies?, do: config(:url, [])[:scheme] == "https"
 end

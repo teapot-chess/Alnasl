@@ -240,6 +240,8 @@ defmodule AlnaslWeb.Hall do
             may_arbiter: Scope.can?(scope, :arbiter),
             may_owner: Scope.can?(scope, :owner),
             may_admin: Scope.can?(scope, :admin),
+            # The four things an accountless box keeps for its own browser (`AlnaslWeb.Permit.box_only?/2`).
+            may_box: AlnaslWeb.Permit.box_owner?(scope, %{local?: session["local"] == true}),
             # The box's own browser: the one that sees and changes the PIN.
             local?: session["local"] == true,
             link: Outbox.status(scope),

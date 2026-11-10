@@ -4,7 +4,7 @@ Who may see and do what. On a box in a hall there are no accounts until you make
 
 ## Open until the first account {#open-until-the-first-account}
 
-A box without accounts is open: everybody on the hall's network may do everything, behind the PIN. That is how Alnasl has always worked, and an update does not change it.
+A box without accounts is open: everybody on the hall's network may do everything, behind the PIN, except four things that are the box's own and are done from the box's own browser only: its updates, the tracker's reset, pairing with a hall in the cloud, and the off-site backup. That is how Alnasl has always worked, and an update does not change it.
 
 Under Setup, Access, "Accounts", you can make the first account. You become the box's owner and admin, and from then on every page asks who is there, the box's own screen included. The PIN has no say any more then: it is kept, and Setup, Access shows it to the box's admins, but nobody is asked for it.
 
@@ -95,7 +95,7 @@ With accounts, the QR code under "Open this site on your phone" (on Boards and S
 
 ### A forgotten password {#forgotten-password}
 
-There is no mail to reset it with. An admin opens the hall's **People** tab and gives the account a temporary password; the next sign-in asks for one of the account's own, and every other browser signed in as it is signed out. Your own password is changed under Account, in the account menu (the button at the foot of the rail, top right on a phone), which also says your role in the hall you are in.
+There is no mail to reset it with. An admin opens the hall's **People** tab and gives the account a temporary password; the next sign-in asks for one of the account's own, and every other browser signed in as it is signed out. Your own password is changed under Account, in the account menu (the button at the foot of the rail, top right on a phone), which also says your role in the hall you are in. Changing it asks for the current password first (not after a temporary one, which you do not know yet).
 
 ## The System page {#system}
 

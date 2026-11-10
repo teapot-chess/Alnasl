@@ -42,6 +42,10 @@ defmodule Alnasl.Support do
   @per_hour 5
   @keep_days 30
   @code_attempts 20
+  # Beyond the per-address limit: what the installation keeps in all, so that
+  # a crowd of addresses cannot fill the database between two purges.
+  @max_rows 500
+  @max_total_bytes 256 * 1024 * 1024
 
   @doc "The largest upload accepted, in bytes."
   def max_bytes, do: @max_bytes
@@ -85,7 +89,9 @@ defmodule Alnasl.Support do
 
     * `:disabled` - nobody is named to read it (`enabled?/0`);
     * `:empty`, `:too_large`, `:not_text` - what was sent;
-    * `:rate_limited` - this address sent `per_hour/0` in the last hour.
+    * `:rate_limited` - this address sent `per_hour/0` in the last hour;
+    * `:full` - the uploads alive already hold `max_rows/0` rows or
+      `max_total_bytes/0` bytes, whoever is sending.
 
   `meta` may hold `:filename`, `:box_id`, `:version` and `:mode`, as the
   box said them; each is cut short and stripped of control characters.
@@ -102,8 +108,40 @@ defmodule Alnasl.Support do
          :ok <- check_content(content),
          _ = purge_expired(now),
          :ok <- check_rate(ip_hash, now) do
-      insert(content, meta, ip_hash, now, Keyword.get(opts, :code, &random_code/0))
+      # The count and the insert in one write transaction: parallel uploads
+      # cannot all see room for themselves.
+      {:ok, result} =
+        Repo.transaction(
+          fn ->
+            with :ok <- check_capacity(content, now) do
+              insert(content, meta, ip_hash, now, Keyword.get(opts, :code, &random_code/0))
+            end
+          end,
+          mode: :immediate
+        )
+
+      result
     end
+  end
+
+  @doc "The most uploads kept at once, all senders together."
+  def max_rows, do: @max_rows
+
+  @doc "The most bytes of uploads kept at once, all senders together."
+  def max_total_bytes, do: @max_total_bytes
+
+  defp check_capacity(content, now) do
+    {rows, bytes} =
+      Repo.one(
+        from(u in Upload,
+          where: u.expires_at > ^now,
+          select: {count(u.id), coalesce(sum(u.size), 0)}
+        )
+      )
+
+    if rows >= @max_rows or bytes + byte_size(content) > @max_total_bytes,
+      do: {:error, :full},
+      else: :ok
   end
 
   defp check_enabled, do: if(enabled?(), do: :ok, else: {:error, :disabled})

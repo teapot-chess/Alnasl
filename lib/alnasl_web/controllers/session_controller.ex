@@ -37,9 +37,12 @@ defmodule AlnaslWeb.SessionController do
       {:sign_in_email, normal(email)}
     ]
 
-    case Enum.find_value(keys, &waiting/1) do
-      nil -> attempt(conn, email, password, keys)
-      seconds -> throttled(conn, seconds)
+    # Counted up front, atomically (`RateLimit.claim/4`): a parallel burst
+    # of guesses cannot all pass a look taken before any was counted. A
+    # right password takes its count back.
+    case claim_all(keys) do
+      {:ok, refs} -> attempt(conn, email, password, refs)
+      {:error, seconds} -> throttled(conn, seconds)
     end
   end
 
@@ -47,7 +50,16 @@ defmodule AlnaslWeb.SessionController do
 
   def delete(conn, _params), do: UserAuth.log_out_user(conn)
 
-  @doc "A phone that scanned the QR code: signed in once, within five minutes, as whoever made the code."
+  @doc """
+  A phone that scanned the QR code lands here and is asked to sign in with
+  a button: opening the link uses nothing up, so a previewer that fetches
+  every link it is shown (a chat app, a mail scanner) cannot burn the code.
+  """
+  def qr_page(conn, %{"token" => token} = params) do
+    render(conn, :qr, token: token, to: UserAuth.safe(params["to"]))
+  end
+
+  @doc "The button: signed in once, within five minutes, as whoever made the code."
   def qr(conn, %{"token" => token} = params) do
     case Accounts.use_qr_token(token) do
       {:ok, user} ->
@@ -63,31 +75,44 @@ defmodule AlnaslWeb.SessionController do
     end
   end
 
-  defp attempt(conn, email, password, keys) do
+  defp attempt(conn, email, password, refs) do
     case Accounts.get_user_by_email_and_password(email, password) do
       nil ->
-        Enum.each(keys, &RateLimit.hit(&1, @failures, @window_ms))
-        Log.add(:warn, "account.refused", %{from: conn.remote_ip |> :inet.ntoa() |> to_string()})
+        Log.add(:warn, "account.refused", %{
+          from: conn |> AlnaslWeb.SupportController.client_ip() |> to_string()
+        })
 
         conn
         |> put_status(:unauthorized)
         |> render_form(gettext("That address and password do not match an account here."))
 
       user ->
+        Enum.each(refs, &RateLimit.refund/1)
         UserAuth.log_in_user(conn, user)
     end
   end
 
-  defp waiting(key) do
-    case RateLimit.peek(key, @failures, @window_ms) do
-      :ok -> nil
-      {:error, seconds} -> seconds
-    end
+  # Every key is claimed; if one is over its limit, the others are given
+  # back, since no attempt is made.
+  defp claim_all(keys) do
+    Enum.reduce_while(keys, {:ok, []}, fn key, {:ok, refs} ->
+      case RateLimit.claim(key, @failures, @window_ms) do
+        {:ok, ref} ->
+          {:cont, {:ok, [ref | refs]}}
+
+        {:error, seconds} ->
+          Enum.each(refs, &RateLimit.refund/1)
+          {:halt, {:error, seconds}}
+      end
+    end)
   end
 
   defp throttled(conn, seconds) do
     minutes = div(seconds + 59, 60)
-    Log.add(:warn, "account.throttled", %{from: conn.remote_ip |> :inet.ntoa() |> to_string()})
+
+    Log.add(:warn, "account.throttled", %{
+      from: conn |> AlnaslWeb.SupportController.client_ip() |> to_string()
+    })
 
     conn
     |> put_resp_header("retry-after", Integer.to_string(seconds))

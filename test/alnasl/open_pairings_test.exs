@@ -69,7 +69,7 @@ defmodule Alnasl.OpenPairingsTest do
 
     test "that is no code, or one the box has, is not taken" do
       assert OpenPairings.add_code("") == {:error, :empty}
-      assert OpenPairings.add_code("https://pairings.test/api/boards/v1") == {:error, :no_secret}
+      assert OpenPairings.add_code("https://pairings.local/api/boards/v1") == {:error, :no_secret}
 
       FakeOpenPairings.add_tournament(17)
       code = FakeOpenPairings.code(17)

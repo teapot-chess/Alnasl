@@ -23,7 +23,7 @@ defmodule Alnasl.OpenPairings.Code do
 
   @doc """
   `{:ok, %{root, secret, kind}}`, or `{:error, reason}` with `reason` one of
-  `:empty`, `:no_secret` (no `#`, or nothing after it), `:not_an_address`
+  `:empty`, `:no_secret` (no `#`, or nothing after it), `:not_an_address`, `:insecure` (plain http to a host outside the private ranges)
   (what is before the `#` is not an http or https address).
   """
   @spec parse(String.t() | nil) :: {:ok, t()} | {:error, atom()}
@@ -44,9 +44,11 @@ defmodule Alnasl.OpenPairings.Code do
         root = String.trim_trailing(root, "/")
 
         case URI.parse(root) do
-          %URI{scheme: scheme, host: host}
+          %URI{scheme: scheme, host: host} = uri
           when scheme in ["http", "https"] and is_binary(host) and host != "" ->
-            {:ok, %{root: root, secret: secret, kind: kind(secret)}}
+            with :ok <- Alnasl.PrivateHost.check(uri) do
+              {:ok, %{root: root, secret: secret, kind: kind(secret)}}
+            end
 
           _other ->
             {:error, :not_an_address}

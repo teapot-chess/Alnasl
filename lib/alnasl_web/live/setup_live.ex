@@ -2777,7 +2777,12 @@ defmodule AlnaslWeb.SetupLive do
                 <a href="#release-notes">{gettext("All versions and what changed")}</a>
               </p>
 
-              <form :if={@may_admin} id="update-mode-form" phx-change="save_update_mode" class="stack">
+              <form
+                :if={@may_admin and @may_box}
+                id="update-mode-form"
+                phx-change="save_update_mode"
+                class="stack"
+              >
                 <fieldset class="field">
                   <legend>{gettext("Look for a new version")}</legend>
 
@@ -2812,7 +2817,12 @@ defmodule AlnaslWeb.SetupLive do
               </form>
 
               <div class="row mt-4">
-                <.button :if={@may_admin} id="check-update" type="button" phx-click="check_update">
+                <.button
+                  :if={@may_admin and @may_box}
+                  id="check-update"
+                  type="button"
+                  phx-click="check_update"
+                >
                   {gettext("Look now")}
                 </.button>
 
@@ -2910,7 +2920,7 @@ defmodule AlnaslWeb.SetupLive do
 
                       <div class="row">
                         <.button
-                          :if={@may_admin}
+                          :if={@may_admin and @may_box}
                           id="update-cancel"
                           type="button"
                           variant="primary"
@@ -2920,7 +2930,7 @@ defmodule AlnaslWeb.SetupLive do
                         </.button>
 
                         <.button
-                          :if={@may_admin}
+                          :if={@may_admin and @may_box}
                           id="update-force"
                           type="button"
                           variant="danger"
@@ -2953,7 +2963,7 @@ defmodule AlnaslWeb.SetupLive do
 
                       <div class="row">
                         <.button
-                          :if={@may_admin}
+                          :if={@may_admin and @may_box}
                           id="update-yes"
                           type="button"
                           variant="primary"
@@ -2963,7 +2973,7 @@ defmodule AlnaslWeb.SetupLive do
                         </.button>
 
                         <.button
-                          :if={@may_admin}
+                          :if={@may_admin and @may_box}
                           id="update-cancel"
                           type="button"
                           phx-click="update_cancel"
@@ -2975,7 +2985,7 @@ defmodule AlnaslWeb.SetupLive do
                   <% true -> %>
                     <div class="row">
                       <.button
-                        :if={@may_admin}
+                        :if={@may_admin and @may_box}
                         id="update-start"
                         type="button"
                         variant="primary"
@@ -3161,9 +3171,12 @@ defmodule AlnaslWeb.SetupLive do
 
                 <div class="row">
                   <.button id="save-tracker" variant="primary" type="submit">{gettext("Save")}</.button>
-                  <.button :if={@may_admin} id="reset-tracker" type="button" phx-click="reset_tracker">{gettext(
-                    "Back to the defaults"
-                  )}</.button>
+                  <.button
+                    :if={@may_admin and @may_box}
+                    id="reset-tracker"
+                    type="button"
+                    phx-click="reset_tracker"
+                  >{gettext("Back to the defaults")}</.button>
                 </div>
               </.form>
             </.panel>

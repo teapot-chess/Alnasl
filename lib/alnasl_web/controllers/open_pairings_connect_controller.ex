@@ -56,6 +56,9 @@ defmodule AlnaslWeb.OpenPairingsConnectController do
                 Connect.connect_url(address, callback_url(conn), state, box_label(hall_id))
             )
 
+          {:error, :insecure} ->
+            refuse(conn, LinkWords.code_error(:insecure))
+
           {:error, :not_an_address} ->
             refuse(
               conn,

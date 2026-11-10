@@ -54,9 +54,9 @@ defmodule Alnasl.OpenPairings.Connect do
       |> String.trim_trailing("/")
 
     case URI.parse(text) do
-      %URI{scheme: scheme, host: host, userinfo: nil, query: nil}
+      %URI{scheme: scheme, host: host, userinfo: nil, query: nil} = uri
       when scheme in ["http", "https"] and is_binary(host) and host != "" ->
-        {:ok, text}
+        with :ok <- Alnasl.PrivateHost.check(uri), do: {:ok, text}
 
       _other ->
         {:error, :not_an_address}

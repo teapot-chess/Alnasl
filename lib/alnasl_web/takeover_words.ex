@@ -61,6 +61,13 @@ defmodule AlnaslWeb.TakeoverWords do
     do: gettext("This box is already paired with a hall. Leave that hall first.")
 
   def error(:bad_link), do: gettext("That is not a pairing link or code.")
+
+  def error(:insecure),
+    do:
+      gettext(
+        "That link is plain http to a computer outside your own network: the pairing code would cross the internet unprotected. Use an https:// link."
+      )
+
   def error(:used_or_expired), do: gettext("That code is used up or has run out. Make a new one.")
 
   def error(:elsewhere),

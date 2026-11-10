@@ -25,6 +25,12 @@ defmodule AlnaslWeb.LinkWords do
         "That is not a connect code: it should begin with the address of OpenPairings (https://... or http://127.0.0.1:...)."
       )
 
+  def code_error(:insecure),
+    do:
+      gettext(
+        "That address is plain http to a computer outside your own network: the code would cross the internet unprotected. Use an https:// address (http:// is for this computer and the hall's own network)."
+      )
+
   def code_error(:already), do: gettext("Alnasl has this code already.")
 
   def code_error(:unauthorized),

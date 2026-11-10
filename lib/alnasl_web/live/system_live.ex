@@ -64,10 +64,14 @@ defmodule AlnaslWeb.SystemLive do
   defp event("refresh", _params, socket), do: {:noreply, load(socket)}
 
   defp event("send_now", _params, socket) do
-    {:noreply,
-     socket
-     |> assign(sending: true)
-     |> start_async(:send, fn -> OffsiteBackup.push() end)}
+    if AlnaslWeb.Permit.box_owner?(socket.assigns.current_scope, socket.assigns) do
+      {:noreply,
+       socket
+       |> assign(sending: true)
+       |> start_async(:send, fn -> OffsiteBackup.push() end)}
+    else
+      {:noreply, put_flash(socket, :error, AlnaslWeb.Permit.box_only_refusal())}
+    end
   end
 
   defp event("forget", %{"id" => id}, socket) do

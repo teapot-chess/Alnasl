@@ -25,10 +25,11 @@ defmodule AlnaslWeb.JoinController do
   def redeem(conn, %{"code" => code} = params) do
     key = {:bridge_join, AlnaslWeb.SupportController.client_ip(conn)}
 
-    case RateLimit.peek(key, @misses, @window_ms) do
-      :ok ->
+    # Counted before the attempt, atomically; whatever is no miss is given back.
+    case RateLimit.claim(key, @misses, @window_ms) do
+      {:ok, ref} ->
         conn = attempt(conn, code, params)
-        if conn.status in [400, 410], do: RateLimit.hit(key, @misses, @window_ms)
+        if conn.status not in [400, 410], do: RateLimit.refund(ref)
         conn
 
       {:error, wait} ->

@@ -33,7 +33,7 @@ defmodule Alnasl.FakeOpenPairings do
 
   use Agent
 
-  @root "http://pairings.test/api/boards/v1"
+  @root "http://pairings.local/api/boards/v1"
   @san ~r/^[A-Za-z0-9+#=\-]{2,10}$/
   @results ["1-0", "1/2-1/2", "0-1"]
 

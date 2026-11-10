@@ -85,7 +85,7 @@ A new PIN sends every other browser back to the PIN page: their open pages close
 
 An update from Alnasl 0.17 or older makes a new PIN. The old one was kept only as a hash, which Setup cannot show, so it is replaced, and Setup says so once and shows the new one on the box.
 
-Guessing is slowed down: from the fifth wrong PIN an address has to wait, five seconds at first and twice as long with every further failure (a quarter of an hour at most), even if the next try is right, and the whole box accepts at most forty wrong PINs a minute.
+Guessing is slowed down: from the fifth wrong PIN an address has to wait, five seconds at first and twice as long with every further failure (a quarter of an hour at most), even if the next try is right, and the whole box accepts at most forty wrong PINs a minute. When that cap is on, a device that has not failed yet still gets two tries of its own, so the person with the right PIN is not locked out by somebody else's guessing.
 
 The box's own browser never needs the PIN, as long as it opens the site as `localhost` (or `127.0.0.1`, or the computer's own name). Under any other name, even from the box itself, the PIN is asked: that is how a web page from elsewhere, open in a browser on the same computer, is kept out.
 

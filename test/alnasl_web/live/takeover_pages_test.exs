@@ -40,7 +40,7 @@ defmodule AlnaslWeb.TakeoverPagesTest do
       {:ok, join} = Cloud.create_join(hall.id)
 
       view
-      |> form("#spare-pair-form", pair: %{link: "http://cloud.test/takeover/join/" <> join.code})
+      |> form("#spare-pair-form", pair: %{link: "http://cloud.local/takeover/join/" <> join.code})
       |> render_submit()
 
       render_async(view)
@@ -59,7 +59,7 @@ defmodule AlnaslWeb.TakeoverPagesTest do
       {:ok, view, _html} = live(conn, ~p"/spare")
 
       view
-      |> form("#spare-pair-form", pair: %{link: "http://cloud.test/takeover/join/" <> join.code})
+      |> form("#spare-pair-form", pair: %{link: "http://cloud.local/takeover/join/" <> join.code})
       |> render_submit()
 
       render_async(view)

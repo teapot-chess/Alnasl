@@ -284,7 +284,26 @@ if config_env() == :prod do
           else: [host: host]
     end
 
+  # Which pages may open the live socket. A server reached at an https
+  # address answers to that address and to ALNASL_ALLOWED_ORIGINS
+  # (comma-separated, https://host); a hall box, which is reached by whatever
+  # address the hall gave it, answers to anybody unless the list is set.
+  extra_origins =
+    (System.get_env("ALNASL_ALLOWED_ORIGINS") || "")
+    |> String.split(",")
+    |> Enum.map(&String.trim/1)
+    |> Enum.reject(&(&1 == ""))
+
+  check_origin =
+    if url[:scheme] == "https" or extra_origins != [] do
+      public = if url[:scheme] == "https", do: ["https://#{url[:host]}"], else: []
+      Enum.uniq(public ++ extra_origins)
+    else
+      false
+    end
+
   config :alnasl, AlnaslWeb.Endpoint,
     url: url,
+    check_origin: check_origin,
     secret_key_base: secret
 end

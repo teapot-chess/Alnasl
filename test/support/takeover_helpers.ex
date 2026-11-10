@@ -21,7 +21,7 @@ defmodule Alnasl.TakeoverHelpers do
   def cloud_on do
     put_env(:takeover_cloud, true)
     put_env(:takeover_req_options, plug: AlnaslWeb.Endpoint)
-    put_env(:takeover_server, "http://cloud.test")
+    put_env(:takeover_server, "http://cloud.local")
     RateLimit.reset()
     Takeover.delete_key()
     on_exit(fn -> Takeover.delete_key() end)
@@ -32,7 +32,7 @@ defmodule Alnasl.TakeoverHelpers do
   def pair_this_box(hall, role \\ "active") do
     put_env(:takeover_role, role)
     {:ok, join} = Cloud.create_join(hall.id)
-    :ok = Takeover.Link.pair("http://cloud.test/takeover/join/" <> join.code)
+    :ok = Takeover.Link.pair("http://cloud.local/takeover/join/" <> join.code)
     Cloud.authenticate(Takeover.key()) |> elem(1)
   end
 

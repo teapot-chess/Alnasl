@@ -23,8 +23,13 @@ defmodule AlnaslWeb.Permit do
   is played in - on Live, on the board's own page, and on PGN (attaching a
   game to board N, or playing it on a simulator as board N).
 
-  On a box with no accounts everybody is the owner of everything, and this
-  lets everything through, as before there were accounts.
+  On a box with no accounts everybody past the PIN is the owner of
+  everything, and this lets everything through, as before there were
+  accounts - bar four things that are the box's own (`box_only?/2`): its
+  updates, the tracker's reset, its pairing with a hall in the cloud and
+  the off-site backup. Those are answered by the box's own browser only, the
+  same one that sees and changes the PIN; a phone that gave the PIN is
+  refused.
   """
 
   use Gettext, backend: AlnaslWeb.Gettext
@@ -144,6 +149,31 @@ defmodule AlnaslWeb.Permit do
   # The notices of a newer version, answered by the frame of every page.
   @frame %{"update_later" => :admin, "update_never" => :admin}
 
+  # What an accountless box keeps for its own browser (`local?`), PIN or no
+  # PIN: updates, the tracker's reset, takeover pairing and the off-site backup.
+  @box_only %{
+    SetupLive =>
+      ~w(save_update_mode check_update update_start update_cancel update_apply reset_tracker),
+    AlnaslWeb.SpareLive => ~w(pair leave auto),
+    AlnaslWeb.SystemLive => ~w(send_now)
+  }
+  @box_only_frame ~w(update_later update_never)
+
+  @doc """
+  Is `event` of `view` one of the box's own, which on a box with no accounts
+  only the box's own browser may press?
+  """
+  def box_only?(view, event),
+    do: event in @box_only_frame or event in Map.get(@box_only, view, [])
+
+  @doc """
+  May this page press `event` as far as the box's own things go: always, on a
+  box with accounts (the level decides there), and on one without them only
+  from the box's own browser (`assigns.local?`).
+  """
+  def box_owner?(%Scope{open?: true}, assigns), do: assigns[:local?] == true
+  def box_owner?(_scope, _assigns), do: true
+
   @doc "The level `event` needs on `view`."
   # The halls page checks per hall itself: one account can be a viewer in
   # one hall and the owner of the next, on the same page.
@@ -173,20 +203,32 @@ defmodule AlnaslWeb.Permit do
   def check(event, params, socket) do
     scope = socket.assigns[:current_scope]
 
-    if allowed?(scope, socket.view, event, params, socket.assigns) do
-      {:cont, socket}
-    else
-      {:halt,
-       put_flash(
-         socket,
-         :error,
-         gettext("Your role in this hall lets you follow the games, not change them.")
-       )}
+    cond do
+      allowed?(scope, socket.view, event, params, socket.assigns) ->
+        {:cont, socket}
+
+      box_only?(socket.view, event) and match?(%Scope{open?: true}, scope) ->
+        {:halt, put_flash(socket, :error, box_only_refusal())}
+
+      true ->
+        {:halt,
+         put_flash(
+           socket,
+           :error,
+           gettext("Your role in this hall lets you follow the games, not change them.")
+         )}
     end
   end
 
   @doc false
-  def allowed?(%Scope{open?: true}, _view, _event, _params, _assigns), do: true
+  def box_only_refusal,
+    do: gettext("That is the box's own business: do it from the box's own browser.")
+
+  @doc false
+  def allowed?(%Scope{open?: true}, view, event, _params, assigns) do
+    not box_only?(view, event) or box_owner?(%Scope{open?: true}, assigns)
+  end
+
   def allowed?(nil, _view, _event, _params, _assigns), do: false
   def allowed?(%Scope{}, _view, event, _params, _assigns) when event in @personal, do: true
 

@@ -101,7 +101,9 @@ defmodule AlnaslWeb.TournamentsTest do
       {:ok, view, _html} = live(conn, ~p"/setup/connections")
 
       assert add(view, "") =~ "Paste the connect code first"
-      assert add(view, "https://pairings.test/api/boards/v1") =~ "the part after the # is missing"
+
+      assert add(view, "https://pairings.local/api/boards/v1") =~
+               "the part after the # is missing"
 
       wrong = FakeOpenPairings.root() <> "#" <> "oplt" <> "_" <> String.duplicate("q", 30)
       html = add(view, wrong)
