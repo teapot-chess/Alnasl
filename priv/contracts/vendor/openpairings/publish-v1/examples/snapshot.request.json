@@ -2,7 +2,7 @@
   "schema": "openresults/snapshot",
   "version": 1,
   "published_at": "2026-03-03T18:00:00Z",
-  "source": { "app": "openpairings", "version": "0.101.3" },
+  "source": { "app": "openpairings", "version": "0.101.3", "federation": "BEL" },
   "tournament": {
     "slug": "contract-swiss-2026",
     "name": "Contract Spring Open 2026",
