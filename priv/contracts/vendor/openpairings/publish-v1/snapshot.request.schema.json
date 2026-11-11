@@ -21,7 +21,11 @@
       "additionalProperties": true,
       "properties": {
         "app": { "type": ["string", "null"] },
-        "version": { "type": ["string", "null"] }
+        "version": { "type": ["string", "null"] },
+        "federation": {
+          "description": "Added in revision 4. The home federation of whoever published: the owning account's own default federation, as FIDE's three-letter code. Present only when the account has set one. OpenResults files a tournament under `tournament.federation` when that reads as a FIDE code, else under the federation its players clearly share (at least three of them, and at least twice as many as any other), and only then under this one; a value that is not a FIDE code is ignored.",
+          "type": ["string", "null"]
+        }
       }
     },
     "publisher": {
