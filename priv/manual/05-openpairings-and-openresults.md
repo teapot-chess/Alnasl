@@ -8,7 +8,7 @@ Each destination has its own queue, its own pause after a failure, its own line 
 
 | Destination | What it gets |
 | --- | --- |
-| Results site (OpenResults) | Every change: the whole game so far, with the clock |
+| Results site (OpenResults) | Every change: the whole game so far, with the clock. The clock also goes by itself whenever it says something new - a press, a stop, time added or taken by the arbiter - and while it runs, every "Send the clocks every" seconds (Setup) |
 | OpenPairings | Each game as it stands: moves, clocks, PGN, the result the board saw, how many moves were reconstructed or guessed |
 | Lichess broadcast | The PGN of each game of one round, whenever it changed |
 

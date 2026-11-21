@@ -27,6 +27,8 @@ section, word for word. See [docs/releasing.md](docs/releasing.md).
 - [Change] **The clock check only asks whether the clock is there.** Which side it stands on and which way the lever leans are no longer the arbiter's problem.
 - [Change] **Live draws only the boards that play here.** A hall gets tiles for the boards linked or connected in it; the other pairings of the tournament are counted, not drawn, even when the hall has only the one tournament.
 - [Fix] **Built on Arkab 0.6.1.** The wooden 1.9 board answers again: the serial line now keeps DTR off and RTS on, which is apparently how that board likes its handshakes.
+- [Fix] **The results site hears the clock when the clock has news.** A press of the lever, a clock stopped or started, and the arbiter's two extra minutes now go out within a tenth of a second, with or without a move, running or standing still. A move still goes out the moment the board sees it; the press that follows it no longer waits for the next heartbeat, so nobody watches the side that just moved think on its own time for twenty seconds. The heartbeat stays, for the stretches where nothing happens but time.
+- [Change] **Clocks travel with their age.** Each report says how long ago its clocks were read (`clock_age_ms`), so a row that sat in the queue behind a slow line no longer makes the results site count from the moment it finally arrived. A results site that does not know the field ignores it and is no worse off than before.
 
 ## [0.18.0] - 2026-11-10
 

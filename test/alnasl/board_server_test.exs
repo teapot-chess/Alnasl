@@ -262,6 +262,53 @@ defmodule Alnasl.BoardServerTest do
       eventually(fn -> Boards.snapshot(board.id).warning == :move_missing end)
       assert "clock.move_missing" in Enum.map(Alnasl.Log.list(), & &1.kind)
     end
+
+    test "a press, a stop and the arbiter's two minutes reach the server without waiting for a heartbeat" do
+      # A heartbeat an hour away: only the clock's own news can send anything.
+      Settings.put("clock_heartbeat_s", 3600)
+      board = fake_dgt("FAKE1", %{round: 1, board_no: 1})
+      eventually(fn -> Boards.snapshot(board.id).connected? end)
+
+      clock = fn white, black, running ->
+        Arkab.Transport.Fake.update(
+          "FAKE1",
+          &Arkab.Dgt.Emulator.set_clock(&1, %{white_ms: white, black_ms: black, running: running})
+        )
+      end
+
+      queued = fn ->
+        Repo.all(from e in Alnasl.Outbox.Entry, order_by: e.id, select: e.body)
+        |> Enum.map(&Jason.decode!/1)
+      end
+
+      clock.(5_400_000, 5_400_000, :white)
+      eventually(fn -> Boards.snapshot(board.id).clock end)
+      set_pieces("FAKE1", hd(boards_after(~w(e4))))
+      eventually(fn -> sans(board.id) == ~w(e4) end)
+      clock.(5_390_000, 5_400_000, :black)
+
+      eventually(fn -> Enum.any?(queued.(), &(&1["running"] == "black")) end)
+
+      # Stopped, and Black given two minutes.
+      clock.(5_390_000, 5_395_000, :none)
+      eventually(fn -> Enum.any?(queued.(), &(&1["running"] == "none")) end)
+      clock.(5_390_000, 5_515_000, :none)
+
+      eventually(fn ->
+        Enum.any?(queued.(), &(&1["black_ms"] == 5_515_000 and &1["running"] == "none"))
+      end)
+
+      # The clocks say when they were read; what goes out says how long ago.
+      body = List.last(queued.())
+      assert is_integer(body["clock_read_at_ms"])
+
+      wire =
+        Jason.decode!(
+          Alnasl.Outbox.on_the_wire(Jason.encode!(body), body["clock_read_at_ms"] + 750)
+        )
+
+      assert wire["clock_age_ms"] == 750 and not Map.has_key?(wire, "clock_read_at_ms")
+    end
   end
 
   describe "the arbiter's repair tools" do
