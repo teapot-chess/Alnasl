@@ -343,13 +343,14 @@ defmodule Alnasl.RealBoardTest do
       assert_in_delta off, 99_950, 500
 
       # The clock was turned round and started on Black's side, and ran
-      # there to the end. Not an alarm - there was no starting position to
-      # start a game from - but the check says it.
+      # there to the end. Not an alarm, and since 2026-11-21 not a problem
+      # for the check either: which half is White's is found out when a
+      # game starts, so the check only says a clock is there.
       assert report.clock_alarms == []
-      assert report.clock_check == {:wrong, :black}
+      assert report.clock_check == :ok
     end
 
-    test "the same clock, with the pieces set up: the alarm, the moment Black's time starts running" do
+    test "the same clock, with the pieces set up: no alarm, the clock found turned round" do
       {:ok, capture} = Recorder.read(@session)
 
       # The recording's clock, over a board in the starting position.
@@ -359,28 +360,20 @@ defmodule Alnasl.RealBoardTest do
 
       {session, out} = Session.run(Session.new([]), events, tail_ms: 1_000)
 
-      # White's side ran first, as it should: no alarm for the first part.
-      # The lever pressed back and forth over untouched pieces is not a
-      # clock alarm either - it is moves the board did not see, and the
-      # second press says so.
-      assert [
-               {press, {:warning, :move_missing, 2, 0}},
-               {_back_on, {:warning, :move_missing, 4, 0}}
-             ] =
-               Enum.filter(out, &match?({_t, {:warning, :move_missing, _, _}}, &1))
+      # Over untouched pieces in the starting position, whichever side is
+      # started is White's: the lever pressed back and forth is somebody
+      # setting the clock, not moves the board did not see, and the clock
+      # coming back the other way after the switch-off is the clock turned
+      # round, not an alarm.
+      refute Enum.any?(out, &match?({_t, {:warning, :move_missing, _, _}}, &1))
+      refute Enum.any?(out, &match?({_t, {:warning, :clock_side, _}}, &1))
+      assert session.clock_alarm == nil
+      assert Session.clock_check(session) == :ok
 
-      assert_in_delta press, 80_700, 500
-
-      # After the switch-off the clock comes back the wrong way; while it
-      # stands still that is the check's business, and the alarm is raised
-      # the moment it is started.
-      assert [{at, {:warning, :clock_side, :black}}] =
-               Enum.filter(out, &match?({_t, {:warning, :clock_side, _}}, &1))
-
-      assert_in_delta at, 103_250, 500
-      refute Enum.any?(out, &match?({_t, {:warning_cleared, :clock_side}}, &1))
-      assert session.clock_alarm == :black
-      assert Session.clock_check(session) == {:wrong, :black}
+      # It ran on its "black" half at the end: White's time, as the box
+      # reads it now.
+      assert session.swapped?
+      assert session.clock.running == :white
 
       assert session.tracker.plies == []
     end

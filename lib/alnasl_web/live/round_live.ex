@@ -69,6 +69,7 @@ defmodule AlnaslWeb.RoundLive do
        full?: false,
        snaps: %{},
        view: nil,
+       pieces: "game",
        shared: nil
      )}
   end
@@ -138,13 +139,11 @@ defmodule AlnaslWeb.RoundLive do
         do: Enum.filter(shown, &MapSet.member?(listed_ids, &1.id)),
         else: shown
 
-    # A hall with one tournament draws every pairing played here, as it
-    # always did. A tournament asked for by name may not be active; its
-    # placements are asked for it alone.
+    # A tournament asked for by name may not be active; its placements are
+    # asked for it alone.
     ctx = %{
       snapshots: snapshots,
       hall_id: hall_id,
-      every?: match?([_one], active),
       arbiter?: Alnasl.Accounts.Scope.can?(socket.assigns.current_scope, :arbiter),
       placed: Map.merge(placed(Enum.reject(shown_now, &is_map_key(placed, &1.id))), placed)
     }
@@ -247,13 +246,13 @@ defmodule AlnaslWeb.RoundLive do
     histories = Enum.group_by(Games.all(tid, round), & &1.board_no)
     pairings = Map.new(Tournaments.boards(tid, round), &{&1.board, &1})
 
-    # A tile is a board that exists here or has a game. A pairing of this
-    # hall with neither is only counted - except in a hall with one
-    # tournament, where four hundred tiles were never the problem.
-    every =
-      if ctx.every?, do: pairings |> Map.keys() |> Enum.filter(here_board?), else: []
-
-    numbers = Enum.uniq(Map.keys(here) ++ Map.keys(games) ++ every) |> Enum.sort()
+    # A tile is a board that is linked here or has a game played here. A
+    # pairing with neither is only counted ("N pairings without a board
+    # here"), in a hall with one tournament too: OpenPairings pairs the
+    # whole tournament, and a tile for board 23 in a hall of eight boards
+    # looked live to everybody who has better things to do than read the
+    # word "Not linked" on it.
+    numbers = Enum.uniq(Map.keys(here) ++ Map.keys(games)) |> Enum.sort()
 
     unplaced =
       pairings |> Map.keys() |> Enum.count(&(&1 not in numbers and here_board?.(&1)))
@@ -316,6 +315,10 @@ defmodule AlnaslWeb.RoundLive do
       pairings: pairings,
       placements: placements,
       unplaced: unplaced,
+      # "Play without a clock": switched for the tournament, and when the
+      # round starts as OpenPairings has it (nil: it does not say).
+      no_clock?: Tournaments.no_clock?(tid),
+      round_start: Tournaments.round_start(tid, round),
       team?: Tournaments.team_event?(tournament),
       rounds:
         Enum.uniq(Tournaments.rounds(tid) ++ Games.rounds(tid) ++ [round, tournament.round])
@@ -349,8 +352,9 @@ defmodule AlnaslWeb.RoundLive do
       counts: counts,
       alarms:
         Map.get(counts, :out_of_sync, 0) + Map.get(counts, :no_signal, 0) +
-          Map.get(counts, :clock_alarm, 0),
+          Map.get(counts, :clock_alarm, 0) + Map.get(counts, :clock_lost, 0),
       flagged: Enum.count(tiles, & &1.pairing_flag),
+      clockless: Enum.count(tiles, & &1.clockless?),
       ready?: Tables.ready?(checks),
       not_ready: Enum.count(checks, &(&1.level in [:bad, :warn])),
       has_boards?: Enum.any?(snapshots, &(&1[:tournament_id] == section.tid))
@@ -451,6 +455,10 @@ defmodule AlnaslWeb.RoundLive do
       label: if(pairing[:label] not in [nil, "", to_string(no)], do: pairing[:label]),
       state: state,
       position: fen && fen |> Position.from_fen() |> then(&(&1 && Position.to_text(&1))),
+      # What the sensors read now, whatever the game makes of it: the
+      # "Board as it stands" view.
+      raw: snap && snap[:raw],
+      raw_diff: raw_diff(snap && snap[:raw], fen),
       last: last,
       clock: snap && snap[:clock],
       count: length(plies),
@@ -471,9 +479,11 @@ defmodule AlnaslWeb.RoundLive do
       pairing_flag: game && game.pairing_flag,
       # The board's memory has another version of the game: the game page says.
       draft?: (snap && snap[:draft]) != nil,
-      # The clock's part of the start check, while no move has been made.
-      clock_problem:
-        if(snap && plies == [], do: AlnaslWeb.Words.clock_problem(snap[:clock_check])),
+      # A board here, playing or about to, that has never shown a clock.
+      clockless?:
+        snap != nil and snap[:linked?] == true and snap[:clock] == nil and
+          snap[:board_clock] == nil and state not in [:finished, :unlinked, :no_signal],
+      without_clock?: (snap && snap[:started_without_clock]) != nil,
       board_name: snap && snap.name,
       # Small, under the big board number: which physical board feeds it.
       sticker: snap && TableWords.sticker(snap),
@@ -554,6 +564,18 @@ defmodule AlnaslWeb.RoundLive do
       b: match.team_b || "?"
     )
   end
+
+  # The squares where the board as it stands is not the game's position.
+  defp raw_diff(raw, fen) when is_binary(raw) and is_binary(fen) do
+    with {:ok, read} <- Position.from_text(raw),
+         game when game != nil <- Position.from_fen(fen) do
+      Position.diff(game, read)
+    else
+      _none -> []
+    end
+  end
+
+  defp raw_diff(_raw, _fen), do: []
 
   defp tile_state(nil, nil), do: :unlinked
   defp tile_state(nil, %{status: "finished"}), do: :finished
@@ -724,6 +746,13 @@ defmodule AlnaslWeb.RoundLive do
 
   def handle_event("set_view", _params, socket), do: {:noreply, socket}
 
+  # The game's position or the board as it stands: this browser's choice,
+  # kept like the one above.
+  def handle_event("set_pieces", %{"pieces" => pieces}, socket) when pieces in ~w(game board),
+    do: {:noreply, assign(socket, pieces: pieces)}
+
+  def handle_event("set_pieces", _params, socket), do: {:noreply, socket}
+
   # The QR code of a tournament's live page, drawn when asked for.
   def handle_event("share", params, socket) do
     tournament = tournament_of(params)
@@ -743,6 +772,24 @@ defmodule AlnaslWeb.RoundLive do
   end
 
   def handle_event("unshare", _params, socket), do: {:noreply, assign(socket, shared: nil)}
+
+  # "Play without a clock", for one tournament. The permit has checked the
+  # account may arbiter it.
+  def handle_event("no_clock", %{"on" => on} = params, socket) when on in ~w(true false) do
+    tournament = tournament_of(params)
+    Tournaments.set_no_clock(tournament.id, on == "true")
+
+    {:noreply,
+     socket
+     |> put_flash(
+       :info,
+       if(on == "true",
+         do: gettext("Boards without a clock play without one."),
+         else: gettext("Boards without a clock wait for one again.")
+       )
+     )
+     |> load()}
+  end
 
   def handle_event("make_current", params, socket) do
     tournament = tournament_of(params)
@@ -868,6 +915,57 @@ defmodule AlnaslWeb.RoundLive do
             <.icon name="list" /> {gettext("List")}
           </button>
         </div>
+
+        <div
+          :if={@tile_count > 0 and shown_view(@view, @tile_count) == "boards"}
+          id="live-pieces"
+          class="seg"
+          role="group"
+          aria-label={gettext("Show on the tiles")}
+          phx-hook=".PiecesChoice"
+        >
+          <button
+            id="pieces-game"
+            type="button"
+            phx-click="set_pieces"
+            phx-value-pieces="game"
+            data-pieces="game"
+            aria-pressed={to_string(@pieces == "game")}
+            title={gettext("The position of the game: the moves Alnasl is sure of")}
+          >
+            {gettext("Game")}
+          </button>
+
+          <button
+            id="pieces-board"
+            type="button"
+            phx-click="set_pieces"
+            phx-value-pieces="board"
+            data-pieces="board"
+            aria-pressed={to_string(@pieces == "board")}
+            title={gettext("What every board reads right now, piece by piece")}
+          >
+            {gettext("Board as it stands")}
+          </button>
+        </div>
+
+        <script :type={Phoenix.LiveView.ColocatedHook} name=".PiecesChoice">
+          // The game or the board as it stands, remembered in this browser.
+          const KEY = "alnasl-live-pieces"
+          export default {
+            mounted() {
+              let stored = null
+              try { stored = localStorage.getItem(KEY) } catch (_e) { stored = null }
+              if (stored === "game" || stored === "board") this.pushEvent("set_pieces", {pieces: stored})
+
+              this.el.addEventListener("click", (event) => {
+                const button = event.target.closest("[data-pieces]")
+                if (!button) return
+                try { localStorage.setItem(KEY, button.dataset.pieces) } catch (_e) { /* not kept */ }
+              })
+            }
+          }
+        </script>
 
         <script :type={Phoenix.LiveView.ColocatedHook} name=".ViewChoice">
           // Tiles or a list, remembered in this browser. Storage may be
@@ -1006,6 +1104,49 @@ defmodule AlnaslWeb.RoundLive do
         </div>
 
         <div
+          :if={section.current? and (section.clockless > 0 or section.no_clock?)}
+          id={sid("no-clock", section.tid)}
+          class={["callout", (section.clockless > 0 and not section.no_clock?) && "warn"]}
+          role="status"
+        >
+          <p>
+            <b :if={section.clockless > 0}>
+              {ngettext(
+                "%{count} board has no clock.",
+                "%{count} boards have no clock.",
+                section.clockless
+              )}
+            </b>
+            <%= cond do %>
+              <% section.round_start -> %>
+                {gettext(
+                  "Without a clock, their games start at %{time}: the round's start time in OpenPairings.",
+                  time: Calendar.strftime(section.round_start, "%H:%M")
+                )}
+              <% true -> %>
+                {gettext(
+                  "OpenPairings gives no start time for this round: without a clock, their games start as soon as this is on."
+                )}
+            <% end %>
+          </p>
+
+          <.button
+            :if={@may_arbiter}
+            id={sid("no-clock-toggle", section.tid)}
+            small
+            variant={if !section.no_clock?, do: "primary"}
+            phx-click="no_clock"
+            phx-value-t={section.tid}
+            phx-value-on={to_string(!section.no_clock?)}
+            aria-pressed={to_string(section.no_clock?)}
+          >
+            {if section.no_clock?,
+              do: gettext("Playing without a clock - wait for a clock instead"),
+              else: gettext("Play without a clock")}
+          </.button>
+        </div>
+
+        <div
           :if={@shared && @shared.tid == section.tid}
           id={sid("share-panel", section.tid)}
           class="share-panel"
@@ -1036,6 +1177,7 @@ defmodule AlnaslWeb.RoundLive do
                 :out_of_sync,
                 :no_signal,
                 :clock_alarm,
+                :clock_lost,
                 :recovered,
                 :live,
                 :settling,
@@ -1163,6 +1305,7 @@ defmodule AlnaslWeb.RoundLive do
             tile={tile}
             ctx={section.ctx}
             many?={@many?}
+            as_read?={@pieces == "board"}
           />
         </div>
         <%!-- A team event: the boards under their match, in the match's board order. --%>
@@ -1215,6 +1358,7 @@ defmodule AlnaslWeb.RoundLive do
                 tile={tile}
                 ctx={section.ctx}
                 many?={@many?}
+                as_read?={@pieces == "board"}
               />
             </div>
           </section>
@@ -1387,6 +1531,7 @@ defmodule AlnaslWeb.RoundLive do
   attr :tile, :map, required: true
   attr :ctx, :map, required: true, doc: "the section's `ctx`: what a tile needs of it"
   attr :many?, :boolean, default: false
+  attr :as_read?, :boolean, default: false, doc: "the board as it stands, not the game"
 
   @doc false
   def tile_body(assigns) do
@@ -1450,6 +1595,10 @@ defmodule AlnaslWeb.RoundLive do
         <.icon name="warning" />{gettext("Pairing changed in OpenPairings")}
       </div>
 
+      <div :if={@tile.without_clock?} id={"tile-no-clock-#{@tile.dom}"} class="tile-note">
+        <.icon name="waiting" />{gettext("Playing without a clock")}
+      </div>
+
       <div :if={@tile.draft?} id={"tile-draft-#{@tile.dom}"} class="tile-note">
         <.icon name="warning" />{gettext("The board remembers it differently")}
       </div>
@@ -1497,10 +1646,18 @@ defmodule AlnaslWeb.RoundLive do
 
       <div class="tile-board">
         <.board
+          :if={!(@as_read? and @tile.raw)}
           position={@tile.position}
           last={@tile.last}
           label={gettext("Position on board %{n}", n: @tile.no)}
         />
+        <div :if={@as_read? and @tile.raw} id={"tile-raw-#{@tile.dom}"} class="tile-raw">
+          <.board
+            position={@tile.raw}
+            diff={@tile.raw_diff}
+            label={gettext("Board %{n} as it stands", n: @tile.no)}
+          />
+        </div>
       </div>
 
       <div class="side">
@@ -1524,14 +1681,6 @@ defmodule AlnaslWeb.RoundLive do
           ms={@tile.clock.white_ms}
           running={@tile.clock.running == :white}
         />
-      </div>
-
-      <div
-        :if={@tile.clock_problem && @tile.state != :clock_alarm}
-        id={"tile-clock-#{@tile.dom}"}
-        class="tile-note"
-      >
-        <.icon name="warning" />{@tile.clock_problem}
       </div>
 
       <div class="tile-foot">

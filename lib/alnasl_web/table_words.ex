@@ -102,16 +102,6 @@ defmodule AlnaslWeb.TableWords do
         count: count
       )
 
-  # The same sentence the Boards column and the Round tile use, with the
-  # board it is about in front.
-  defp sentence({:clock_wrong, name, n, side}),
-    do:
-      gettext("Board %{n}, \"%{name}\": %{problem}.",
-        n: n,
-        name: name,
-        problem: AlnaslWeb.Words.clock_problem({:wrong, side})
-      )
-
   defp sentence({:no_number, name}),
     do: gettext("\"%{name}\" is connected but feeds no board of this round.", name: name)
 

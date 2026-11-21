@@ -19,6 +19,19 @@ section, word for word. See [docs/releasing.md](docs/releasing.md).
 
 ## [Unreleased]
 
+## [0.19.0] - 2026-11-21
+
+- [Feature] **Live can draw the boards as they stand.** "Game" and "Board as it stands" at the top of Live switch the tiles between the position of the game and what each board reads right now, with the squares where the two disagree marked. Each browser keeps its own choice, as browsers do.
+- [Feature] **Pressing the clock starts the game from the board.** A clock started over something other than the starting position no longer waits for the pieces to go home: the board's memory catches the game up when it leads exactly to what is on the board, and otherwise the game starts from that position, with the side whose clock runs to move. The log says which.
+- [Feature] **Playing without a clock.** When boards of the round have no clock, Live says how many and offers "Play without a clock" for the tournament. Those boards then start at the round's start time from OpenPairings, or at once when OpenPairings does not give one, and their tiles say so.
+- [Feature] **A clock that stops answering turns its tile red.** "Clock not answering" is an alarm on Live, Halls and the board's page. The moves are still followed; only the times are missing, which tends to be noticed eventually anyway.
+- [Fix] **A clock the wrong way round is read the right way.** The half that is started over the starting position is White's, and two presses in a row that leave the wrong player's time running over a board that matches the game turn the clock round, with the times of the moves since swapped back. No move is dropped for it, and a missed move cannot pass for a turned clock, because then the board does not match.
+- [Change] **The clock check only asks whether the clock is there.** Which side it stands on and which way the lever leans are no longer the arbiter's problem.
+- [Change] **Live draws only the boards that play here.** A hall gets tiles for the boards linked or connected in it; the other pairings of the tournament are counted, not drawn, even when the hall has only the one tournament.
+- [Fix] **Built on Arkab 0.6.1.** The wooden 1.9 board answers again: the serial line now keeps DTR off and RTS on, which is apparently how that board likes its handshakes.
+- [Fix] **The results site hears the clock when the clock has news.** A press of the lever, a clock stopped or started, and the arbiter's two extra minutes now go out within a tenth of a second, with or without a move, running or standing still. A move still goes out the moment the board sees it; the press that follows it no longer waits for the next heartbeat, so nobody watches the side that just moved think on its own time for twenty seconds. The heartbeat stays, for the stretches where nothing happens but time.
+- [Change] **Clocks travel with their age.** Each report says how long ago its clocks were read (`clock_age_ms`), so a row that sat in the queue behind a slow line no longer makes the results site count from the moment it finally arrived. A results site that does not know the field ignores it and is no worse off than before.
+
 ## [0.18.0] - 2026-11-10
 
 - [Fix] **Built on Arkab 0.6.0.** A bridge that meets a server restored from a backup now takes the server at its word and sends again what the server says it is missing, instead of politely keeping its own count and sending nothing. Plain http to anything outside the hall's own network is refused there too.

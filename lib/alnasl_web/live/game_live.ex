@@ -1258,19 +1258,6 @@ defmodule AlnaslWeb.GameLive do
           </div>
 
           <div
-            :if={@view.snap.plies == [] and Words.clock_problem(@view.snap[:clock_check])}
-            id="clock-check"
-            class="alarm warn"
-            role="status"
-          >
-            <.icon name="warning" />
-            <div>
-              <b>{gettext("The clock is not in its starting position")}</b>
-              <p>{Words.clock_problem(@view.snap[:clock_check])}.</p>
-            </div>
-          </div>
-
-          <div
             :if={@view.snap[:problems] not in [nil, []] and @view.snap.plies == []}
             id="start-check"
             class="alarm warn"
@@ -2309,13 +2296,8 @@ defmodule AlnaslWeb.GameLive do
   end
 
   # What the sentence under the state is about: for a clock alarm the side
-  # that runs; for a board waiting with its pieces right, the clock if that
-  # is what it is still waiting for.
+  # that runs.
   defp help_detail(%{status: :clock_alarm} = snap), do: snap[:clock_alarm]
-
-  defp help_detail(%{status: :waiting_start, detail: detail, clock_check: {:wrong, _} = check})
-       when detail != :not_start,
-       do: {:clock, check}
 
   defp help_detail(snap), do: snap[:detail]
 
@@ -2329,7 +2311,7 @@ defmodule AlnaslWeb.GameLive do
 
     ~H"""
     <div
-      :if={@headline && @state in [:out_of_sync, :no_signal, :recovered, :clock_alarm]}
+      :if={@headline && @state in [:out_of_sync, :no_signal, :recovered, :clock_alarm, :clock_lost]}
       id="state-help"
       class={["alarm", @state == :recovered && "warn"]}
       role={if @state == :recovered, do: "status", else: "alert"}
@@ -2350,7 +2332,9 @@ defmodule AlnaslWeb.GameLive do
     </div>
 
     <p
-      :if={@headline && @state not in [:out_of_sync, :no_signal, :recovered, :clock_alarm]}
+      :if={
+        @headline && @state not in [:out_of_sync, :no_signal, :recovered, :clock_alarm, :clock_lost]
+      }
       id="state-help"
       class="note"
     >

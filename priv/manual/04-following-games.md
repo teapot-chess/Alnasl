@@ -8,6 +8,8 @@ Live is the front page. It shows the hall you are in (the hall picker at the top
 
 A tile per board: the players, the position Alnasl is sure of, the clocks, the last move, and the state as a shape and a word. Colour never carries the meaning alone.
 
+"Game" and "Board as it stands" at the top switch what the tiles draw: the position of the game, or what every board reads right now, piece by piece, with the squares where the two differ marked. The second is for seeing at a glance which boards are set up, half set up, or somewhere else entirely. The choice is kept in this browser.
+
 | State | What it means |
 | --- | --- |
 | Waiting for start | The round is set up, nothing has been played |
@@ -16,7 +18,8 @@ A tile per board: the players, the position Alnasl is sure of, the clocks, the l
 | Reconstructed | Moves were not seen one by one and were worked out from the position |
 | Out of sync | The board does not match the game and nothing is being sent for it |
 | No signal | The board does not answer. Check cable and power. The game is kept |
-| Clock wrong way | Black's clock is running and White has not moved |
+| Clock wrong way | The clock disagrees with the moves in a way turning it round does not explain |
+| Clock not answering | The clock was there and went quiet: unplugged, switched off or its battery. The tile is red; the moves are still followed |
 | Finished | A result has been set |
 
 A banner across the top means the results site cannot be reached. Play goes on and nothing is lost; the Results page says how much is waiting and why.
@@ -29,7 +32,24 @@ A banner across the top means the results site cannot be reached. Play goes on a
 
 A tile is the way to the board's own page. Under it: "Finish game" and "New game".
 
-Only boards that exist here get a tile: a board of this hall seated on that board number, or a board that already has a stored game. Pairings without either are counted in one line under the heading ("26 pairings without a board here"). A tournament with no board here and no game at all is not drawn, and neither is one placed only in another hall; one line at the bottom says how many there are ("14 more tournaments are not on the boards here") and leads to Setup, Tournaments. With a single tournament nothing is hidden: every pairing gets a tile, board or no board, and a hall that has no pairings yet says so, and what to do about it. A tournament you open by its own address is always shown, counted the same way as above.
+Only boards that exist here get a tile: a board of this hall seated on that board number, or a board that already has a stored game. Pairings without either are counted in one line under the heading ("26 pairings without a board here"). A tournament with no board here and no game at all is not drawn, and neither is one placed only in another hall; one line at the bottom says how many there are ("14 more tournaments are not on the boards here") and leads to Setup, Tournaments. That goes for a hall with a single tournament too: OpenPairings pairs the whole tournament, and a hall with eight of its boards shows those eight, not the forty that only look live. A hall that has no pairings yet says so, and what to do about it. A tournament you open by its own address is always shown, counted the same way as above.
+
+## Which half of the clock is White's {#clock-sides}
+
+The clock can stand either way round: Alnasl works it out. Before the first move, with the pieces in the starting position, the side that is started is White's. During the game, two presses in a row that leave the wrong player's time running, over a board that matches the game, mean the clock stands the other way round: from then on its times are read the other way, the moves since have their times swapped, and the log says so. A move missed by the board cannot pass for this, because the board then does not match the game.
+
+## A game the clock starts {#clock-starts}
+
+Pressing the clock starts the game from whatever stands on the board, not only from the starting position. When the clock is started (or pressed) over a game without a move, on a board that shows something else, Alnasl gives itself two seconds to see a first move it understands, then:
+
+1. if the board's memory carries this game on to exactly the position on the board, the moves are taken from it (see [Moves from the board's own memory](#board-memory));
+2. otherwise the game starts over from the position on the board, with the side whose clock runs to move. Castling is allowed where king and rook stand on their home squares; correct the position on the board's page if one of them has moved and come back.
+
+The log says which it was. A board that cannot be read as a position (a king missing) is left as it is.
+
+## Playing without a clock {#no-clock}
+
+When a board of the round has no clock, Live says so ("2 boards have no clock") with a switch, "Play without a clock", for the tournament. With it on, a board without a clock starts its game at the round's start time from OpenPairings, or at once when OpenPairings gives no time for the round; its tile then says "Playing without a clock". A board set up with another position than the starting one starts from it, as a clock would have started it. Press the switch again to wait for clocks instead.
 
 ## A board's page {#a-board}
 
@@ -74,7 +94,7 @@ Some alarms name what the board shows:
 
 - "Black moved (Nc6), but it is White's turn" and "A move that is not legal: white bishop c1-g5": somebody moved out of turn, or made a move the rules do not allow. Alnasl adds nothing to the game for it and invents no moves to make it fit. Put the piece back and the alarm is gone.
 - "A move is missing before this" takes you to where moves are typed, for when the board missed a move.
-- "Clock not in starting position" or a clock running the wrong way: stop it, put it right, start it again. The alarm goes away by itself. The moves are still followed.
+- A clock the wrong way round is not an alarm: Alnasl reads it the other way (see [Which half of the clock is White's](#clock-sides)). "Clock not answering" is: the clock went quiet. Check its cable to the board and its battery; the alarm goes when it answers again. The moves are still followed.
 - "White knight not seen on f3" is a warning, not an alarm: a piece left its square (parked beside the board, or the sensor lost it) and the game went on, so Alnasl takes it to be standing there still. It goes away when the piece is seen there again, moves, or is taken. If the piece was in fact captured, correct the moves on the board's page.
 - "White bishop on e4 reads as a knight" is a warning, not an alarm: the board hears a piece as another piece of the same colour, usually because it stands close to another one. Alnasl keeps the piece the game has and follows the moves as usual. Only a move that piece could not make raises an alarm. The warning goes away when the board reads the piece right again; straightening the piece often does it.
 - "queen assumed" beside a promotion means the pawn was left on the last square, or the new piece was gone before the board could read it. Alnasl takes a queen and marks the move. If the piece later moves like a rook, bishop or knight, the promotion is rewritten to that piece. If nothing ever shows what it was, check the scoresheet and correct it on the board's page.

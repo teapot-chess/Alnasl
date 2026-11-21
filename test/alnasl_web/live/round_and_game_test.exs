@@ -47,51 +47,80 @@ defmodule AlnaslWeb.RoundAndGameTest do
       assert has_element?(view, "#nav-round .count", "1")
     end
 
-    test "a clock set the wrong way is said on the tile in words; started that way it is an alarm, counted",
+    test "a clock set either way round is no alarm: started on its other half, that half is White's",
          %{conn: conn} do
       board = fake_dgt("FAKE1", %{round: 1, board_no: 2})
       {:ok, view, _html} = live(conn, ~p"/round/1")
       eventually_html(view, fn _ -> has_element?(view, "#tile-2 [data-state=waiting_start]") end)
-      refute has_element?(view, "#tile-clock-2")
 
       set_clock("FAKE1", {:still, :black})
-
-      eventually_html(view, fn _ ->
-        has_element?(
-          view,
-          "#tile-clock-2",
-          "Clock not in starting position: Black's side would run first - the clock is turned or the lever is the wrong way"
-        )
-      end)
-
-      assert has_element?(view, "#tile-2 [data-state=waiting_start]")
+      eventually_html(view, fn _ -> Boards.snapshot(board.id).clock_check == :ok end)
+      refute has_element?(view, "#tile-clock-2")
 
       set_clock("FAKE1", :black)
+      eventually_html(view, fn _ -> Boards.snapshot(board.id).clock.running == :white end)
+      assert has_element?(view, "#tile-2 [data-state=waiting_start]")
+      refute has_element?(view, "#tile-2.bad")
+      refute has_element?(view, "#nav-round .count")
+    end
 
-      eventually_html(view, fn _ -> has_element?(view, "#tile-2.bad [data-state=clock_alarm]") end)
+    test "a clock that stops answering turns the tile red, counted, and comes back by itself",
+         %{conn: conn} do
+      board = fake_dgt("FAKE1", %{round: 1, board_no: 2})
+      {:ok, view, _html} = live(conn, ~p"/round/1")
+      set_clock("FAKE1", :white)
+      eventually_html(view, fn _ -> Boards.snapshot(board.id).clock != nil end)
 
+      set_clock("FAKE1", :off)
+      eventually_html(view, fn _ -> has_element?(view, "#tile-2.bad [data-state=clock_lost]") end)
       assert has_element?(view, "#nav-round .count", "1")
-      assert has_element?(view, "#round-summary [data-state=clock_alarm]")
+      assert has_element?(view, "#round-summary [data-state=clock_lost]")
 
-      # The board's own page says what it is, and that it is not the pieces.
       {:ok, page, _html} = live(conn, ~p"/round/1/board/2")
-      assert has_element?(page, "#game-state[data-state=clock_alarm]")
-      assert has_element?(page, "#state-help[role=alert]", "Black's clock is running")
-      assert has_element?(page, "#clock-check", "Black's side would run first")
-      refute has_element?(page, "#start-check")
+      assert has_element?(page, "#game-state[data-state=clock_lost]")
+      assert has_element?(page, "#state-help[role=alert]", "The clock does not answer")
 
       set_clock("FAKE1", :white)
       eventually_html(view, fn _ -> has_element?(view, "#tile-2 [data-state=waiting_start]") end)
-      refute has_element?(view, "#tile-clock-2")
       refute has_element?(view, "#nav-round .count")
-      eventually_html(page, fn _ -> not has_element?(page, "#clock-check") end)
-      assert Boards.snapshot(board.id).clock_check == :ok
+    end
 
-      # And the log has both lines, as sentences.
-      {:ok, log, _html} = live(conn, ~p"/log")
-      html = render(log)
-      assert html =~ "Clock alarm: Black&#39;s clock is running from the starting position"
-      assert html =~ "The clock is the right way again."
+    test "the tiles draw the game, or the boards as they stand", %{conn: conn} do
+      board = fake_dgt("FAKE1", %{round: 1, board_no: 2})
+      {:ok, view, _html} = live(conn, ~p"/round/1")
+      eventually_html(view, fn _ -> Boards.snapshot(board.id).raw != nil end)
+
+      assert has_element?(view, "#pieces-game[aria-pressed=true]")
+      refute has_element?(view, "#tile-raw-2")
+
+      view |> element("#pieces-board") |> render_click()
+      assert has_element?(view, "#pieces-board[aria-pressed=true]")
+      eventually_html(view, fn _ -> has_element?(view, "#tile-raw-2") end)
+
+      # What the browser remembered comes back through the hook; nonsense is ignored.
+      render_hook(view, "set_pieces", %{"pieces" => "game"})
+      refute has_element?(view, "#tile-raw-2")
+      render_hook(view, "set_pieces", %{"pieces" => "sideways"})
+      assert has_element?(view, "#pieces-game[aria-pressed=true]")
+    end
+
+    test "a board without a clock is counted, and the round can play without one", %{conn: conn} do
+      board = fake_dgt("FAKE1", %{round: 1, board_no: 2})
+      {:ok, view, _html} = live(conn, ~p"/round/1")
+      eventually_html(view, fn _ -> has_element?(view, "#no-clock") end)
+
+      assert has_element?(view, "#no-clock", "1 board has no clock.")
+      assert has_element?(view, "#no-clock-toggle[aria-pressed=false]")
+
+      view |> element("#no-clock-toggle") |> render_click()
+      assert Alnasl.Tournaments.no_clock?(Alnasl.Tournaments.default_id())
+      assert has_element?(view, "#no-clock-toggle[aria-pressed=true]")
+
+      eventually_html(view, fn _ -> Boards.snapshot(board.id).started_without_clock != nil end)
+      eventually_html(view, fn _ -> has_element?(view, "#tile-no-clock-2") end)
+
+      view |> element("#no-clock-toggle") |> render_click()
+      refute Alnasl.Tournaments.no_clock?(Alnasl.Tournaments.default_id())
     end
 
     test "the next round takes the boards along; nothing is fetched from the results server",

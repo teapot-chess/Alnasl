@@ -598,6 +598,12 @@ defmodule Alnasl.Games do
       {:restart, fen} ->
         fen = if fen == Chess.start_fen(), do: nil, else: fen
         {save(game, %{plies: [], start_fen: fen}), true}
+
+      # The clock stood the other way round: from `from` on, each move's
+      # two times change places.
+      {:clock_swapped, from} ->
+        swapped = swap_clocks(current, from)
+        {save(game, %{plies: swapped}), true}
     end
   end
 
@@ -626,6 +632,25 @@ defmodule Alnasl.Games do
       end)
 
     if count == 0, do: {game, 0}, else: {save(game, %{plies: plies}), count}
+  end
+
+  @doc """
+  Stored plies (decoded JSON) with the two times of every ply from index
+  `from` on changing places: the clock stood the other way round.
+  """
+  def swap_clocks(stored, from) do
+    stored
+    |> Enum.with_index()
+    |> Enum.map(fn
+      {%{"clock" => %{} = clock} = ply, index} when index >= from ->
+        %{
+          ply
+          | "clock" => %{clock | "white_ms" => clock["black_ms"], "black_ms" => clock["white_ms"]}
+        }
+
+      {ply, _index} ->
+        ply
+    end)
   end
 
   defp encode(plies, now) do

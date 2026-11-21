@@ -26,7 +26,12 @@ defmodule AlnaslWeb.RoundTile do
   def render(assigns) do
     ~H"""
     <div id={"tile-wrap-#{@tile.dom}"} class="tile-wrap">
-      <AlnaslWeb.RoundLive.tile_body tile={@tile} ctx={@ctx} many?={@many?} />
+      <AlnaslWeb.RoundLive.tile_body
+        tile={@tile}
+        ctx={@ctx}
+        many?={@many?}
+        as_read?={assigns[:as_read?] || false}
+      />
     </div>
     """
   end

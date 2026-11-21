@@ -339,6 +339,46 @@ defmodule Alnasl.Tournaments do
     }
   end
 
+  @doc """
+  When round `round` starts, as the pairing program has it: the round's
+  `date` and `time` (`"HH:MM"`, the hall's own clock) as a
+  `NaiveDateTime`, compared with the box's local time. `nil` when either is
+  missing - the board link has always sent the date, and sends the time
+  only from the OpenPairings that knows to.
+  """
+  def round_start(id, round) when is_integer(round) do
+    with %{"rounds" => rounds} when is_list(rounds) <- document(id),
+         %{"date" => date, "time" => time} when is_binary(date) and is_binary(time) <-
+           Enum.find(rounds, &(&1["number"] == round)),
+         {:ok, date} <- Date.from_iso8601(date),
+         {:ok, time} <- parse_time(time),
+         {:ok, at} <- NaiveDateTime.new(date, time) do
+      at
+    else
+      _none -> nil
+    end
+  end
+
+  def round_start(_id, _round), do: nil
+
+  defp parse_time(text) do
+    case Regex.run(~r/^\s*(\d{1,2})[:h.](\d{2})/, text) do
+      [_, h, m] -> Time.new(String.to_integer(h), String.to_integer(m), 0)
+      _none -> :error
+    end
+  end
+
+  @doc """
+  "Play without a clock" for a tournament: a board of it with no clock
+  starts its game at the round's start time (`round_start/2`) instead of
+  waiting for a clock that is not coming. Off unless the arbiter says so.
+  """
+  def no_clock?(id) when is_integer(id), do: Alnasl.Settings.get("no_clock:#{id}") == true
+  def no_clock?(_id), do: false
+
+  def set_no_clock(id, on?) when is_integer(id) and is_boolean(on?),
+    do: Alnasl.Settings.put("no_clock:#{id}", on?)
+
   @doc "The numbers of the rounds that are paired."
   def rounds(id) do
     case document(id) do

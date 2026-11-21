@@ -238,16 +238,18 @@ defmodule AlnaslWeb.FrameTest do
       store_game(split, 2)
       store_game(split, 10)
 
-      # The only tournament here: every pairing of this hall's half is a tile.
+      # The only tournament here, and still only the boards that play here
+      # are tiles: the rest of this hall's half is a count, not eight tiles
+      # that look live and are not.
       {:ok, view, _html} = live(log_in(conn, owner, own), ~p"/")
       assert has_element?(view, "#tile-t#{split.id}-2")
-      assert has_element?(view, "#tile-t#{split.id}-8")
+      refute has_element?(view, "#tile-t#{split.id}-8")
       refute has_element?(view, "#tile-t#{split.id}-10")
-      refute has_element?(view, "#round-unplaced-t#{split.id}")
+      assert has_element?(view, "#round-unplaced-t#{split.id}", "7 pairings")
 
       {:ok, view, _html} = live(log_in(build_conn(), owner, annex), ~p"/")
       assert has_element?(view, "#tile-t#{split.id}-10")
-      assert has_element?(view, "#tile-t#{split.id}-16")
+      refute has_element?(view, "#tile-t#{split.id}-16")
       refute has_element?(view, "#tile-t#{split.id}-2")
 
       # With a second tournament here, the pairings without a board are a

@@ -282,16 +282,19 @@ defmodule AlnaslWeb.EditionTest do
       assert tile_count(view) == 0
     end
 
-    test "a box with one tournament draws every pairing, as the manual says", %{conn: conn} do
+    test "a box with one tournament draws only the boards that play here, as the manual says",
+         %{conn: conn} do
+      # OpenPairings pairs twelve boards; this hall has one of them.
       t = linked(100, name: "Open", boards: 12)
       board = fake_dgt("FAKE1")
       {:ok, board} = Tables.set_table(board, 1)
       {:ok, _} = Boards.update(board, %{tournament_id: t.id, round: 1, board_no: 1})
 
       {:ok, view, _html} = live(conn, ~p"/")
-      assert tile_count(view) == 12
-      assert has_element?(view, "#tile-t#{t.id}-12")
-      refute has_element?(view, "#round-unplaced-t#{t.id}")
+      assert tile_count(view) == 1
+      assert has_element?(view, "#tile-t#{t.id}-1")
+      refute has_element?(view, "#tile-t#{t.id}-12")
+      assert has_element?(view, "#round-unplaced-t#{t.id}", "11 pairings without a board here")
     end
 
     test "nothing on the boards: one place to go, and the count", %{conn: conn} do
