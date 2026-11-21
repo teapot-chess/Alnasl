@@ -965,26 +965,77 @@ defmodule Alnasl.BoardServer do
       |> Games.remember_clock(reading && Map.put(reading, :running, reading.running))
       |> Outbox.enqueue(reading, replace?)
 
-    %{state | game: game, queued_at: System.monotonic_time(:millisecond)}
+    %{
+      state
+      | game: game,
+        queued_at: System.monotonic_time(:millisecond)
+    }
+    |> Map.put(:queued_clock, reading && {reading, t})
   end
 
-  # While a clock runs and nothing else is said, the server is told the time
-  # now and then, so a spectator's countdown does not wander.
+  # The server is told the clock when it says something the server cannot
+  # work out for itself, and now and then while it runs, so a spectator's
+  # countdown does not wander:
+  #
+  #   * the lever was pressed, or the clock started or stopped - a move is
+  #     reported the moment the board sees it, and the press that follows it
+  #     comes a second later; without this the server spent up to a heartbeat
+  #     counting down the side that had just moved;
+  #   * a time moved by more than counting down explains: the arbiter's two
+  #     minutes, or any other correction, running or stopped;
+  #   * nothing of the sort for `heartbeat_ms`, while it runs.
   defp heartbeat(%{session: nil} = state, _t), do: state
   defp heartbeat(%{game: %{status: "finished"}} = state, _t), do: state
 
   defp heartbeat(state, t) do
     every = state.heartbeat_ms
     since = state.queued_at && System.monotonic_time(:millisecond) - state.queued_at
+    clock = state.session.clock
 
-    with true <- Clock.present?(state.session.clock),
-         %{running: running} when running != :none <- Clock.read(state.session.clock, t),
+    with true <- Clock.present?(clock),
+         %{running: running} = reading <- Clock.read(clock, t),
          true <- state.session.tracker.plies != [],
-         true <- since == nil or since >= every do
+         true <-
+           clock_news?(Map.get(state, :queued_clock), reading, t, clock.hourglass?) or
+             (running != :none and (since == nil or since >= every)) do
       enqueue(state, t, false)
     else
       _no -> state
     end
+  end
+
+  # Readings come a second apart and are whole seconds; a time that is off
+  # what counting down predicts by more than this was set, not spent.
+  @clock_slack_ms 1_500
+
+  defp clock_news?(nil, _reading, _t, _hourglass?), do: true
+
+  defp clock_news?({sent, sent_t}, reading, t, hourglass?) do
+    gone = max(t - sent_t, 0)
+
+    predicted = fn side ->
+      ms = Map.get(sent, side)
+      running? = sent.running == if(side == :white_ms, do: :white, else: :black)
+      if is_integer(ms) and running?, do: max(ms - gone, 0), else: ms
+    end
+
+    off? = fn side ->
+      now = Map.get(reading, side)
+      expected = predicted.(side)
+      is_integer(now) and is_integer(expected) and abs(now - expected) > @clock_slack_ms
+    end
+
+    # On an hourglass the waiting side's time grows by itself: only the
+    # running side's says anything.
+    sides =
+      cond do
+        not hourglass? -> [:white_ms, :black_ms]
+        reading.running == :white -> [:white_ms]
+        reading.running == :black -> [:black_ms]
+        true -> []
+      end
+
+    sent.running != reading.running or Enum.any?(sides, off?)
   end
 
   defp dirty(state), do: %{state | dirty?: true}

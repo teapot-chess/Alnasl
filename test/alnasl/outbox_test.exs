@@ -52,6 +52,19 @@ defmodule Alnasl.OutboxTest do
     end
   end
 
+  test "clocks go out with their age, never with the box's own time" do
+    play(new_game(), ~w(e4), %{white_ms: 5_400_000, black_ms: 5_390_000, running: :black})
+    assert Outbox.drain() == :empty
+
+    [{200, body}] = FakeIngest.requests()
+    assert body["black_ms"] == 5_390_000 and body["running"] == "black"
+    assert is_integer(body["clock_age_ms"]) and body["clock_age_ms"] >= 0
+    refute Map.has_key?(body, "clock_read_at_ms")
+
+    # A row without clocks says nothing about them.
+    assert Outbox.on_the_wire(~s({"moves":[]})) == ~s({"moves":[]})
+  end
+
   test "an entry is in the database before anything is sent, numbered per game" do
     FakeIngest.mode(:down)
     a = play(new_game(1), ~w(e4 e5))

@@ -8,7 +8,7 @@ Elke bestemming heeft zijn eigen wachtrij, zijn eigen pauze na een mislukking, z
 
 | Bestemming | Wat ze krijgt |
 | --- | --- |
-| Uitslagensite (OpenResults) | Elke wijziging: de hele partij tot nu toe, met de klok |
+| Uitslagensite (OpenResults) | Elke wijziging: de hele partij tot nu toe, met de klok. De klok gaat ook vanzelf mee zodra ze iets nieuws zegt - een druk op de knop, een stilstand, tijd die de arbiter bijgeeft of afneemt - en terwijl ze loopt, om de zoveel seconden die bij "De klokken versturen elke" (Instellingen) staan |
 | OpenPairings | Elke partij zoals ze staat: zetten, klokken, PGN, het resultaat dat het bord zag, hoeveel zetten afgeleid of geraden zijn |
 | Lichess-uitzending | De PGN van elke partij van één ronde, telkens ze veranderd is |
 
