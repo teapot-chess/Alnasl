@@ -19,6 +19,8 @@ section, word for word. See [docs/releasing.md](docs/releasing.md).
 
 ## [Unreleased]
 
+- [Fix] **Built on Arkab 0.6.1.** The wooden 1.9 board answers again: the serial line now keeps DTR off and RTS on, which is apparently how that board likes its handshakes.
+
 ## [0.18.0] - 2026-11-10
 
 - [Fix] **Built on Arkab 0.6.0.** A bridge that meets a server restored from a backup now takes the server at its word and sends again what the server says it is missing, instead of politely keeping its own count and sending nothing. Plain http to anything outside the hall's own network is refused there too.
