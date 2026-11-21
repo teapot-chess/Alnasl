@@ -66,7 +66,7 @@ defmodule Alnasl.OpenPairingsRoundsTest do
       # board 1 is how it should be, not a board that was remapped or a gap.
       kinds = for check <- Tables.checks(u12.id, 1), do: elem(check.what, 0)
       # (The emulated boards all report one serial, which is said of each.)
-      assert Enum.uniq(kinds) -- [:start_wrong, :clock_wrong, :same_serial] == []
+      assert Enum.uniq(kinds) -- [:start_wrong, :same_serial] == []
       assert Enum.all?(Tables.checks(open.id, 1), &(&1.board_id in [a.id, b.id, nil]))
     end
 

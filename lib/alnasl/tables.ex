@@ -741,7 +741,6 @@ defmodule Alnasl.Tables do
   | `{:other_board, name, serial, seen}` | the board on this row's port says it is another one, mid-game: left alone, and said |
   | `{:no_signal, name, n}` | a numbered board does not answer |
   | `{:start_wrong, name, n, count}` | no move yet and the pieces are not where the game starts: colours swapped, a piece missing |
-  | `{:clock_wrong, name, n, side}` | no move yet and the clock is not in its starting position: `side`'s time would run first (`Alnasl.Clock.start_check/1`). Only for a board that has a clock |
   | `{:no_number, name}` | a connected board that feeds no board of this round |
   | `{:no_table, name}` | a board without a table number |
   | `{:gap, n}` | a board of the round, below the highest one that has a physical board, has none |
@@ -865,15 +864,6 @@ defmodule Alnasl.Tables do
         do: issue(:bad, {:start_wrong, s.name, s.board_no, length(s.problems)}, s.id),
         else: []
       ),
-      # The clock is part of the starting position: a board whose clock would
-      # run Black's side first is not ready, however neat its pieces.
-      case s[:clock_check] do
-        {:wrong, side} when here? and s.connected? and s.plies == [] ->
-          issue(:bad, {:clock_wrong, s.name, s.board_no, side}, s.id)
-
-        _fine ->
-          []
-      end,
       if(not here? and s.running?, do: issue(:warn, {:no_number, s.name}, s.id), else: []),
       if(s[:table_no] == nil and (here? or s.running?),
         do: issue(:warn, {:no_table, s.name}, s.id),

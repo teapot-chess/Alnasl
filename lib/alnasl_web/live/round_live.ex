@@ -484,9 +484,6 @@ defmodule AlnaslWeb.RoundLive do
         snap != nil and snap[:linked?] == true and snap[:clock] == nil and
           snap[:board_clock] == nil and state not in [:finished, :unlinked, :no_signal],
       without_clock?: (snap && snap[:started_without_clock]) != nil,
-      # The clock's part of the start check, while no move has been made.
-      clock_problem:
-        if(snap && plies == [], do: AlnaslWeb.Words.clock_problem(snap[:clock_check])),
       board_name: snap && snap.name,
       # Small, under the big board number: which physical board feeds it.
       sticker: snap && TableWords.sticker(snap),
@@ -1684,14 +1681,6 @@ defmodule AlnaslWeb.RoundLive do
           ms={@tile.clock.white_ms}
           running={@tile.clock.running == :white}
         />
-      </div>
-
-      <div
-        :if={@tile.clock_problem && @tile.state != :clock_alarm}
-        id={"tile-clock-#{@tile.dom}"}
-        class="tile-note"
-      >
-        <.icon name="warning" />{@tile.clock_problem}
       </div>
 
       <div class="tile-foot">

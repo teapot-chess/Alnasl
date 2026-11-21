@@ -291,9 +291,6 @@ defmodule AlnaslWeb.Words do
          "The clock was there and has gone quiet: unplugged, switched off, or its battery. The moves are still followed, without their times. Check the clock's cable to the board and its power; this goes away by itself when it answers again."
        )}
 
-  def state_help(:waiting_start, {:clock, check}),
-    do: {gettext("The clock is not in its starting position"), clock_problem(check) <> "."}
-
   def state_help(:waiting_start, :not_start),
     do:
       {gettext("Waiting for the starting position"),
@@ -385,27 +382,6 @@ defmodule AlnaslWeb.Words do
       expected: piece(expected)
     )
   end
-
-  @doc """
-  The clock's finding of the start-position check (`{:wrong, side}`), in
-  words; `nil` when the clock is right or there is none.
-
-  There is no "the other way round is fine" here and no control to swap the
-  sides: the clock stands to the right of the board, and that is that.
-  """
-  def clock_problem({:wrong, :black}),
-    do:
-      gettext(
-        "Clock not in starting position: Black's side would run first - the clock is turned or the lever is the wrong way"
-      )
-
-  def clock_problem({:wrong, :white}),
-    do:
-      gettext(
-        "Clock not in starting position: White's side would run first - the clock is turned or the lever is the wrong way"
-      )
-
-  def clock_problem(_fine), do: nil
 
   @doc "The clock alarm - a clock running on the wrong side from the starting position - in words."
   def clock_alarm(:white),

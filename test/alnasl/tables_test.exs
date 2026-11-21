@@ -582,7 +582,6 @@ defmodule Alnasl.TablesTest do
       set_clock("FAKE-A", {:still, :black})
       eventually(fn -> Boards.snapshot(a.id).clock_check == :ok end)
       checks = Tables.checks(1)
-      refute Enum.any?(whats(checks), &match?({:clock_wrong, _, _, _}, &1))
       assert Tables.ready?(checks)
 
       # No clock is no reason either.

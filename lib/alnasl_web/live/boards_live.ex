@@ -1202,14 +1202,6 @@ defmodule AlnaslWeb.BoardsLive do
                       >
                         {Words.unseen(piece)}
                       </.badge>
-                    <% s.problems == [] and Words.clock_problem(s[:clock_check]) -> %>
-                      <.badge id={"start-clock-#{s.id}"} tone="warn" icon="warning">
-                        {gettext("Clock wrong")}
-                      </.badge>
-
-                      <div class="note mt-1">
-                        {Words.clock_problem(s[:clock_check])}
-                      </div>
                     <% s.problems == [] -> %>
                       <.badge id={"start-ok-#{s.id}"} tone="ok" icon="ok">{gettext("Right")}</.badge>
 
@@ -1226,10 +1218,6 @@ defmodule AlnaslWeb.BoardsLive do
 
                         <li :if={length(s.problems) > 3}>
                           {gettext("...and %{n} more", n: length(s.problems) - 3)}
-                        </li>
-
-                        <li :if={Words.clock_problem(s[:clock_check])} id={"start-clock-#{s.id}"}>
-                          {Words.clock_problem(s[:clock_check])}
                         </li>
                       </ul>
                   <% end %>
