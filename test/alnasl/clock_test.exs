@@ -90,4 +90,52 @@ defmodule Alnasl.ClockTest do
     clock = read(clock, [{59_000, 50_000, :white}])
     assert clock.presses == 0
   end
+
+  describe "a flag the times contradict (the hall, 2026-11-21, round 10 board 4)" do
+    # Black named as running the whole time; Black's half standing at
+    # 2:00:40, White's going down a second a second. The results site showed
+    # Black's clock "running" and stuck, and White's counting down "stopped".
+    @stale [
+      {1_201_000, 7_240_000, :black},
+      {1_200_000, 7_240_000, :black},
+      {1_199_000, 7_240_000, :black},
+      # the same second read twice
+      {1_199_000, 7_240_000, :black},
+      {1_198_000, 7_240_000, :black}
+    ]
+
+    test "the side whose time goes down is the side that runs, and no press is made of it" do
+      clock = read(Clock.new(), @stale)
+
+      assert clock.running == :white
+      assert clock.presses == 0
+
+      assert %{white_ms: 1_197_000, black_ms: 7_240_000, running: :white} =
+               Clock.read(clock, 1_000)
+    end
+
+    test "once is two presses hidden between readings, as before; twice is the flag" do
+      clock = read(Clock.new(), Enum.take(@stale, 2))
+      assert clock.running == :black and clock.presses == 2
+
+      clock = read(clock, [Enum.at(@stale, 2)])
+      assert clock.running == :white and clock.presses == 0
+    end
+
+    test "a real press, the flag changing sides, is a press as ever" do
+      clock = read(Clock.new(), @stale)
+      # Somebody presses: the flag now names White, and Black's time goes.
+      {clock, pressed?} =
+        Clock.update(clock, 0, %{white_ms: 1_198_000, black_ms: 7_240_000, running: :white})
+
+      assert pressed? and clock.presses == 1
+      clock = read(clock, [{1_198_000, 7_239_000, :white}, {1_198_000, 7_238_000, :white}])
+      assert clock.running == :black
+    end
+
+    test "a flag that agrees with the times is left alone" do
+      clock = read(Clock.new(), [{60_000, 60_000, :white}, {59_000, 60_000, :white}])
+      assert clock.running == :white and clock.presses == 0
+    end
+  end
 end

@@ -53,7 +53,12 @@ defmodule Alnasl.Clock do
             at: nil,
             presses: 0,
             hourglass?: false,
-            off?: false
+            off?: false,
+            # The side the clock itself last named as running, before
+            # `by_the_times/3` had its say.
+            flag: nil,
+            # The last reading looked like a stale flag, or like two presses.
+            suspect?: false
 
   @type t :: %__MODULE__{}
   @type reading :: %{white_ms: integer(), black_ms: integer(), running: atom()}
@@ -72,11 +77,16 @@ defmodule Alnasl.Clock do
   @doc "Takes a reading at time `t`. `{clock, pressed?}`."
   @spec update(t(), integer(), map()) :: {t(), boolean()}
   def update(%__MODULE__{} = clock, t, reading) do
-    running = Map.get(reading, :running, :none)
+    flag = Map.get(reading, :running, :none)
+    {running, suspect?, undo} = by_the_times(clock, flag, reading)
+    reading = Map.put(reading, :running, running)
+
+    # A press is the clock's own flag changing sides. Where the times
+    # overrule a flag that stayed put, nobody pressed anything.
+    before = clock.flag || clock.running
 
     pressed? =
-      clock.running in [:white, :black] and running in [:white, :black] and
-        running != clock.running
+      before in [:white, :black] and flag in [:white, :black] and flag != before
 
     hourglass? = clock.hourglass? or hourglass?(clock, reading)
     hidden = if clock.off? or hourglass?, do: 0, else: hidden_presses(clock, reading)
@@ -86,6 +96,8 @@ defmodule Alnasl.Clock do
        | white_ms: Map.get(reading, :white_ms, clock.white_ms),
          black_ms: Map.get(reading, :black_ms, clock.black_ms),
          running: running,
+         flag: flag,
+         suspect?: suspect?,
          armed: Map.get(reading, :armed),
          started:
            cond do
@@ -96,8 +108,61 @@ defmodule Alnasl.Clock do
          at: t,
          off?: false,
          hourglass?: hourglass?,
-         presses: clock.presses + hidden + if(pressed?, do: 1, else: 0)
+         presses: clock.presses + hidden + if(pressed?, do: 1, else: 0) - undo
      }, pressed?}
+  end
+
+  # Which side runs, by the times when they and the flag disagree:
+  # `{running, suspect?, presses_to_take_back}`.
+  #
+  # The flag is what the clock says about itself, and it can be stale: a
+  # clock paused, its lever tipped over by hand and started again can go on
+  # naming the side it named before, while the other side's time is the one
+  # going down (seen in the hall 2026-11-21: Black named, Black's time
+  # standing at 2:00:40, White's going down by a second a second). The time
+  # that goes down is the time that runs.
+  #
+  # Once, that looks exactly like two presses between two readings ("Presses
+  # the running side hides") and is counted so. Twice in a row under the
+  # same flag it is not two more presses a second: it is the flag, the times
+  # win from then on, and the two presses counted for it are taken back.
+  #
+  # Only between readings with the SAME flag, running both times: the
+  # reading in which the flag changes is a press, and the side that just
+  # pressed may well have lost a fraction of a second before it did. In the
+  # same second neither time moves, and what was worked out before stands.
+  defp by_the_times(%__MODULE__{hourglass?: true}, flag, _reading), do: {flag, false, 0}
+
+  defp by_the_times(%__MODULE__{} = clock, flag, reading) when flag in [:white, :black] do
+    other = other(flag)
+
+    cond do
+      clock.off? or clock.at == nil or clock.flag != flag or
+          clock.running not in [:white, :black] ->
+        {flag, false, 0}
+
+      dropped?(clock, reading, other) and not dropped?(clock, reading, flag) ->
+        cond do
+          clock.running == other -> {other, false, 0}
+          clock.suspect? -> {other, false, 2}
+          true -> {flag, true, 0}
+        end
+
+      not dropped?(clock, reading, flag) and not dropped?(clock, reading, other) ->
+        {clock.running, clock.suspect?, 0}
+
+      true ->
+        {flag, false, 0}
+    end
+  end
+
+  defp by_the_times(_clock, flag, _reading), do: {flag, false, 0}
+
+  defp dropped?(clock, reading, side) do
+    key = if side == :white, do: :white_ms, else: :black_ms
+    was = Map.get(clock, key)
+    now = Map.get(reading, key)
+    is_integer(was) and is_integer(now) and now < was
   end
 
   @doc """

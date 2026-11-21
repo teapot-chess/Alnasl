@@ -273,7 +273,8 @@ defmodule Alnasl.Session do
         black_ms: clock.white_ms,
         running: other_side(clock.running),
         armed: other_side(clock.armed),
-        started: other_side(clock.started)
+        started: other_side(clock.started),
+        flag: other_side(clock.flag)
     }
   end
 

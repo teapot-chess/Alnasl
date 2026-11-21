@@ -19,6 +19,10 @@ section, word for word. See [docs/releasing.md](docs/releasing.md).
 
 ## [Unreleased]
 
+## [0.19.1] - 2026-11-21
+
+- [Fix] **The time that goes down is the time that runs.** A clock can keep naming one side as running while the other side's time is the one ticking away, after a pause and a lever tipped by hand. Two readings in a row like that and Alnasl believes the times over the flag: the running side, the push to the results site and the press count follow the clock as it really runs. Once is still two presses nobody saw; a real press is a press as ever.
+
 ## [0.19.0] - 2026-11-21
 
 - [Feature] **Live can draw the boards as they stand.** "Game" and "Board as it stands" at the top of Live switch the tiles between the position of the game and what each board reads right now, with the squares where the two disagree marked. Each browser keeps its own choice, as browsers do.
