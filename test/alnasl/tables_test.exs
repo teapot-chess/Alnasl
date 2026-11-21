@@ -416,9 +416,9 @@ defmodule Alnasl.TablesTest do
       set_clock("FAKE-A", {:still, :white})
       eventually(fn -> Boards.snapshot(a.id).clock_check == :ok end)
       set_clock("FAKE-A", {:still, :black})
-      eventually(fn -> Boards.snapshot(a.id).clock_check == {:wrong, :black} end)
+      eventually(fn -> match?(%{running: :none}, Boards.snapshot(a.id).board_clock) end)
       set_clock("FAKE-A", :white)
-      eventually(fn -> Boards.snapshot(a.id).clock_check == :ok end)
+      eventually(fn -> match?(%{running: :white}, Boards.snapshot(a.id).board_clock) end)
       set_clock("FAKE-A", :off)
       eventually(fn -> Boards.snapshot(a.id).clock_check == nil end)
 
@@ -573,28 +573,17 @@ defmodule Alnasl.TablesTest do
       assert {:duplicate_board, 2, ["C", "D"]} in whats
     end
 
-    test "a clock that would run Black's side first is a reason, and goes when the clock is right" do
+    test "a clock set either way round is no reason: which half is White's is found when it starts" do
       a = dgt("FAKE-A", "00001", %{name: "A"})
       Tables.set_table(a, 1)
       eventually(fn -> Boards.snapshot(a.id).status == :waiting_start end)
       assert Tables.ready?(Tables.checks(1))
 
       set_clock("FAKE-A", {:still, :black})
-      eventually(fn -> Boards.snapshot(a.id).clock_check == {:wrong, :black} end)
-      checks = Tables.checks(1)
-      assert {:clock_wrong, "A", 1, :black} in whats(checks)
-      refute Tables.ready?(checks)
-
-      check = Enum.find(checks, &match?(%{what: {:clock_wrong, _, _, _}}, &1))
-      assert check.board_id == a.id
-
-      assert {"bad", sentence} = AlnaslWeb.TableWords.check(check)
-      assert sentence =~ "Board 1" and sentence =~ "Clock not in starting position"
-      assert sentence =~ "Black's side would run first"
-
-      set_clock("FAKE-A", {:still, :white})
       eventually(fn -> Boards.snapshot(a.id).clock_check == :ok end)
-      assert Tables.ready?(Tables.checks(1))
+      checks = Tables.checks(1)
+      refute Enum.any?(whats(checks), &match?({:clock_wrong, _, _, _}, &1))
+      assert Tables.ready?(checks)
 
       # No clock is no reason either.
       set_clock("FAKE-A", :off)

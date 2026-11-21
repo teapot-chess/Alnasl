@@ -134,7 +134,7 @@ defmodule AlnaslWeb.HallsLive do
 
   # What wants an arbiter: a board out of step with its game, a clock
   # running the wrong way, or a game in play nobody hears from.
-  defp attention?(%{status: status}) when status in [:out_of_sync, :clock_alarm], do: true
+  defp attention?(%{status: status}) when status in [:out_of_sync, :clock_alarm, :clock_lost], do: true
 
   defp attention?(%{status: :no_signal, linked?: true, game_status: status}),
     do: status != "finished"

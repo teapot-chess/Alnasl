@@ -349,7 +349,7 @@ defmodule AlnaslWeb.RoundLive do
       counts: counts,
       alarms:
         Map.get(counts, :out_of_sync, 0) + Map.get(counts, :no_signal, 0) +
-          Map.get(counts, :clock_alarm, 0),
+          Map.get(counts, :clock_alarm, 0) + Map.get(counts, :clock_lost, 0),
       flagged: Enum.count(tiles, & &1.pairing_flag),
       ready?: Tables.ready?(checks),
       not_ready: Enum.count(checks, &(&1.level in [:bad, :warn])),
@@ -1036,6 +1036,7 @@ defmodule AlnaslWeb.RoundLive do
                 :out_of_sync,
                 :no_signal,
                 :clock_alarm,
+                :clock_lost,
                 :recovered,
                 :live,
                 :settling,

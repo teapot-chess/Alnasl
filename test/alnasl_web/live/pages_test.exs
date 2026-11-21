@@ -218,7 +218,7 @@ defmodule AlnaslWeb.PagesTest do
       eventually_html(view, fn _ -> not has_element?(view, "#board-#{row.id}") end)
     end
 
-    test "the start-position check takes the clock in: right is pieces and clock, and a clock the wrong way is said in words",
+    test "the start-position check takes the clock in: a clock is there, either way round",
          %{conn: conn} do
       a = fake_dgt("FAKE1")
       b = fake_dgt("FAKE2")
@@ -234,25 +234,18 @@ defmodule AlnaslWeb.PagesTest do
       set_clock("FAKE1", {:still, :white})
       set_clock("FAKE2", {:still, :black})
 
+      # Which half is White's is found when the clock is started: either
+      # way round is ready.
       eventually_html(view, fn _ ->
         has_element?(view, "#start-clock-ok-#{a.id}") and
-          has_element?(view, "#start-clock-#{b.id}")
+          has_element?(view, "#start-clock-ok-#{b.id}")
       end)
 
-      refute has_element?(view, "#start-ok-#{b.id}")
+      assert has_element?(view, "#start-ok-#{b.id}")
+      refute has_element?(view, "#start-clock-#{b.id}")
 
-      assert has_element?(
-               view,
-               "#board-#{b.id}",
-               "Clock not in starting position: Black's side would run first - the clock is turned or the lever is the wrong way"
-             )
-
-      # Pieces wrong as well: the clock is one more line of the same list.
-      set_pieces("FAKE2", Position.start() |> put_elem(3, {:b, :k}) |> put_elem(4, {:b, :q}))
-      eventually_html(view, fn _ -> has_element?(view, "#start-wrong-#{b.id}") end)
-      assert has_element?(view, "li#start-clock-#{b.id}", "Black's side would run first")
-
-      # Nowhere on the page is there anything to swap the clock's sides with.
+      # Nowhere on the page is there anything to swap the clock's sides with:
+      # the box does it.
       html = render(view)
       refute html =~ "clock_white"
       refute html =~ ~r/swap.{0,20}clock|clock.{0,20}swap/i
@@ -703,7 +696,7 @@ defmodule AlnaslWeb.PagesTest do
       kinds =
         ~w(board.added board.removed board.connected board.disconnected board.driver_failed board.linked board.unlinked
            board.moved board.flipped board.out_of_sync board.resumed move.recovered move.guessed move.assumed move.corrected
-           clock.move_missing clock.wrong_side clock.side_ok result.suggested result.set result.reopened repair.undo repair.append repair.edit
+           clock.move_missing clock.wrong_side clock.side_ok clock.turned_round result.suggested result.set result.reopened repair.undo repair.append repair.edit
            repair.set_fen repair.resync repair.choose repair.paused repair.resumed pgn.attached outbox.offline
            outbox.online outbox.blocked outbox.conflict outbox.server_ahead outbox.live_game_limit outbox.discarded door.unlocked door.refused door.throttled setup.saved
            destination.offline destination.online destination.blocked destination.enabled destination.disabled

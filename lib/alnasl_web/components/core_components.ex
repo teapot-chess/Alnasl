@@ -138,6 +138,7 @@ defmodule AlnaslWeb.CoreComponents do
   def tone(:out_of_sync), do: "bad"
   def tone(:no_signal), do: "bad"
   def tone(:clock_alarm), do: "bad"
+  def tone(:clock_lost), do: "bad"
   def tone(_other), do: nil
 
   @doc "The word for a board state."
@@ -149,6 +150,7 @@ defmodule AlnaslWeb.CoreComponents do
   def state_word(:out_of_sync), do: gettext("Out of sync")
   def state_word(:no_signal), do: gettext("No signal")
   def state_word(:clock_alarm), do: gettext("Clock wrong way")
+  def state_word(:clock_lost), do: gettext("Clock not answering")
   def state_word(:finished), do: gettext("Finished")
   def state_word(:unlinked), do: gettext("Not linked")
   def state_word(_other), do: gettext("Unknown")
@@ -161,6 +163,7 @@ defmodule AlnaslWeb.CoreComponents do
   defp state_icon(:out_of_sync), do: "out_of_sync"
   defp state_icon(:no_signal), do: "no_signal"
   defp state_icon(:clock_alarm), do: "clock_alarm"
+  defp state_icon(:clock_lost), do: "clock_alarm"
   defp state_icon(:finished), do: "finished"
   defp state_icon(:unlinked), do: "unlinked"
   defp state_icon(_other), do: "waiting"

@@ -2329,7 +2329,7 @@ defmodule AlnaslWeb.GameLive do
 
     ~H"""
     <div
-      :if={@headline && @state in [:out_of_sync, :no_signal, :recovered, :clock_alarm]}
+      :if={@headline && @state in [:out_of_sync, :no_signal, :recovered, :clock_alarm, :clock_lost]}
       id="state-help"
       class={["alarm", @state == :recovered && "warn"]}
       role={if @state == :recovered, do: "status", else: "alert"}
@@ -2350,7 +2350,7 @@ defmodule AlnaslWeb.GameLive do
     </div>
 
     <p
-      :if={@headline && @state not in [:out_of_sync, :no_signal, :recovered, :clock_alarm]}
+      :if={@headline && @state not in [:out_of_sync, :no_signal, :recovered, :clock_alarm, :clock_lost]}
       id="state-help"
       class="note"
     >

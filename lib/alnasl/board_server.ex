@@ -554,7 +554,11 @@ defmodule Alnasl.BoardServer do
       |> Keyword.put(:late_start, late?)
 
     # The clock goes on as it was: the memory changed the moves, not the time.
-    session = %{Session.restore(opts, Games.plies(game)) | clock: state.session.clock}
+    session = %{
+      Session.restore(opts, Games.plies(game))
+      | clock: state.session.clock,
+        swapped?: state.session.swapped?
+    }
     %{state | game: game, session: session}
   end
 
@@ -799,6 +803,11 @@ defmodule Alnasl.BoardServer do
 
           {:restart, _fen} ->
             {game, _} = Games.apply_event(state.game, event, wall)
+            {%{state | game: game}, :replace}
+
+          {:clock_swapped, from} ->
+            {game, _} = Games.apply_event(state.game, event, wall)
+            Log.add(:warn, "clock.turned_round", %{from: div(from, 2) + 1}, ref(state))
             {%{state | game: game}, :replace}
 
           {:status, status, detail} ->
@@ -1422,7 +1431,9 @@ defmodule Alnasl.BoardServer do
         dead: [],
         confused: [],
         clock: nil,
-        clock_check: Clock.start_check(state.clock),
+        # Which way it stands is found out when it is started: here only
+        # whether it is there.
+        clock_check: if(Clock.present?(state.clock), do: :ok),
         clock_alarm: nil,
         draft: nil,
         problems: if(state.seen, do: Position.problems(Position.start(), state.seen), else: [])
@@ -1437,6 +1448,9 @@ defmodule Alnasl.BoardServer do
       not state.connected? -> :no_signal
       tracker.status == :out_of_sync -> :out_of_sync
       state.session.clock_alarm != nil -> :clock_alarm
+      # The clock was there and is not any more: unplugged, switched off,
+      # or a battery that gave up. The moves go on; their times do not.
+      state.session.clock.off? -> :clock_lost
       tracker.status == :live and recovered?(tracker) -> :recovered
       true -> tracker.status
     end

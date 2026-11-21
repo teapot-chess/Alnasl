@@ -284,6 +284,13 @@ defmodule AlnaslWeb.Words do
          "The pieces are being followed, but the clock times of the moves are the wrong way round. Stop the clock, set it down with White's display toward White (to the right of the board, lever up on White's side) and start it again. This goes away by itself once the clock is right."
        )}
 
+  def state_help(:clock_lost, _detail),
+    do:
+      {gettext("The clock does not answer"),
+       gettext(
+         "The clock was there and has gone quiet: unplugged, switched off, or its battery. The moves are still followed, without their times. Check the clock's cable to the board and its power; this goes away by itself when it answers again."
+       )}
+
   def state_help(:waiting_start, {:clock, check}),
     do: {gettext("The clock is not in its starting position"), clock_problem(check) <> "."}
 
@@ -818,6 +825,13 @@ defmodule AlnaslWeb.Words do
       )
 
   defp log("clock.side_ok", _d), do: gettext("The clock is the right way again.")
+
+  defp log("clock.turned_round", d),
+    do:
+      gettext(
+        "The clock stands the other way round: its times are read the other way from now on, and those of the moves from move %{ply} on are swapped.",
+        ply: d["from"]
+      )
 
   defp log("result.suggested", %{"why" => "gesture"} = d),
     do: gettext("The kings are in the centre: %{result}?", result: d["result"])
