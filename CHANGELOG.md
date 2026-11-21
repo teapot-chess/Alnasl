@@ -19,6 +19,8 @@ section, word for word. See [docs/releasing.md](docs/releasing.md).
 
 ## [Unreleased]
 
+## [0.19.0] - 2026-11-21
+
 - [Feature] **Live can draw the boards as they stand.** "Game" and "Board as it stands" at the top of Live switch the tiles between the position of the game and what each board reads right now, with the squares where the two disagree marked. Each browser keeps its own choice, as browsers do.
 - [Feature] **Pressing the clock starts the game from the board.** A clock started over something other than the starting position no longer waits for the pieces to go home: the board's memory catches the game up when it leads exactly to what is on the board, and otherwise the game starts from that position, with the side whose clock runs to move. The log says which.
 - [Feature] **Playing without a clock.** When boards of the round have no clock, Live says how many and offers "Play without a clock" for the tournament. Those boards then start at the round's start time from OpenPairings, or at once when OpenPairings does not give one, and their tiles say so.
