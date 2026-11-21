@@ -246,12 +246,33 @@ defmodule Alnasl.Destination.LichessBroadcast do
 
     changes = if sent?, do: Map.put(changes, :sent_at, DateTime.utc_now(:second)), else: changes
 
+    if sent?, do: debug_sent(game, error)
+
     (cursor || %Cursor{destination: @id, game_id: game.id})
     |> Ecto.Changeset.change(changes)
     |> Repo.insert_or_update!()
   end
 
   defp digest(pgn), do: :sha256 |> :crypto.hash(pgn) |> Base.encode16(case: :lower)
+
+  # What the destination said about the game, in the board's debug log.
+  defp debug_sent(game, error) do
+    Alnasl.BoardLog.for_game(
+      game.tournament_id,
+      game.round,
+      game.board_no,
+      :sent,
+      "sent",
+      %{
+        destination: @id,
+        outcome: if(error, do: :rejected, else: :sent),
+        detail: error,
+        seq: game.seq
+      },
+      nil,
+      if(error, do: :warn, else: :info)
+    )
+  end
 
   # --- the PGN -----------------------------------------------------------------
 

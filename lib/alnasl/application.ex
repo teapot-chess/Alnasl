@@ -59,6 +59,8 @@ defmodule Alnasl.Application do
       {Registry, keys: :unique, name: Alnasl.BridgeRegistry},
       {Registry, keys: :unique, name: Alnasl.RemoteRegistry},
       {Task.Supervisor, name: Alnasl.TaskSupervisor},
+      # Each board's debug log, in memory (`Alnasl.BoardLog`).
+      Alnasl.BoardLog,
       Alnasl.Recorder,
       Alnasl.DoorGuard,
       # The access PIN: a request from the box applied, the old hash retired,

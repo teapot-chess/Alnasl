@@ -26,6 +26,8 @@ defmodule Alnasl.Settings do
     "new_game_on_setup" => "unpaired",
     "clock_heartbeat_s" => 20,
     "capture_cap_mb" => 500,
+    # Setup > Advanced: the board debug log beside each board (`Alnasl.BoardLog`).
+    "board_debug_log" => false,
     "tracker" => %{},
     # Simple mode (`AlnaslWeb.Mode`): what a new installation starts with.
     # One that was in use before simple mode existed was given "full" when

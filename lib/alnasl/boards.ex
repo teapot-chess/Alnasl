@@ -80,6 +80,7 @@ defmodule Alnasl.Boards do
     Repo.delete(board)
     Alnasl.Recorder.remember_hall(board.id, board.hall_id)
     Log.add(:info, "board.removed", %{name: board.name}, %{board_id: board.id})
+    Alnasl.BoardLog.clear(board.id)
     notify(board.id)
     Tournaments.notify(board.tournament_id)
     :ok
@@ -505,7 +506,7 @@ defmodule Alnasl.Boards do
   end
 
   @doc "Sets the result of the game on a board. The arbiter's word."
-  def set_result(id, result), do: call(id, {:repair, :result, result})
+  def set_result(id, result, by \\ "arbiter"), do: call(id, {:repair, :result, {result, by}})
 
   # --- games without a board ---------------------------------------------------
 

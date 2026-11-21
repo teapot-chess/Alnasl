@@ -19,6 +19,9 @@ section, word for word. See [docs/releasing.md](docs/releasing.md).
 
 ## [Unreleased]
 
+- [Feature] **A board can show its working.** Setup > Advanced > Board debug log puts a panel beside the board on its page: every square that changed, the move Alnasl made of it and on what grounds (seen, worked out from the squares, guessed, misread and put right, from the board's memory), the clock pressed and stopped, and what the results site, OpenPairings and Lichess said about each update. Results get the full story: which squares the kings stand on for the gesture, who is mated after which move, whether the arbiter set it on the board's page or in OpenPairings, and whether the auto-send setting let it go by itself. Plain sentences first, FEN and the board's last bytes behind "Technical detail", filters, a Copy button. Off by default, shown only to people who may arbitrate in the hall, on a box and on the server alike. The last 500 lines a board are kept in memory whether it is on or not, so switching it on mid-mystery shows the mystery rather than an empty box and good intentions. `Alnasl.BoardLog`.
+- [Change] **A result finished from OpenPairings says so.** The arbiter's log used to file it under "set by the arbiter in Alnasl", which was true of the arbiter and false of the place.
+
 ## [0.18.0] - 2026-11-10
 
 - [Fix] **Built on Arkab 0.6.0.** A bridge that meets a server restored from a backup now takes the server at its word and sends again what the server says it is missing, instead of politely keeping its own count and sending nothing. Plain http to anything outside the hall's own network is refused there too.

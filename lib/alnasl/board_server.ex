@@ -59,6 +59,7 @@ defmodule Alnasl.BoardServer do
   use GenServer, restart: :transient
 
   alias Alnasl.{
+    BoardLog,
     Chess,
     Clock,
     Driver,
@@ -139,6 +140,8 @@ defmodule Alnasl.BoardServer do
       warning: nil,
       queued_at: nil,
       heartbeat_ms: (Settings.get("clock_heartbeat_s") || 20) * 1000,
+      # The bytes the board sent last, for the debug log (`Alnasl.BoardLog`).
+      last_rx: nil,
       dirty?: false
     }
 
@@ -159,6 +162,12 @@ defmodule Alnasl.BoardServer do
 
     case Driver.module(board.driver).start_link(opts) do
       {:ok, pid} ->
+        dbg(state, :connection, "driver.started", %{
+          driver: board.driver,
+          port: board.port,
+          address: board.address
+        })
+
         %{state | driver: pid}
 
       {:error, reason} ->
@@ -185,13 +194,24 @@ defmodule Alnasl.BoardServer do
       # A second game on a board began on a board that showed the first.
       |> Keyword.put(:late_start, game.game_no == 1)
 
-    session = Session.restore(opts, Games.plies(game))
+    plies = Games.plies(game)
+    session = Session.restore(opts, plies)
     Recorder.record(state.board.id, {:cfg, cfg(state.board, game)})
+
+    dbg(
+      state,
+      :other,
+      "game.linked",
+      %{round: round, board: no, game: game.game_no, plies: length(plies), status: game.status},
+      "start FEN " <> (game.start_fen || Chess.start_fen())
+    )
+
     with_draft(%{state | game: game, session: session, warning: nil})
   end
 
   defp load_game(state) do
     Recorder.record(state.board.id, {:cfg, cfg(state.board, nil)})
+    dbg(state, :other, "game.unlinked")
     %{state | game: nil, session: nil, warning: nil, draft: nil}
   end
 
@@ -244,7 +264,11 @@ defmodule Alnasl.BoardServer do
     end
   end
 
-  def handle_info(:restart_driver, %{driver: nil} = state), do: {:noreply, start_driver(state)}
+  def handle_info(:restart_driver, %{driver: nil} = state) do
+    dbg(state, :connection, "driver.restart")
+    {:noreply, start_driver(state)}
+  end
+
   def handle_info(:restart_driver, state), do: {:noreply, state}
 
   def handle_info({:EXIT, pid, reason}, %{driver: pid} = state) do
@@ -281,15 +305,19 @@ defmodule Alnasl.BoardServer do
         stats: Map.update!(state.stats, :positions, &(&1 + 1))
     }
 
+    before = state.seen
     state = orientation(state)
     seen = if state.board.flipped, do: Position.rotate(board), else: board
     state = %{state | seen: seen}
+    log_position(state, before, seen)
     state |> feed(t, {:position, seen}) |> dirty()
   end
 
   defp driver_event(state, {:clock, reading}, t) do
     Recorder.record(state.board.id, {:clock, reading})
-    {clock, _pressed?} = Clock.update(state.clock, t, reading)
+    before = state.clock
+    {clock, pressed?} = Clock.update(state.clock, t, reading)
+    log_clock(state, before, reading, pressed?)
     state = %{state | clock: clock, info: Map.put(state.info, :clock, true)}
     state |> feed(t, {:clock, reading}) |> dirty()
   end
@@ -298,6 +326,7 @@ defmodule Alnasl.BoardServer do
   # no clock alarm, until it reports again.
   defp driver_event(state, {:info, %{clock: false} = info}, t) do
     Recorder.record(state.board.id, {:clock, :off})
+    if Clock.present?(state.clock), do: dbg(state, :clock, "clock.off")
     state = %{state | clock: Clock.off(state.clock, t), info: Map.merge(state.info, info)}
     state |> feed(t, {:info, %{clock: false}}) |> dirty()
   end
@@ -325,6 +354,11 @@ defmodule Alnasl.BoardServer do
   end
 
   defp driver_event(state, {:info, info}, _t) do
+    told = Map.take(info, [:serial, :firmware, :bus_address, :loop])
+
+    if told != %{} and told != Map.take(state.info, Map.keys(told)),
+      do: dbg(state, :connection, "board.info", told, inspect(info, limit: 20))
+
     state = %{state | info: Map.merge(state.info, info)}
     loop_by_itself(state, info)
 
@@ -380,17 +414,21 @@ defmodule Alnasl.BoardServer do
         else: state.session
 
     stats = state.stats |> Map.update!(:polls_missed, &(&1 + 1)) |> Map.put(:missed_run, run)
+    if run == @deaf_after, do: dbg(state, :connection, "poll.deaf", %{run: run}, nil, :warn)
     dirty(%{state | stats: stats, session: session})
   end
 
+  # Kept, not logged line by line: a loop answers sixty times a second. The
+  # last bytes the board sent go with the next reading in the debug log.
   defp driver_event(state, {:raw, direction, bytes}, _t) do
     Recorder.record(state.board.id, {:raw, direction, bytes})
-    state
+    if direction == :rx and is_binary(bytes), do: %{state | last_rx: bytes}, else: state
   end
 
   # The board's own memory. Whatever is wrong with it, this process goes on
   # and the game stays as it was.
   defp driver_event(state, {:history, events}, _t) when is_list(events) do
+    dbg(state, :connection, "history.received", %{count: length(events)})
     state |> recover(events) |> release()
   rescue
     error ->
@@ -765,10 +803,17 @@ defmodule Alnasl.BoardServer do
           {:moves, plies} ->
             {game, _} = Games.apply_event(state.game, event, wall)
             log_moves(state, plies)
+            dbg_moves(state, plies)
             {%{state | game: game}, queue || :append}
 
           {:correction, keep, plies, reason} ->
             {game, _} = Games.apply_event(state.game, event, wall)
+
+            dbg(state, :move, "correction", %{
+              keep: keep,
+              reason: reason,
+              moves: Enum.map(plies, & &1.san)
+            })
 
             case {reason, plies} do
               # A move read wrong and put right: said in so many words.
@@ -797,11 +842,13 @@ defmodule Alnasl.BoardServer do
 
             {%{state | game: game}, :replace}
 
-          {:restart, _fen} ->
+          {:restart, fen} ->
             {game, _} = Games.apply_event(state.game, event, wall)
+            dbg(state, :move, "restart", %{}, "FEN " <> to_string(fen))
             {%{state | game: game}, :replace}
 
           {:status, status, detail} ->
+            dbg_status(state, status, detail)
             {log_status(state, status, detail), queue}
 
           {:result_suggestion, result, why} ->
@@ -945,25 +992,37 @@ defmodule Alnasl.BoardServer do
       state
     else
       Log.add(:info, "result.suggested", %{result: result, why: why}, ref(state))
+      dbg_result_why(state, result, why)
       state = %{state | game: Games.suggest(state.game, result)}
+      fact? = why in [:checkmate, :stalemate, :insufficient_material]
+      auto? = Settings.get("auto_suggest") == true
 
-      if why in [:checkmate, :stalemate, :insufficient_material] and
-           Settings.get("auto_suggest") == true do
+      if fact? and auto? do
+        dbg(state, :result, "result.auto", %{result: result})
         Log.add(:info, "result.set", %{result: result, by: "board"}, ref(state))
         %{state | game: Games.finish(state.game, result)}
       else
+        dbg(state, :result, "result.waits", %{result: result, fact: fact?, auto: auto?})
         state
       end
     end
   end
 
-  defp enqueue(state, t, replace?) do
+  defp enqueue(state, t, replace?, why \\ :change) do
     reading = Clock.read(state.session.clock, t)
 
     game =
       state.game
       |> Games.remember_clock(reading && Map.put(reading, :running, reading.running))
       |> Outbox.enqueue(reading, replace?)
+
+    dbg(
+      state,
+      :sent,
+      "queued",
+      %{replace: replace?, why: why, plies: length(state.session.tracker.plies), seq: game.seq},
+      reading && clock_text(reading)
+    )
 
     %{state | game: game, queued_at: System.monotonic_time(:millisecond)}
   end
@@ -981,7 +1040,7 @@ defmodule Alnasl.BoardServer do
          %{running: running} when running != :none <- Clock.read(state.session.clock, t),
          true <- state.session.tracker.plies != [],
          true <- since == nil or since >= every do
-      enqueue(state, t, false)
+      enqueue(state, t, false, :heartbeat)
     else
       _no -> state
     end
@@ -1145,9 +1204,18 @@ defmodule Alnasl.BoardServer do
   defp repair(state, :alternatives, number, _t),
     do: {{:ok, Tracker.alternatives(state.session.tracker, number)}, state}
 
-  defp repair(state, :result, result, t) do
+  defp repair(state, :result, result, t) when is_binary(result),
+    do: repair(state, :result, {result, "arbiter"}, t)
+
+  defp repair(state, :result, {result, by}, t) do
     if result in Alnasl.Games.Game.results() do
-      Log.add(:info, "result.set", %{result: result, by: "arbiter"}, ref(state))
+      dbg(state, :result, "result.by_hand", %{
+        result: result,
+        by: by,
+        suggestion: state.game.suggestion
+      })
+
+      Log.add(:info, "result.set", %{result: result, by: by}, ref(state))
       state = %{state | game: Games.finish(state.game, result)}
       {:ok, enqueue(state, t, false)}
     else
@@ -1316,6 +1384,164 @@ defmodule Alnasl.BoardServer do
           state
       end
     end)
+  end
+
+  # --- the debug log (`Alnasl.BoardLog`) ----------------------------------------
+  #
+  # What a person who knows DGT boards wants to see when a board does
+  # something odd: what it read, what was made of it, and why. The words
+  # are `AlnaslWeb.BoardLogWords`'; here are only the facts.
+
+  defp dbg(state, cat, kind, data \\ %{}, tech \\ nil, level \\ :info),
+    do: BoardLog.add(state.board.id, cat, kind, data, tech, level)
+
+  # A reading: the squares that changed since the one before, and whether
+  # it was used at all.
+  defp log_position(state, before, seen) do
+    changes =
+      if before,
+        do: for(sq <- Position.diff(before, seen), do: {sq, elem(before, sq), elem(seen, sq)})
+
+    unless changes == [] do
+      use =
+        cond do
+          state.session == nil -> :unlinked
+          state.game.status == "finished" -> :finished
+          state.held? -> :held
+          true -> nil
+        end
+
+      dbg(
+        state,
+        :position,
+        "position",
+        %{changes: changes, use: use, flipped: state.board.flipped},
+        "placement " <> Position.placement(seen) <> rx_text(state.last_rx)
+      )
+    end
+  end
+
+  defp rx_text(bytes) when is_binary(bytes) and bytes != "" do
+    hex =
+      bytes
+      |> binary_part(0, min(byte_size(bytes), 48))
+      |> Base.encode16()
+      |> String.replace(~r/(..)(?!$)/, "\\1 ")
+
+    "\nlast rx " <> hex <> if(byte_size(bytes) > 48, do: " ...", else: "")
+  end
+
+  defp rx_text(_none), do: ""
+
+  # Only what changes the story: the first reading, a press, a start, a
+  # stop. A running clock reads every second, and a line a second is noise.
+  defp log_clock(state, before, reading, pressed?) do
+    running = Map.get(reading, :running, :none)
+
+    {kind, data} =
+      cond do
+        not Clock.present?(before) -> {"clock.first", %{running: running}}
+        pressed? -> {"clock.pressed", %{from: before.running, to: running}}
+        before.running == :none and running != :none -> {"clock.started", %{side: running}}
+        before.running != :none and running == :none -> {"clock.stopped", %{}}
+        true -> {nil, nil}
+      end
+
+    if kind, do: dbg(state, :clock, kind, data, clock_text(reading))
+  end
+
+  defp clock_text(reading) do
+    "white #{ms_text(reading[:white_ms])}, black #{ms_text(reading[:black_ms])}, " <>
+      "running #{reading[:running] || :none}" <>
+      if(reading[:armed], do: ", armed #{reading[:armed]}", else: "")
+  end
+
+  defp ms_text(ms) when is_integer(ms) do
+    s = div(max(ms, 0), 1000)
+    h = div(s, 3600)
+    m = s |> rem(3600) |> div(60)
+    pad = &String.pad_leading(Integer.to_string(&1), 2, "0")
+    if h > 0, do: "#{h}:#{pad.(m)}:#{pad.(rem(s, 60))}", else: "#{m}:#{pad.(rem(s, 60))}"
+  end
+
+  defp ms_text(_none), do: "-"
+
+  # Each move the tracker took, with the piece, the squares, how it knows
+  # (the flags) and the positions it was legal from and led to.
+  defp dbg_moves(state, plies) do
+    tracker = state.session.tracker
+    all = tracker.plies
+    first = length(all) - length(plies)
+
+    plies
+    |> Enum.with_index(first)
+    |> Enum.each(fn {ply, index} ->
+      before =
+        cond do
+          Map.get(Enum.at(all, index) || %{}, :san) != ply.san -> nil
+          index == 0 -> tracker.start_fen || Chess.start_fen()
+          true -> Map.get(Enum.at(all, index - 1), :fen)
+        end
+
+      piece =
+        with fen when is_binary(fen) <- before,
+             board when board != nil <- Position.from_fen(fen),
+             from when is_integer(from) <- ply[:from],
+             do: elem(board, from),
+             else: (_none -> nil)
+
+      flags = ply[:flags] || []
+
+      dbg(
+        state,
+        :move,
+        "move",
+        %{
+          san: ply.san,
+          from: is_integer(ply[:from]) && Position.square_name(ply.from),
+          to: is_integer(ply[:to]) && Position.square_name(ply.to),
+          piece: piece,
+          flags: flags,
+          read: ply[:read]
+        },
+        "from FEN #{before || "?"}\nto FEN #{ply[:fen] || "?"}",
+        if(:guessed in flags or :assumed in flags, do: :warn, else: :info)
+      )
+    end)
+  end
+
+  defp dbg_status(state, status, detail) do
+    tech = if is_map(detail) or is_tuple(detail), do: inspect(detail, limit: 12)
+    level = if status == :out_of_sync, do: :warn, else: :info
+    dbg(state, :position, "status", %{status: status, detail: detail}, tech, level)
+  end
+
+  # Why the board thinks the game is over, in full: which squares the kings
+  # stand on for the gesture, who is mated or stalemated and after what.
+  defp dbg_result_why(state, result, why) do
+    tracker = state.session.tracker
+    fen = Tracker.fen(tracker)
+    last = List.last(tracker.plies)
+
+    data =
+      case why do
+        :gesture ->
+          squares = if state.seen, do: Tuple.to_list(state.seen), else: []
+
+          king = fn colour ->
+            case Enum.find_index(squares, &(&1 == {colour, :k})) do
+              nil -> nil
+              i -> Position.square_name(i)
+            end
+          end
+
+          %{result: result, why: why, white_king: king.(:w), black_king: king.(:b)}
+
+        _fact ->
+          %{result: result, why: why, turn: tracker.pos.turn, last: last && last.san}
+      end
+
+    dbg(state, :result, "result.why", data, "FEN " <> fen)
   end
 
   # --- what the site sees ------------------------------------------------------

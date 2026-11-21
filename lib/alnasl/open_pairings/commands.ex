@@ -407,7 +407,7 @@ defmodule Alnasl.OpenPairings.Commands do
 
   defp run("finish", board, _tournament, %{"result" => result})
        when result in ["1-0", "0-1", "1/2-1/2", "*"] do
-    board.id |> Boards.set_result(result) |> done()
+    board.id |> Boards.set_result(result, "openpairings") |> done()
   end
 
   defp run("accept_draft", board, _tournament, %{"draft" => draft}) when is_integer(draft) do

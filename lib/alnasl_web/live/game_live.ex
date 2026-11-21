@@ -24,9 +24,9 @@ defmodule AlnaslWeb.GameLive do
 
   use AlnaslWeb, :live_view
 
-  alias Alnasl.{Boards, Chess, Games, Position, ResultsSite, Tournaments}
+  alias Alnasl.{BoardLog, Boards, Chess, Games, Position, ResultsSite, Tournaments}
   alias AlnaslWeb.Scope
-  alias AlnaslWeb.{Choice, Tap, Words}
+  alias AlnaslWeb.{BoardLogWords, Choice, Tap, Words}
 
   @impl true
   def mount(%{"round" => round, "board" => board} = params, _session, socket) do
@@ -41,6 +41,8 @@ defmodule AlnaslWeb.GameLive do
        |> assign(round: round, no: board, refresh_due?: false, notice: nil, compare: nil)
        |> assign(tid: tournament.id, tournament: tournament)
        |> assign(at: nil, choice: nil)
+       |> assign(debug_on?: debug_on?(socket), debug_board: nil, debug_cat: :all)
+       |> stream(:debug_log, [])
        |> assign(page_title: gettext("Board %{n}", n: board))
        |> assign(forms())
        |> load()}
@@ -137,6 +139,7 @@ defmodule AlnaslWeb.GameLive do
         )
     )
     |> then(&if(fresh?, do: assign(&1, choice: nil), else: &1))
+    |> follow_debug()
   end
 
   # The position after each ply, the start included, as what the board
@@ -222,6 +225,13 @@ defmodule AlnaslWeb.GameLive do
   # --- events ------------------------------------------------------------------
 
   @impl true
+  def handle_event("debug_filter", %{"cat" => cat}, socket) do
+    case Enum.find(debug_cats(), &(Atom.to_string(&1) == cat)) do
+      nil -> {:noreply, socket}
+      cat -> {:noreply, socket |> assign(debug_cat: cat) |> debug_stream()}
+    end
+  end
+
   def handle_event("nav", %{"to" => to}, socket) do
     count = if socket.assigns.view, do: length(socket.assigns.view.snap.plies), else: 0
     at = socket.assigns.at || count
@@ -920,7 +930,59 @@ defmodule AlnaslWeb.GameLive do
   end
 
   def handle_info(:refresh, socket), do: {:noreply, load(socket)}
+
+  # The board debug log (`Alnasl.BoardLog`): a line of the board shown here.
+  def handle_info({:board_log, id, entry}, %{assigns: %{debug_board: id}} = socket) do
+    if shown?(entry, socket.assigns.debug_cat),
+      do: {:noreply, stream_insert(socket, :debug_log, entry, at: 0, limit: BoardLog.keep())},
+      else: {:noreply, socket}
+  end
+
+  # Setup turned the log on or off.
+  def handle_info({:setting, "board_debug_log"}, socket),
+    do: {:noreply, socket |> assign(debug_on?: debug_on?(socket)) |> follow_debug()}
+
   def handle_info(_other, socket), do: {:noreply, socket}
+
+  # --- the board debug log ----------------------------------------------------
+
+  @debug_cats ~w(all move clock result connection sent)a
+
+  # Only for whoever may arbitrate here, and only while Setup says so.
+  defp debug_on?(socket), do: socket.assigns.may_arbiter and BoardLog.enabled?()
+
+  # Listens to the board this page shows, and to no other; reads its lines
+  # afresh when that board is another one, or the log was turned on.
+  defp follow_debug(socket) do
+    want = if socket.assigns.debug_on? and socket.assigns.board, do: socket.assigns.board.id
+    have = socket.assigns.debug_board
+
+    if want == have do
+      socket
+    else
+      if connected?(socket) do
+        if have, do: BoardLog.unsubscribe(have)
+        if want, do: BoardLog.subscribe(want)
+      end
+
+      socket |> assign(debug_board: want) |> debug_stream()
+    end
+  end
+
+  defp debug_stream(%{assigns: %{debug_board: nil}} = socket),
+    do: stream(socket, :debug_log, [], reset: true)
+
+  defp debug_stream(socket) do
+    %{debug_board: id, debug_cat: cat} = socket.assigns
+    entries = id |> BoardLog.list() |> Enum.filter(&shown?(&1, cat))
+    stream(socket, :debug_log, entries, reset: true)
+  end
+
+  defp shown?(_entry, :all), do: true
+  defp shown?(%{cat: cat}, :move), do: cat in [:move, :position]
+  defp shown?(%{cat: cat}, wanted), do: cat == wanted
+
+  defp debug_cats, do: @debug_cats
 
   # Whether a board's news is this page's: its own board, or any board while
   # it has none. A board moved off this game says so under its own id.
@@ -1316,6 +1378,89 @@ defmodule AlnaslWeb.GameLive do
         </div>
 
         <div class="stack">
+          <.panel :if={@debug_on? and @board} id="debug-log" title={gettext("Board debug log")} flush>
+            <:actions>
+              <AlnaslWeb.Components.ManualLink.manual_link topic={:board_debug_log} />
+              <.button
+                id="debug-log-copy"
+                small
+                type="button"
+                phx-hook=".CopyLog"
+                data-list="debug-log-lines"
+                data-copied={gettext("Copied")}
+              >{gettext("Copy")}</.button>
+            </:actions>
+
+            <div class="debug-cats">
+              <div class="seg" role="group" aria-label={gettext("Show")}>
+                <button
+                  :for={cat <- debug_cats()}
+                  id={"debug-cat-#{cat}"}
+                  type="button"
+                  phx-click="debug_filter"
+                  phx-value-cat={cat}
+                  aria-pressed={to_string(cat == @debug_cat)}
+                >
+                  {BoardLogWords.cat(cat)}
+                </button>
+              </div>
+            </div>
+
+            <ol id="debug-log-lines" class="log debug-log" phx-update="stream">
+              <li id="debug-log-empty" class="only-empty empty">
+                <span>{gettext("Nothing yet. Lift a piece.")}</span>
+              </li>
+
+              <li
+                :for={{dom_id, entry} <- @streams.debug_log}
+                id={dom_id}
+                class={["debug-line", to_string(entry.level)]}
+              >
+                <time datetime={DateTime.to_iso8601(entry.at)}>{Words.time(entry.at)}</time>
+                <span class="where">{BoardLogWords.cat(entry.cat)}</span>
+                <span class="what">{BoardLogWords.text(entry)}</span>
+                <details :if={entry.tech} class="debug-tech">
+                  <summary>{gettext("Technical detail")}</summary>
+                  <pre>{entry.tech}</pre>
+                </details>
+              </li>
+            </ol>
+            <script :type={Phoenix.LiveView.ColocatedHook} name=".CopyLog">
+              export default {
+                mounted() {
+                  this.el.addEventListener("click", () => {
+                    const list = document.getElementById(this.el.dataset.list)
+                    if (!list) return
+                    const text = Array.from(list.querySelectorAll("li.debug-line"))
+                      .map(li => {
+                        const part = sel => (li.querySelector(sel) || {}).textContent || ""
+                        const tech = part(".debug-tech pre")
+                        return [part("time"), part(".where"), part(".what")].map(s => s.trim()).join("  ") +
+                          (tech ? "\n    " + tech.trim().replace(/\n/g, "\n    ") : "")
+                      })
+                      .join("\n")
+                    const done = () => {
+                      const label = this.el.lastChild
+                      const before = label.textContent
+                      label.textContent = this.el.dataset.copied
+                      setTimeout(() => (label.textContent = before), 1500)
+                    }
+                    if (navigator.clipboard && window.isSecureContext) {
+                      navigator.clipboard.writeText(text).then(done, () => {})
+                    } else {
+                      const area = document.createElement("textarea")
+                      area.value = text
+                      document.body.appendChild(area)
+                      area.select()
+                      try { document.execCommand("copy"); done() } catch (_e) {}
+                      area.remove()
+                    }
+                  })
+                }
+              }
+            </script>
+          </.panel>
+
           <.panel id="moves" title={gettext("Moves")}>
             <:actions>
               <span class="note">{gettext("%{n} played", n: length(@view.snap.plies))}</span>
