@@ -139,6 +139,17 @@ defmodule Alnasl.BoardServer do
       warning: nil,
       queued_at: nil,
       heartbeat_ms: (Settings.get("clock_heartbeat_s") || 20) * 1000,
+      # The board's memory as it last came, kept for a game that has not
+      # begun on the box: the clock started over a game already under way
+      # is caught up from it (see "A game the clock starts").
+      memory: nil,
+      # The time (the session's) the clock was started or pressed over a
+      # game with no move yet.
+      begin_at: nil,
+      # "Play without a clock" for this board's tournament, and the round's
+      # start time it waits for (`no_clock/1`); when the game started so.
+      no_clock: %{on?: false, at: nil},
+      started_without_clock: nil,
       dirty?: false
     }
 
@@ -187,13 +198,46 @@ defmodule Alnasl.BoardServer do
 
     session = Session.restore(opts, Games.plies(game))
     Recorder.record(state.board.id, {:cfg, cfg(state.board, game)})
-    with_draft(%{state | game: game, session: session, warning: nil})
+
+    with_draft(%{
+      state
+      | game: game,
+        session: session,
+        warning: nil,
+        begin_at: nil,
+        started_without_clock: nil,
+        no_clock: no_clock(state.board)
+    })
   end
 
   defp load_game(state) do
     Recorder.record(state.board.id, {:cfg, cfg(state.board, nil)})
-    %{state | game: nil, session: nil, warning: nil, draft: nil}
+
+    %{
+      state
+      | game: nil,
+        session: nil,
+        warning: nil,
+        draft: nil,
+        begin_at: nil,
+        started_without_clock: nil,
+        no_clock: %{on?: false, at: nil}
+    }
   end
+
+  # "Play without a clock" (`Alnasl.Tournaments.no_clock?/1`) and when the
+  # round starts, as OpenPairings has it (`Alnasl.Tournaments.round_start/2`).
+  defp no_clock(%Board{tournament_id: tid, round: round}) when is_integer(tid) do
+    if Tournaments.no_clock?(tid),
+      do: %{
+        on?: true,
+        at: Tournaments.round_start(tid, round),
+        asked: System.monotonic_time(:millisecond)
+      },
+      else: %{on?: false, at: nil}
+  end
+
+  defp no_clock(_board), do: %{on?: false, at: nil}
 
   # The draft waiting on this game, read again after anything that may
   # have changed it.
@@ -229,7 +273,14 @@ defmodule Alnasl.BoardServer do
   def handle_info(:tick, state) do
     Process.send_after(self(), :tick, @tick_ms)
     t = now(state)
-    {:noreply, state |> expire_hold() |> advance(t) |> heartbeat(t)}
+
+    {:noreply,
+     state
+     |> expire_hold()
+     |> advance(t)
+     |> start_without_clock(t)
+     |> begin_from_board(t)
+     |> heartbeat(t)}
   end
 
   # Tells the site, at most four times a second.
@@ -267,6 +318,10 @@ defmodule Alnasl.BoardServer do
     {:noreply, %{state | session: %{session | tracker: %{tracker | opts: opts}}}}
   end
 
+  # "Play without a clock" switched for this board's tournament.
+  def handle_info({:setting, "no_clock:" <> _tid}, state),
+    do: {:noreply, dirty(%{state | no_clock: no_clock(state.board)})}
+
   def handle_info(_other, state), do: {:noreply, state}
 
   defp driver_event(state, {:position, board}, t) do
@@ -289,9 +344,10 @@ defmodule Alnasl.BoardServer do
 
   defp driver_event(state, {:clock, reading}, t) do
     Recorder.record(state.board.id, {:clock, reading})
-    {clock, _pressed?} = Clock.update(state.clock, t, reading)
+    {clock, pressed?} = Clock.update(state.clock, t, reading)
+    started? = clock.running != :none and state.clock.running == :none
     state = %{state | clock: clock, info: Map.put(state.info, :clock, true)}
-    state |> feed(t, {:clock, reading}) |> dirty()
+    state |> feed(t, {:clock, reading}) |> note_begin(t, started? or pressed?) |> dirty()
   end
 
   # The clock was switched off or unplugged: no clock, so no clock check and
@@ -391,7 +447,7 @@ defmodule Alnasl.BoardServer do
   # The board's own memory. Whatever is wrong with it, this process goes on
   # and the game stays as it was.
   defp driver_event(state, {:history, events}, _t) when is_list(events) do
-    state |> recover(events) |> release()
+    %{state | memory: events} |> recover(events) |> release()
   rescue
     error ->
       Log.add(:error, "board.history_failed", %{reason: Exception.message(error)}, ref(state))
@@ -474,6 +530,161 @@ defmodule Alnasl.BoardServer do
 
   defp log_confirmed(state, count),
     do: Log.add(:info, "board.history_confirmed", %{count: count}, ref(state))
+
+  # --- a game the clock starts ---------------------------------------------------
+
+  # The clock is started (or pressed) over a game without a move, on a board
+  # that does not show the game's starting position: the game starts from
+  # what is on the board. Not at once: the tracker is given
+  # `@begin_after_ms` to see a first move it understands, and the pieces
+  # must have stood still for `@begin_stable_ms`. Then, in this order:
+  #
+  # 1. the board's memory, when it has one: a game that was already under
+  #    way is caught up from it, moves as they were played;
+  # 2. otherwise the game starts over from the position on the board, with
+  #    the side whose clock runs to move (`Position.fen/2`: castling where
+  #    king and rook stand at home, no en passant).
+  #
+  # Once per start of the clock. A board that cannot be read as a position
+  # (no king, two kings) is left as it was, for the arbiter.
+  @begin_after_ms 2_000
+  @begin_stable_ms 1_000
+
+  defp note_begin(%{session: %{tracker: %{plies: []}}, game: %{status: status}} = state, t, true)
+       when status != "finished" do
+    if state.session.clock.running in [:white, :black] and state.begin_at == nil,
+      do: %{state | begin_at: t},
+      else: state
+  end
+
+  defp note_begin(state, _t, _started?), do: state
+
+  defp begin_from_board(%{begin_at: nil} = state, _t), do: state
+
+  defp begin_from_board(state, t) do
+    cond do
+      not beginnable?(state) ->
+        %{state | begin_at: nil}
+
+      t - state.begin_at < @begin_after_ms or state.hold != nil or
+          t - state.session.tracker.raw_since < @begin_stable_ms ->
+        state
+
+      true ->
+        turn =
+          case state.session.clock.running do
+            :black -> :b
+            :white -> :w
+            _none -> state.session.tracker.pos.turn
+          end
+
+        begin_here(%{state | begin_at: nil}, t, turn)
+    end
+  end
+
+  # A game that has not begun, on a board that shows something else than
+  # its starting position.
+  defp beginnable?(%{session: %{tracker: tracker}, game: %{status: status}, seen: seen})
+       when seen != nil and status != "finished" do
+    tracker.plies == [] and tracker.status != :live and seen != start_board(tracker)
+  end
+
+  defp beginnable?(_state), do: false
+
+  defp begin_here(state, t, turn) do
+    state = if memory_fits?(state), do: recover(state, state.memory), else: state
+
+    if state.session.tracker.plies != [] do
+      Log.add(:info, "game.caught_up", %{count: length(state.session.tracker.plies)}, ref(state))
+      state
+    else
+      fen = Position.fen(state.seen, turn)
+
+      case Tracker.set_position(state.session.tracker, t, fen) do
+        {:ok, result} ->
+          {:ok, state} =
+            tracked(state, t, fn _tr -> result end, "game.from_board", %{fen: fen}, "box")
+
+          dirty(state)
+
+        {:error, _message} ->
+          state
+      end
+    end
+  end
+
+  # The memory carries this game on to exactly the board as it stands: a
+  # line from an older game with the same opening does not.
+  defp memory_fits?(%{memory: memory, game: game} = state) when is_list(memory) do
+    known = Games.plies(game)
+
+    result =
+      Alnasl.BoardHistory.merge(memory,
+        start_fen: game.start_fen,
+        plies: known,
+        flipped?: state.board.flipped,
+        tracker: Settings.tracker_opts()
+      )
+
+    with {:extend, plies} <- result,
+         sans = Enum.map(known ++ plies, & &1.san),
+         {:ok, [_ | _] = played} <- Chess.replay(game.start_fen || Chess.start_fen(), sans) do
+      Position.from_fen(List.last(played).fen) == state.seen
+    else
+      _no -> false
+    end
+  end
+
+  defp memory_fits?(_state), do: false
+
+  # "Play without a clock", on a board that has none: at the round's start
+  # time (at once, when OpenPairings gives none) the game counts as begun -
+  # and a board set up with something else than the starting position
+  # starts from it, as the clock would have started it.
+  defp start_without_clock(
+         %{no_clock: %{on?: true}, started_without_clock: nil} = state,
+         t
+       ) do
+    state = fresh_start_time(state)
+    at = state.no_clock.at
+
+    with true <- state.no_clock.on?,
+         %{session: %{tracker: %{plies: []}} = session, game: %{status: "live"}} <- state,
+         false <- Clock.present?(session.clock),
+         true <- at == nil or NaiveDateTime.compare(NaiveDateTime.local_now(), at) != :lt do
+      Log.add(
+        :info,
+        "game.started_without_clock",
+        %{at: at && NaiveDateTime.to_iso8601(at)},
+        ref(state)
+      )
+
+      state = %{state | started_without_clock: DateTime.utc_now(:second)}
+
+      state =
+        if beginnable?(state),
+          do: begin_here(state, t, state.session.tracker.pos.turn),
+          else: state
+
+      dirty(state)
+    else
+      _not_yet -> state
+    end
+  end
+
+  defp start_without_clock(state, _t), do: state
+
+  # The round's start time may be changed in OpenPairings while the box
+  # waits for it: asked again every `@start_time_every_ms`.
+  @start_time_every_ms 10_000
+
+  defp fresh_start_time(%{no_clock: no_clock} = state) do
+    mono = System.monotonic_time(:millisecond)
+
+    if mono - Map.get(no_clock, :asked, mono) >= @start_time_every_ms,
+      do: %{state | no_clock: Map.put(no_clock(state.board), :asked, mono)},
+      else: state
+  end
 
   # --- waiting for the memory ----------------------------------------------------
 
@@ -559,6 +770,7 @@ defmodule Alnasl.BoardServer do
       | clock: state.session.clock,
         swapped?: state.session.swapped?
     }
+
     %{state | game: game, session: session}
   end
 
@@ -709,7 +921,9 @@ defmodule Alnasl.BoardServer do
         session: Session.new(opts),
         warning: nil,
         queued_at: nil,
-        draft: nil
+        draft: nil,
+        begin_at: nil,
+        started_without_clock: nil
     }
 
     # Every place that holds the game before it is told this is the game now.
@@ -1203,7 +1417,9 @@ defmodule Alnasl.BoardServer do
         session: Session.new(opts),
         warning: nil,
         queued_at: nil,
-        draft: nil
+        draft: nil,
+        begin_at: nil,
+        started_without_clock: nil
     }
 
     {:ok, state |> enqueue(t, true) |> refeed()}
@@ -1285,9 +1501,9 @@ defmodule Alnasl.BoardServer do
 
   # Applies a tracker operation, saves and queues what it changed (always as
   # a replacement: the arbiter has spoken), and logs who did it.
-  defp tracked(state, t, fun, kind, data) do
+  defp tracked(state, t, fun, kind, data, by \\ "arbiter") do
     {session, events} = Session.with_tracker(state.session, t, fun)
-    Log.add(:info, kind, Map.put(data, :by, "arbiter"), ref(state))
+    Log.add(:info, kind, Map.put(data, :by, by), ref(state))
     state = %{state | session: session, last_t: max(t, state.last_t)}
     changed? = Enum.any?(events, &(elem(&1, 0) in [:moves, :correction, :restart]))
     state = apply_events_as_arbiter(state, events)
@@ -1416,6 +1632,9 @@ defmodule Alnasl.BoardServer do
         local: game.local,
         pairing_flag: game.pairing_flag,
         draft: state.draft,
+        no_clock: state.no_clock.on?,
+        no_clock_at: state.no_clock.at,
+        started_without_clock: state.started_without_clock,
         problems:
           if(tracker.plies == [] and state.seen,
             do: Position.problems(start_board(tracker), state.seen),
@@ -1451,6 +1670,8 @@ defmodule Alnasl.BoardServer do
       # The clock was there and is not any more: unplugged, switched off,
       # or a battery that gave up. The moves go on; their times do not.
       state.session.clock.off? -> :clock_lost
+      # Begun without a clock at the round's start time: White is thinking.
+      state.started_without_clock != nil and tracker.status == :waiting_start -> :live
       tracker.status == :live and recovered?(tracker) -> :recovered
       true -> tracker.status
     end

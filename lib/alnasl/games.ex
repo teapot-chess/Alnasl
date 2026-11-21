@@ -643,7 +643,10 @@ defmodule Alnasl.Games do
     |> Enum.with_index()
     |> Enum.map(fn
       {%{"clock" => %{} = clock} = ply, index} when index >= from ->
-        %{ply | "clock" => %{clock | "white_ms" => clock["black_ms"], "black_ms" => clock["white_ms"]}}
+        %{
+          ply
+          | "clock" => %{clock | "white_ms" => clock["black_ms"], "black_ms" => clock["white_ms"]}
+        }
 
       {ply, _index} ->
         ply

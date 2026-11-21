@@ -91,7 +91,7 @@ The box's own browser never needs the PIN, as long as it opens the site as `loca
 
 ## The start-position check {#start-position}
 
-The column "Start position" compares what stands on the board with the starting position, and says in words what is different ("black queen and black king are swapped (d8, e8)"). With a clock it checks the clock as well: it must stand to the right of the board, White's display toward White, with the lever up on White's side. The cable does not reach anywhere else, and the box cannot be told otherwise. Turn the clock or tip the lever; the message goes away by itself.
+The column "Start position" compares what stands on the board with the starting position, and says in words what is different ("black queen and black king are swapped (d8, e8)"). With a clock it checks that the clock answers. Which way round the clock stands does not matter: whatever runs first over the starting position is White's half, and a clock turned round during the game is found out by its presses (see [Which half of the clock is White's](04-following-games.md#clock-sides)). There is nothing to set.
 
 "Ready for round N?" gathers all this per board. It says Ready, or lists what is wrong, board by board.
 

@@ -826,6 +826,29 @@ defmodule AlnaslWeb.Words do
 
   defp log("clock.side_ok", _d), do: gettext("The clock is the right way again.")
 
+  defp log("game.caught_up", d),
+    do:
+      ngettext(
+        "The clock started a game already under way: %{count} move was caught up from the board's memory.",
+        "The clock started a game already under way: %{count} moves were caught up from the board's memory.",
+        d["count"] || 0
+      )
+
+  defp log("game.from_board", d),
+    do:
+      gettext("The clock started the game from the position on the board: %{fen}",
+        fen: d["fen"]
+      )
+
+  defp log("game.started_without_clock", %{"at" => at}) when is_binary(at),
+    do:
+      gettext("No clock on this board: the game started at the round's start time, %{at}.",
+        at: String.slice(at, 0, 16) |> String.replace("T", " ")
+      )
+
+  defp log("game.started_without_clock", _d),
+    do: gettext("No clock on this board: the game started without one.")
+
   defp log("clock.turned_round", d),
     do:
       gettext(

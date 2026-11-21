@@ -91,7 +91,7 @@ De browser van het kastje zelf heeft de pincode nooit nodig, zolang je de site o
 
 ## De controle van de beginstelling {#start-position}
 
-De kolom "Beginstelling" vergelijkt wat op het bord staat met de beginstelling en zegt in woorden wat anders is ("zwarte dame en zwarte koning staan omgewisseld (d8, e8)"). Met een klok controleert ze ook de klok: die moet rechts van het bord staan, het scherm van wit naar wit, met de hendel omhoog aan de kant van wit. De kabel reikt nergens anders, en het kastje kan niet anders ingesteld worden. Draai de klok om of tik de hendel om; de melding verdwijnt vanzelf.
+De kolom "Beginstelling" vergelijkt wat op het bord staat met de beginstelling en zegt in woorden wat anders is ("zwarte dame en zwarte koning staan omgewisseld (d8, e8)"). Met een klok controleert ze of de klok antwoordt. Hoe de klok staat maakt niet uit: wat eerst loopt boven de beginstelling is de helft van wit, en een klok die tijdens de partij omgedraaid wordt, verraadt zich door zijn drukken (zie [Welke helft van de klok van wit is](04-following-games.md#clock-sides)). Er is niets in te stellen.
 
 "Klaar voor ronde N?" brengt dit per bord samen. Het zegt "Klaar", of somt op wat er mis is, bord per bord.
 

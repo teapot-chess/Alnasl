@@ -2350,7 +2350,9 @@ defmodule AlnaslWeb.GameLive do
     </div>
 
     <p
-      :if={@headline && @state not in [:out_of_sync, :no_signal, :recovered, :clock_alarm, :clock_lost]}
+      :if={
+        @headline && @state not in [:out_of_sync, :no_signal, :recovered, :clock_alarm, :clock_lost]
+      }
       id="state-help"
       class="note"
     >

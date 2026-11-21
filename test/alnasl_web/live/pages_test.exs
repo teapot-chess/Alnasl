@@ -696,7 +696,7 @@ defmodule AlnaslWeb.PagesTest do
       kinds =
         ~w(board.added board.removed board.connected board.disconnected board.driver_failed board.linked board.unlinked
            board.moved board.flipped board.out_of_sync board.resumed move.recovered move.guessed move.assumed move.corrected
-           clock.move_missing clock.wrong_side clock.side_ok clock.turned_round result.suggested result.set result.reopened repair.undo repair.append repair.edit
+           clock.move_missing clock.wrong_side clock.side_ok clock.turned_round game.caught_up game.from_board game.started_without_clock result.suggested result.set result.reopened repair.undo repair.append repair.edit
            repair.set_fen repair.resync repair.choose repair.paused repair.resumed pgn.attached outbox.offline
            outbox.online outbox.blocked outbox.conflict outbox.server_ahead outbox.live_game_limit outbox.discarded door.unlocked door.refused door.throttled setup.saved
            destination.offline destination.online destination.blocked destination.enabled destination.disabled

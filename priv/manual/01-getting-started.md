@@ -144,7 +144,7 @@ The same short list every time. Each step has a page that says in words what is 
 1. Setup, Connections: paste the connect code from OpenPairings (and, under Tournaments, say which tables play in which tournament) (see [OpenPairings, OpenResults and Lichess](05-openpairings-and-openresults.md)). Press "Test connection".
 2. Boards: every board should show a state other than "No signal", and its picture should match the pieces on it.
 3. Boards: the column "Start position" must say "Right" for every board. If not, it names the pieces and squares. A king and queen swapped is the usual one.
-4. A board with a clock is only "Right" when its clock is too: to the right of the board, the lever up on White's side so that White's time runs first.
+4. A board with a clock only needs the clock to be there and answering. Which way round it stands does not matter: Alnasl works out which half is White's when the clock is started.
 5. Boards: give each board its table number (see [Boards and ports](02-boards-and-ports.md)).
 6. Boards: "Ready for round N?" must say Ready. If not, it lists what is wrong, board by board.
 7. Live: every tile should read "Waiting for start".

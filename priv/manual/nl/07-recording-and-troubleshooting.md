@@ -32,9 +32,9 @@ Lees PGN-bestanden in of plak zetten (ze worden op geldigheid gecontroleerd). Wi
 
 De beginstelling klopte niet, of de eerste zetten werden gedaan voor het bord gekoppeld was. Gebruik "Hier hersynchroniseren".
 
-### "Klok niet in beginstand" voor de ronde {#clock-start}
+### De klok voor de ronde {#clock-start}
 
-De klok staat altijd rechts van het bord, het scherm van wit naar wit. Voor de eerste zet moet de hendel omhoog staan aan de kant van wit, zodat de tijd van wit eerst loopt. Draai de klok om of tik de hendel om; de melding verdwijnt vanzelf.
+Niet meer: de klok mag op beide manieren staan, en Alnasl leidt af welke helft van wit is wanneer hij gestart wordt (zie [Welke helft van de klok van wit is](04-following-games.md#clock-sides)). Een klok die het kastje helemaal niet hoort, zegt "Geen klok gemeld" bij Borden; een die tijdens een partij zwijgt, maakt zijn tegel rood, "Klok antwoordt niet".
 
 ### Zetten komen laat {#moves-late}
 

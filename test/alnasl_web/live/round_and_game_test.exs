@@ -85,6 +85,44 @@ defmodule AlnaslWeb.RoundAndGameTest do
       refute has_element?(view, "#nav-round .count")
     end
 
+    test "the tiles draw the game, or the boards as they stand", %{conn: conn} do
+      board = fake_dgt("FAKE1", %{round: 1, board_no: 2})
+      {:ok, view, _html} = live(conn, ~p"/round/1")
+      eventually_html(view, fn _ -> Boards.snapshot(board.id).raw != nil end)
+
+      assert has_element?(view, "#pieces-game[aria-pressed=true]")
+      refute has_element?(view, "#tile-raw-2")
+
+      view |> element("#pieces-board") |> render_click()
+      assert has_element?(view, "#pieces-board[aria-pressed=true]")
+      eventually_html(view, fn _ -> has_element?(view, "#tile-raw-2") end)
+
+      # What the browser remembered comes back through the hook; nonsense is ignored.
+      render_hook(view, "set_pieces", %{"pieces" => "game"})
+      refute has_element?(view, "#tile-raw-2")
+      render_hook(view, "set_pieces", %{"pieces" => "sideways"})
+      assert has_element?(view, "#pieces-game[aria-pressed=true]")
+    end
+
+    test "a board without a clock is counted, and the round can play without one", %{conn: conn} do
+      board = fake_dgt("FAKE1", %{round: 1, board_no: 2})
+      {:ok, view, _html} = live(conn, ~p"/round/1")
+      eventually_html(view, fn _ -> has_element?(view, "#no-clock") end)
+
+      assert has_element?(view, "#no-clock", "1 board has no clock.")
+      assert has_element?(view, "#no-clock-toggle[aria-pressed=false]")
+
+      view |> element("#no-clock-toggle") |> render_click()
+      assert Alnasl.Tournaments.no_clock?(Alnasl.Tournaments.default_id())
+      assert has_element?(view, "#no-clock-toggle[aria-pressed=true]")
+
+      eventually_html(view, fn _ -> Boards.snapshot(board.id).started_without_clock != nil end)
+      eventually_html(view, fn _ -> has_element?(view, "#tile-no-clock-2") end)
+
+      view |> element("#no-clock-toggle") |> render_click()
+      refute Alnasl.Tournaments.no_clock?(Alnasl.Tournaments.default_id())
+    end
+
     test "the next round takes the boards along; nothing is fetched from the results server",
          %{conn: conn} do
       board = fake_dgt("FAKE1", %{round: 1, board_no: 1})
