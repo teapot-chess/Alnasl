@@ -100,7 +100,12 @@
     },
     "teams": { "type": "array", "items": { "$ref": "#/definitions/team" } },
     "team_standings": { "$ref": "#/definitions/teamStandings" },
-    "board_stats": { "type": "array", "items": { "$ref": "#/definitions/boardStat" } }
+    "board_stats": { "type": "array", "items": { "$ref": "#/definitions/boardStat" } },
+    "board_records": {
+      "description": "Revision 5, team events only. One row per player AND board: the games, points, percentage and performance a player made on that board alone, for board prizes. `board_stats` has one row per player over every board they sat at, `board` the one they sat at most; a player who never changed boards has the same row in both.",
+      "type": "array",
+      "items": { "$ref": "#/definitions/boardStat" }
+    }
   },
   "definitions": {
     "flow": {
