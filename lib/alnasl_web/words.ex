@@ -284,8 +284,12 @@ defmodule AlnaslWeb.Words do
          "The pieces are being followed, but the clock times of the moves are the wrong way round. Stop the clock, set it down with White's display toward White (to the right of the board, lever up on White's side) and start it again. This goes away by itself once the clock is right."
        )}
 
-  def state_help(:waiting_start, {:clock, check}),
-    do: {gettext("The clock is not in its starting position"), clock_problem(check) <> "."}
+  def state_help(:clock_lost, _detail),
+    do:
+      {gettext("The clock does not answer"),
+       gettext(
+         "The clock was there and has gone quiet: unplugged, switched off, or its battery. The moves are still followed, without their times. Check the clock's cable to the board and its power; this goes away by itself when it answers again."
+       )}
 
   def state_help(:waiting_start, :not_start),
     do:
@@ -378,27 +382,6 @@ defmodule AlnaslWeb.Words do
       expected: piece(expected)
     )
   end
-
-  @doc """
-  The clock's finding of the start-position check (`{:wrong, side}`), in
-  words; `nil` when the clock is right or there is none.
-
-  There is no "the other way round is fine" here and no control to swap the
-  sides: the clock stands to the right of the board, and that is that.
-  """
-  def clock_problem({:wrong, :black}),
-    do:
-      gettext(
-        "Clock not in starting position: Black's side would run first - the clock is turned or the lever is the wrong way"
-      )
-
-  def clock_problem({:wrong, :white}),
-    do:
-      gettext(
-        "Clock not in starting position: White's side would run first - the clock is turned or the lever is the wrong way"
-      )
-
-  def clock_problem(_fine), do: nil
 
   @doc "The clock alarm - a clock running on the wrong side from the starting position - in words."
   def clock_alarm(:white),
@@ -818,6 +801,36 @@ defmodule AlnaslWeb.Words do
       )
 
   defp log("clock.side_ok", _d), do: gettext("The clock is the right way again.")
+
+  defp log("game.caught_up", d),
+    do:
+      ngettext(
+        "The clock started a game already under way: %{count} move was caught up from the board's memory.",
+        "The clock started a game already under way: %{count} moves were caught up from the board's memory.",
+        d["count"] || 0
+      )
+
+  defp log("game.from_board", d),
+    do:
+      gettext("The clock started the game from the position on the board: %{fen}",
+        fen: d["fen"]
+      )
+
+  defp log("game.started_without_clock", %{"at" => at}) when is_binary(at),
+    do:
+      gettext("No clock on this board: the game started at the round's start time, %{at}.",
+        at: String.slice(at, 0, 16) |> String.replace("T", " ")
+      )
+
+  defp log("game.started_without_clock", _d),
+    do: gettext("No clock on this board: the game started without one.")
+
+  defp log("clock.turned_round", d),
+    do:
+      gettext(
+        "The clock stands the other way round: its times are read the other way from now on, and those of the moves from move %{ply} on are swapped.",
+        ply: d["from"]
+      )
 
   defp log("result.suggested", %{"why" => "gesture"} = d),
     do: gettext("The kings are in the centre: %{result}?", result: d["result"])

@@ -47,9 +47,9 @@ Read PGN files or paste moves (they are checked for legality). Attach a game tha
 
 The starting position was wrong or the first moves were made before the board was linked. Use "Resync from here".
 
-### "Clock not in starting position" before the round {#clock-start}
+### The clock before the round {#clock-start}
 
-The clock always stands to the right of the board, White's display toward White. Before the first move the lever must be up on White's side, so that White's time runs first. Turn the clock or tip the lever; the message goes away by itself.
+Not any more: the clock may stand either way round, and Alnasl works out which half is White's when it is started (see [Which half of the clock is White's](04-following-games.md#clock-sides)). A clock the box does not hear at all says "No clock heard" on Boards; one that goes quiet during a game turns its tile red, "Clock not answering".
 
 ### Moves appear late {#moves-late}
 

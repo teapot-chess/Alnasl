@@ -8,6 +8,8 @@ Live is de voorpagina. Ze toont de zaal waar je bent (de zaalkiezer bovenaan de 
 
 Een tegel per bord: de spelers, de stelling waar Alnasl zeker van is, de klokken, de laatste zet, en de toestand als een vorm en een woord. Kleur draagt de betekenis nooit alleen.
 
+"Partij" en "Bord zoals het staat" bovenaan wisselen wat de tegels tekenen: de stelling van de partij, of wat elk bord nu leest, stuk voor stuk, met de velden waar die twee verschillen gemarkeerd. Het tweede is om in één oogopslag te zien welke borden klaarstaan, half klaarstaan, of iets heel anders tonen. De keuze wordt in deze browser bewaard.
+
 | Toestand | Wat het betekent |
 | --- | --- |
 | Wacht op begin | De ronde staat klaar, er is nog niets gespeeld |
@@ -16,7 +18,8 @@ Een tegel per bord: de spelers, de stelling waar Alnasl zeker van is, de klokken
 | Afgeleid | Zetten werden niet één voor één gezien en zijn uit de stelling afgeleid |
 | Niet synchroon | Het bord komt niet overeen met de partij en er wordt niets voor verstuurd |
 | Geen signaal | Het bord antwoordt niet. Kijk kabel en stroom na. De partij blijft bewaard |
-| Klok verkeerd om | De klok van zwart loopt en wit heeft nog niet gezet |
+| Klok verkeerd om | De klok spreekt de zetten tegen op een manier die omdraaien niet verklaart |
+| Klok antwoordt niet | De klok was er en zweeg: uitgetrokken, uitgezet of zijn batterij. De tegel is rood; de zetten worden gewoon gevolgd |
 | Afgelopen | Er is een resultaat ingesteld |
 
 Een balk over de volle breedte bovenaan betekent dat de uitslagensite niet bereikt kan worden. Het spel gaat door en er gaat niets verloren; de pagina Resultaten zegt hoeveel er wacht en waarom.
@@ -29,7 +32,24 @@ Een balk over de volle breedte bovenaan betekent dat de uitslagensite niet berei
 
 Een tegel is de weg naar de eigen pagina van het bord. Eronder staan "Partij beëindigen" en "Nieuwe partij".
 
-Alleen borden die hier bestaan krijgen een tegel: een bord van deze zaal dat op dat bordnummer zit, of een bord met al een bewaarde partij. Paringen zonder een van beide worden geteld in één regel onder de kop ("26 paringen zonder bord hier"). Een toernooi zonder bord hier en zonder enige partij wordt niet getekend, en een toernooi dat alleen in een andere zaal geplaatst is ook niet; één regel onderaan zegt hoeveel het er zijn ("14 andere toernooien staan niet op de borden hier") en leidt naar Instellingen, Toernooien. Met één toernooi wordt niets verborgen: elke paring krijgt een tegel, met of zonder bord, en een zaal die nog geen paringen heeft, zegt dat, en wat je eraan doet. Een toernooi dat je opent met zijn eigen adres zie je altijd, op dezelfde manier geteld als hierboven.
+Alleen borden die hier bestaan krijgen een tegel: een bord van deze zaal dat op dat bordnummer zit, of een bord met al een bewaarde partij. Paringen zonder een van beide worden geteld in één regel onder de kop ("26 paringen zonder bord hier"). Een toernooi zonder bord hier en zonder enige partij wordt niet getekend, en een toernooi dat alleen in een andere zaal geplaatst is ook niet; één regel onderaan zegt hoeveel het er zijn ("14 andere toernooien staan niet op de borden hier") en leidt naar Instellingen, Toernooien. Dat geldt ook voor een zaal met één toernooi: OpenPairings paart het hele toernooi, en een zaal met acht van zijn borden toont die acht, niet de veertig die er alleen live uitzien. Een zaal die nog geen paringen heeft, zegt dat, en wat je eraan doet. Een toernooi dat je opent met zijn eigen adres zie je altijd, op dezelfde manier geteld als hierboven.
+
+## Welke helft van de klok van wit is {#clock-sides}
+
+De klok mag op beide manieren staan: Alnasl leidt het af. Voor de eerste zet, met de stukken in de beginstelling, is de kant die gestart wordt die van wit. Tijdens de partij betekenen twee drukken na elkaar die de tijd van de verkeerde speler laten lopen, boven een bord dat met de partij overeenkomt, dat de klok andersom staat: vanaf dan worden zijn tijden andersom gelezen, de zetten sindsdien krijgen hun tijden omgewisseld, en het logboek zegt het. Een zet die het bord miste kan hier niet voor doorgaan, want dan komt het bord niet overeen met de partij.
+
+## Een partij die de klok start {#clock-starts}
+
+De klok indrukken start de partij vanuit wat er op het bord staat, niet alleen vanuit de beginstelling. Wordt de klok gestart (of ingedrukt) boven een partij zonder zet, op een bord dat iets anders toont, dan geeft Alnasl zichzelf twee seconden om een eerste zet te zien die het begrijpt, en dan:
+
+1. als het geheugen van het bord deze partij precies tot de stelling op het bord voortzet, worden de zetten daaruit genomen (zie [Zetten uit het eigen geheugen van het bord](#board-memory));
+2. anders begint de partij opnieuw vanuit de stelling op het bord, met de kant wiens klok loopt aan zet. Rokeren mag waar koning en toren op hun beginveld staan; verbeter de stelling op de pagina van het bord als een van hen heen en terug is gegaan.
+
+Het logboek zegt welk van de twee het was. Een bord dat niet als stelling te lezen is (een koning ontbreekt) blijft zoals het is.
+
+## Spelen zonder klok {#no-clock}
+
+Heeft een bord van de ronde geen klok, dan zegt Live dat ("2 borden hebben geen klok") met een knop, "Spelen zonder klok", voor het toernooi. Staat die aan, dan begint een bord zonder klok zijn partij op het beginuur van de ronde uit OpenPairings, of meteen als OpenPairings geen uur voor de ronde geeft; de tegel zegt dan "Speelt zonder klok". Een bord met een andere stelling dan de beginstelling begint vanuit die stelling, zoals een klok het gestart zou hebben. Druk nog eens op de knop om weer op klokken te wachten.
 
 ## De pagina van een bord {#a-board}
 
@@ -74,7 +94,7 @@ Sommige meldingen noemen wat het bord toont:
 
 - "Zwart zette (Pc6), maar wit is aan zet" en "Een zet die niet kan: witte loper c1-g5": iemand zette buiten zijn beurt, of deed een zet die de regels niet toelaten. Alnasl voegt er niets aan de partij voor toe en verzint geen zetten om het te laten passen. Zet het stuk terug en de melding is weg.
 - "Er ontbreekt een zet hiervoor" brengt je naar waar je zetten typt, voor als het bord een zet miste.
-- "Klok niet in beginstand" of een klok die verkeerd om loopt: stop hem, zet hem goed, start hem opnieuw. De melding verdwijnt vanzelf. De zetten worden intussen gewoon gevolgd.
+- Een klok die andersom staat is geen alarm: Alnasl leest hem andersom (zie [Welke helft van de klok van wit is](#clock-sides)). "Klok antwoordt niet" is er wel een: de klok zweeg. Kijk zijn kabel naar het bord en zijn batterij na; het alarm verdwijnt als hij weer antwoordt. De zetten worden intussen gewoon gevolgd.
 - "Witte paard niet gezien op f3" is een waarschuwing, geen alarm: een stuk verliet zijn veld (naast het bord geparkeerd, of de sensor verloor het) en de partij ging door, dus Alnasl neemt aan dat het er nog staat. Het verdwijnt als het stuk er weer gezien wordt, zet, of geslagen wordt. Was het stuk wel degelijk geslagen, verbeter dan de zetten op de pagina van het bord.
 - "Wit: loper op e4 leest als paard" is een waarschuwing, geen alarm: het bord hoort een stuk als een ander stuk van dezelfde kleur, meestal omdat het dicht bij een ander stuk staat. Alnasl houdt het stuk dat de partij heeft en volgt de zetten zoals altijd. Pas een zet die dat stuk niet kan doen, geeft een alarm. De waarschuwing verdwijnt als het bord het stuk weer juist leest; het stuk rechtzetten helpt vaak.
 - "dame aangenomen" naast een promotie betekent dat de pion op het laatste veld bleef staan, of dat het nieuwe stuk weg was voor het bord het kon lezen. Alnasl neemt een dame en markeert de zet. Zet het stuk later als een toren, loper of paard, dan wordt de promotie naar dat stuk herschreven. Toont niets ooit wat het was, kijk dan het notatieformulier na en verbeter het op de pagina van het bord.

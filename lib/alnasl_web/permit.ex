@@ -66,6 +66,7 @@ defmodule AlnaslWeb.Permit do
   @levels %{
     RoundLive => %{
       "set_view" => :viewer,
+      "set_pieces" => :viewer,
       "share" => :viewer,
       "unshare" => :viewer
     },
@@ -275,7 +276,7 @@ defmodule AlnaslWeb.Permit do
   # not the best role in any hall it borrowed tables in.
   @home_events %{
     SetupLive => ~w(remove_tournament save_lichess clear_lichess auto_start),
-    RoundLive => ~w(next_round follow make_current)
+    RoundLive => ~w(next_round follow make_current no_clock)
   }
 
   # Events about one board of a tournament, named by its number: the hall

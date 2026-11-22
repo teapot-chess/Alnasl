@@ -126,14 +126,6 @@ defmodule Mix.Tasks.Alnasl.Replay do
 
     for t <- report.clock_cleared, do: info.("  clock alarm cleared at #{at(t)}")
 
-    case report.clock_check do
-      {:wrong, side} ->
-        info.("  clock not in starting position at the end: #{side}'s side would run first")
-
-      _other ->
-        :ok
-    end
-
     for {t, text} <- report.notes, do: info.("  note at #{at(t)}: #{text}")
   end
 

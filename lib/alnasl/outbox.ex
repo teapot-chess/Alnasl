@@ -16,7 +16,8 @@ defmodule Alnasl.Outbox do
   Each message is the **whole game so far** (the server's own rule,
   docs/live-boards-api.md in OpenResults). The server decides by the number
   of plies: fewer than it holds is ignored, equal refreshes the clocks, more
-  must extend what it holds. So a message sent twice is harmless, and since
+  must extend what it holds. A clock reading goes out with its age
+  (`on_the_wire/1`). So a message sent twice is harmless, and since
   the queue is strictly in order, a message is never sent before an older
   one for the same game.
 
@@ -85,7 +86,7 @@ defmodule Alnasl.Outbox do
   def enqueue(%Game{local: true} = game, _clock, _replace?), do: game
 
   def enqueue(%Game{} = game, clock, replace?) do
-    body = Games.body(game, clock, replace?)
+    body = game |> Games.body(clock, replace?) |> stamp_clock()
     row? = wanted?(game.tournament_id)
 
     {:ok, game} =
@@ -111,6 +112,37 @@ defmodule Alnasl.Outbox do
     Phoenix.PubSub.broadcast(Alnasl.PubSub, @topic, :outbox_changed)
     kick()
     game
+  end
+
+  # When the clocks in a row were read, by this box's own clock. Never sent
+  # as it is: `on_the_wire/1` turns it into how long ago, which no
+  # difference between the box's clock and the server's can make wrong.
+  @read_at "clock_read_at_ms"
+  # The longest age a row says: the server takes up to a day.
+  @max_age_ms 86_400_000
+
+  defp stamp_clock(body) do
+    if Map.has_key?(body, "white_ms") or Map.has_key?(body, "black_ms"),
+      do: Map.put(body, @read_at, System.os_time(:millisecond)),
+      else: body
+  end
+
+  @doc """
+  The body of a row as it goes out: its clocks say how long ago they were
+  read (`clock_age_ms`), so a row that waited in the queue - a slow line, a
+  server that said "later" - does not make the server count from the moment
+  it arrived. A server that does not know the field ignores it, and counts
+  from arrival as it always did.
+  """
+  def on_the_wire(json, now_ms \\ System.os_time(:millisecond)) when is_binary(json) do
+    case Jason.decode(json) do
+      {:ok, %{@read_at => at} = body} when is_integer(at) ->
+        age = (now_ms - at) |> max(0) |> min(@max_age_ms)
+        body |> Map.delete(@read_at) |> Map.put("clock_age_ms", age) |> Jason.encode!()
+
+      _other ->
+        json
+    end
   end
 
   # A tournament of a pairing program that is not on a results site has
@@ -435,7 +467,7 @@ defmodule Alnasl.Outbox do
           {"authorization", "Bearer " <> tournament.relay_key},
           {"content-type", "application/json"}
         ],
-        body: entry.body,
+        body: on_the_wire(entry.body),
         retry: false,
         # No `connect_options` here: with them Req starts a connection pool
         # of its own for every request, and a queue of a hundred moves takes

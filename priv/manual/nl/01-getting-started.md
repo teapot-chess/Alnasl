@@ -144,7 +144,7 @@ Elke keer dezelfde korte lijst. Bij elke stap zegt een pagina in woorden wat er 
 1. Instellingen, Koppelingen: plak de koppelcode uit OpenPairings; geef dan bij Toernooien aan welke tafels in welk toernooi spelen (zie [OpenPairings, OpenResults en Lichess](05-openpairings-and-openresults.md)). Druk op "Verbinding testen" (in het menu Acties van de koppeling).
 2. Borden: elk bord moet een andere toestand tonen dan "Geen signaal", en zijn plaatje moet kloppen met de stukken erop.
 3. Borden: de kolom "Beginstelling" moet bij elk bord "Juist" zeggen. Zo niet, dan noemt ze de stukken en velden. Een koning en dame die omgewisseld staan, komt het meest voor.
-4. Een bord met een klok is pas "Juist" als de klok dat ook is: rechts van het bord, de hendel omhoog aan de kant van wit, zodat de tijd van wit eerst loopt.
+4. Bij een bord met een klok moet de klok er alleen zijn en antwoorden. Hoe hij staat maakt niet uit: Alnasl leidt af welke helft van wit is wanneer de klok gestart wordt.
 5. Borden: geef elk bord zijn tafelnummer (zie [Borden en poorten](02-boards-and-ports.md)).
 6. Borden: "Klaar voor ronde N?" moet "Klaar" zeggen. Zo niet, dan somt het per bord op wat er mis is.
 7. Live: elke tegel moet "Wacht op begin" zeggen.

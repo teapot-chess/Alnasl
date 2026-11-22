@@ -12,31 +12,31 @@ defmodule Alnasl.Session do
   - `{:warning, :move_missing, presses, plies}` when the clock has been
     pressed at least twice more often than moves were seen, and
     `{:warning_cleared, :move_missing}` when the moves have caught up;
-  - `{:warning, :clock_side, side}` the moment a clock RUNS on the wrong
-    side with the pieces in the starting position and no move made (`side` is the one
-    running: `:black`, in every game that White begins), and
-    `{:warning_cleared, :clock_side}` when it has been put right.
+  - `{:clock_swapped, from_ply}` when the clock turns out to stand the
+    other way round: the plies from `from_ply` (0-based) on carry their
+    two times the wrong way and are to be swapped;
+  - `{:warning, :clock_side, side}` / `{:warning_cleared, :clock_side}`:
+    the clock alarm, below.
+
+  ## Which half of the clock is White's
+
+  Not fixed. The arbiter puts the clock where the cable reaches, and the
+  box finds out which half is White's (see "which half is White's" in the
+  code): before the first move the side that is started is the side to
+  move, and during the game two presses in a row over a board in sync that
+  leave the other side running mean the clock stands the other way round.
+  From then on the readings are turned, and the moves already stamped the
+  wrong way have their times swapped (`{:clock_swapped, from_ply}`).
 
   ## The clock alarm
 
-  The clock's sides are fixed (`Alnasl.Clock`), so Black's time running
-  before White has moved means the clock is turned round or was started
-  with the lever the wrong way. It is an alarm about the clock, not about
-  the pieces: the tracker goes on reading the moves, and their clock times
-  are the wrong way round until somebody acts. It clears by itself:
+  What is left of it: a clock that no longer agrees with itself in a way
+  turning it round does not explain. It clears at the first press of the
+  lever after which the running side is the side to move, or when the
+  clock is switched off.
 
-  - before the first move, as soon as the right side runs, or the clock
-    stands still with its lever the right way, or is switched off;
-    (a lever pressed over to the wrong side with the pieces untouched is
-    NOT this alarm: that is a first move the board did not see, and the
-    press is counted toward "a move is missing")
-  - once moves have been made, at the first press of the lever after which
-    the running side is the side to move. With the clock still turned round
-    every press leaves the wrong side running, so it stays.
-
-  A clock that merely stands still the wrong way before the game is not an
-  alarm: that is the starting-position check (`clock_check/1`), which the
-  site shows beside the check of the pieces.
+  The starting-position check (`clock_check/1`) only says whether a clock
+  is there: which way it stands is no longer the arbiter's problem.
 
   `run/3` plays a whole list of timed events through it, ticking at the
   tracker's own deadlines: the test bench, and the dry run of a recording.
@@ -44,14 +44,36 @@ defmodule Alnasl.Session do
 
   alias Alnasl.{Clock, Tracker}
 
-  defstruct tracker: nil, clock: Clock.new(), missing?: false, clock_alarm: nil
+  defstruct tracker: nil,
+            clock: Clock.new(),
+            missing?: false,
+            clock_alarm: nil,
+            # The clock stands the other way round: its "white" half is
+            # Black's. Every reading is turned before anything reads it.
+            swapped?: false,
+            # The first ply stamped in the present orientation, and how many
+            # presses in a row left the wrong side running (see "Which half
+            # is White's").
+            oriented_from: 0,
+            mismatches: 0
 
   @type t :: %__MODULE__{}
 
+  # Presses in a row, over a board in sync, that leave the side NOT to move
+  # running before the box believes the clock is the other way round.
+  @mismatch_limit 2
+
   def new(opts \\ []), do: %__MODULE__{tracker: Tracker.new(opts)}
 
-  @doc "A session for a stored game."
-  def restore(opts, plies), do: %__MODULE__{tracker: Tracker.restore(opts, plies)}
+  @doc """
+  A session for a stored game. Which way the clock stands is not stored:
+  it is found again, and only the moves from here on are restamped if it
+  turns out to be the other way.
+  """
+  def restore(opts, plies) do
+    tracker = Tracker.restore(opts, plies)
+    %__MODULE__{tracker: tracker, oriented_from: length(tracker.plies)}
+  end
 
   @spec handle(t(), integer(), term()) :: {t(), [tuple()]}
   def handle(%__MODULE__{} = session, t, {:position, board}) do
@@ -59,15 +81,19 @@ defmodule Alnasl.Session do
   end
 
   def handle(%__MODULE__{} = session, t, {:clock, reading}) do
+    {session, reading, reoriented?} = orient_at_start(session, reading)
     counted = session.clock.presses
     {clock, pressed?} = Clock.update(session.clock, t, reading)
 
     # The press that puts a wrongly started clock right before the first
     # move is somebody setting the clock, not a move: it is not counted
-    # toward "a move is missing".
+    # toward "a move is missing". Nor is one that only told the box which
+    # half of the clock is White's.
     clock =
-      if pressed? and session.clock_alarm != nil and session.tracker.plies == [] and
-           clock.running == to_move(session.tracker),
+      if pressed? and
+           (reoriented? or
+              (session.clock_alarm != nil and session.tracker.plies == [] and
+                 clock.running == to_move(session.tracker))),
          do: %{clock | presses: clock.presses - 1},
          else: clock
 
@@ -108,7 +134,8 @@ defmodule Alnasl.Session do
           session.tracker |> Tracker.press(t) |> wrap(session, t, true)
       end
 
-    {session, [{:clock, Clock.read(clock, t)} | events]}
+    {session, events} = if pressed?, do: watch_sides(session, events), else: {session, events}
+    {session, [{:clock, Clock.read(session.clock, t)} | events]}
   end
 
   # The clock was switched off or unplugged: a board without a clock again.
@@ -140,13 +167,120 @@ defmodule Alnasl.Session do
 
   @doc """
   The clock's part of the starting-position check: `nil` (no clock, or the
-  game is under way), `:ok`, or `{:wrong, side}` - see
-  `Alnasl.Clock.start_check/2`.
+  game is under way) or `:ok`. Which way the clock stands is worked out
+  when it is started, so a clock set the "wrong" way is not a problem.
   """
-  def clock_check(%__MODULE__{tracker: %{plies: []} = tracker, clock: clock}),
-    do: Clock.start_check(clock, to_move(tracker))
+  def clock_check(%__MODULE__{tracker: %{plies: []}, clock: clock}),
+    do: if(Clock.present?(clock), do: :ok)
 
   def clock_check(%__MODULE__{}), do: nil
+
+  # --- which half is White's -----------------------------------------------------
+
+  # A clock's halves are not White and Black: the arbiter puts it down where
+  # the cable reaches, and half the hall then has White's time on the
+  # "black" display. So the box works it out, from the two things that say:
+  #
+  # - before the first move, with the pieces in the starting position, the
+  #   side that is started IS the side to move. Whatever runs then is
+  #   White's half (in a game White begins), and the box turns its readings
+  #   to match - again each time it is started otherwise before move one;
+  # - during the game, a press over a board in sync leaves the side to move
+  #   running. `@mismatch_limit` presses in a row that leave the other side
+  #   running mean the clock stands the other way round: the readings are
+  #   turned from then on, and the moves stamped since the last decision
+  #   have their two times swapped (`{:clock_swapped, from_ply}`).
+  #
+  # A missed move cannot pass for this: it leaves the board out of sync,
+  # and an out-of-sync press counts for nothing either way.
+
+  defp orient_at_start(session, reading) do
+    reading = turn(reading, session.swapped?)
+    tracker = session.tracker
+    running = Map.get(reading, :running, :none)
+
+    if tracker.plies == [] and tracker.raw != nil and tracker.raw == tracker.pos.board and
+         running in [:white, :black] and running != to_move(tracker) do
+      session = %{
+        session
+        | swapped?: not session.swapped?,
+          clock: swap_clock(session.clock),
+          clock_alarm: nil,
+          mismatches: 0,
+          oriented_from: 0
+      }
+
+      {session, turn(reading, true), true}
+    else
+      {session, reading, false}
+    end
+  end
+
+  defp watch_sides(session, events) do
+    tracker = session.tracker
+    running = session.clock.running
+
+    cond do
+      tracker.plies == [] or running not in [:white, :black] ->
+        {session, events}
+
+      tracker.status != :live or tracker.raw != tracker.phys ->
+        {session, events}
+
+      running == to_move(tracker) ->
+        {%{session | mismatches: 0}, events}
+
+      session.mismatches + 1 < @mismatch_limit ->
+        {%{session | mismatches: session.mismatches + 1}, events}
+
+      true ->
+        from = session.oriented_from
+
+        session = %{
+          session
+          | swapped?: not session.swapped?,
+            clock: swap_clock(session.clock),
+            clock_alarm: nil,
+            mismatches: 0,
+            oriented_from: length(tracker.plies)
+        }
+
+        {session, events ++ [{:clock_swapped, from}]}
+    end
+  end
+
+  @doc "A clock reading with its halves swapped when `swap?`."
+  def turn(reading, false), do: reading
+
+  def turn(reading, true) when is_map(reading) do
+    reading
+    |> Map.merge(%{
+      white_ms: Map.get(reading, :black_ms),
+      black_ms: Map.get(reading, :white_ms),
+      running: other_side(Map.get(reading, :running, :none))
+    })
+    |> then(fn turned ->
+      if Map.has_key?(reading, :armed),
+        do: Map.put(turned, :armed, other_side(reading.armed)),
+        else: turned
+    end)
+  end
+
+  defp swap_clock(%Clock{} = clock) do
+    %{
+      clock
+      | white_ms: clock.black_ms,
+        black_ms: clock.white_ms,
+        running: other_side(clock.running),
+        armed: other_side(clock.armed),
+        started: other_side(clock.started),
+        flag: other_side(clock.flag)
+    }
+  end
+
+  defp other_side(:white), do: :black
+  defp other_side(:black), do: :white
+  defp other_side(other), do: other
 
   defp to_move(%{pos: %{turn: :b}}), do: :black
   defp to_move(_tracker), do: :white
