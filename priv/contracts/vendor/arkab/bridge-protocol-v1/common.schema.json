@@ -60,7 +60,8 @@
         { "$ref": "#/definitions/event_poll_ok" },
         { "$ref": "#/definitions/event_poll_missed" },
         { "$ref": "#/definitions/event_info" },
-        { "$ref": "#/definitions/event_history" }
+        { "$ref": "#/definitions/event_history" },
+        { "$ref": "#/definitions/event_game" }
       ]
     },
     "event_position": {
@@ -198,6 +199,42 @@
         }
       },
       "required": ["k", "i"],
+      "additionalProperties": false
+    },
+    "event_game": {
+      "description": "Who is playing the game on the board, from a source that knows (a LiveChess export folder: Arkab.LiveChess.facts/2). Sent when the board is met, again whenever it changes (a forfeit or a name put right in the round's index, the next round), and on resend. Keys with nothing known are left out. A server that does not know \"game\" drops it and acknowledges it like any other event.",
+      "type": "object",
+      "properties": {
+        "k": { "const": "game" },
+        "g": {
+          "type": "object",
+          "properties": {
+            "source": { "description": "Where the facts come from.", "type": "string", "enum": ["livechess"] },
+            "tournament": { "description": "The tournament's name as the source has it.", "type": "string" },
+            "round": { "description": "The source's round number (LiveChess: the round-N folder).", "type": "integer", "minimum": 1 },
+            "game": { "description": "The source's game number in the round (LiveChess: game-M.pgn, pairing M of the round's index).", "type": "integer", "minimum": 1 },
+            "white": { "$ref": "#/definitions/game_player" },
+            "black": { "$ref": "#/definitions/game_player" },
+            "result": { "description": "The result the game file has; \"*\" while it goes on.", "type": "string", "enum": ["1-0", "0-1", "1/2-1/2", "*"] },
+            "forfeit": { "description": "Only when the source says the game was forfeited: the side that forfeited, or both.", "type": "string", "enum": ["white", "black", "both"] }
+          },
+          "required": ["source"],
+          "additionalProperties": false
+        }
+      },
+      "required": ["k", "g"],
+      "additionalProperties": false
+    },
+    "game_player": {
+      "description": "A player as the source names them: the PGN's tags first, the round's index where a tag is missing.",
+      "type": "object",
+      "properties": {
+        "name": { "description": "As written, \"Last, First\" or \"First Last\" or one name only.", "type": "string" },
+        "fide_id": { "type": "integer", "minimum": 1 },
+        "title": { "type": "string" },
+        "rating": { "type": "integer", "minimum": 1 },
+        "federation": { "type": "string" }
+      },
       "additionalProperties": false
     }
   }

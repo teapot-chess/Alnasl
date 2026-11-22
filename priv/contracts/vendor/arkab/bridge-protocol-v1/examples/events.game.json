@@ -1,0 +1,24 @@
+{
+  "type": "events",
+  "events": [
+    {"s": 3101, "t": 1763800200000, "id": "LiveChess#4", "e": {"k": "st", "v": "connected"}},
+    {"s": 3102, "t": 1763800200000, "id": "LiveChess#4", "e": {"k": "game", "g": {
+      "source": "livechess",
+      "tournament": "Open of Nowhere",
+      "round": 3,
+      "game": 4,
+      "white": {"name": "Vermeulen, Wanda", "fide_id": 9990001, "title": "WFM", "rating": 2104, "federation": "BEL"},
+      "black": {"name": "Otto Brask", "federation": "NED"},
+      "result": "*"
+    }}},
+    {"s": 3103, "t": 1763800260000, "id": "LiveChess#5", "e": {"k": "game", "g": {
+      "source": "livechess",
+      "round": 3,
+      "game": 5,
+      "white": {"name": "Quaghebeur, Ines"},
+      "black": {"name": "Taelman, Ruben"},
+      "result": "*",
+      "forfeit": "black"
+    }}}
+  ]
+}

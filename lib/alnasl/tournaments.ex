@@ -528,6 +528,32 @@ defmodule Alnasl.Tournaments do
     end
   end
 
+  @doc """
+  Every board of a round with its two players as `players/3` describes
+  them: `[%{board, label, white, black, match}]`, `match` as in
+  `boards/2`. Byes are left out. For telling a game that arrives with
+  names (a LiveChess board) which pairing it is.
+  """
+  def round_players(id, round) do
+    with %{"rounds" => rounds} = document <- document(id),
+         %{"boards" => boards} <- Enum.find(rounds, &(&1["number"] == round)) do
+      by_id = players_by_id(document)
+
+      for b <- boards, is_integer(b["board"]), b["kind"] != "bye" do
+        %{
+          board: b["board"],
+          label: b["label"],
+          white: player(by_id[b["white"]]),
+          black: player(by_id[b["black"]]),
+          match: match(b["match"])
+        }
+      end
+      |> Enum.sort_by(& &1.board)
+    else
+      _none -> []
+    end
+  end
+
   defp rating(%{"rating" => rating}) when is_integer(rating) and rating > 0, do: rating
   defp rating(_none), do: nil
 

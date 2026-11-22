@@ -246,6 +246,10 @@ defmodule Alnasl.BridgeEndToEndTest do
     # Met halfway: the ten moves arrive as the board's memory, not guessed.
     eventually(fn -> game(remote).sans == ~w(e4 e5 Nf3 Nc6 Bb5 a6 Ba4 Nf6 O-O Be7) end, 40_000)
 
+    # Who is playing came with it, across the link.
+    assert %{facts: %{white: %{name: "Pauwels, Ada"}, black: %{name: "Kerckx, Bo"}, game: 1}} =
+             Boards.snapshot(remote.id).livechess
+
     # Three moves written at once: three moves, in order.
     livechess_game(dir, opening ++ ~w(Re1 b5 Bb3))
 

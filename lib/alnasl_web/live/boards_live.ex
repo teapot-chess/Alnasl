@@ -473,6 +473,23 @@ defmodule AlnaslWeb.BoardsLive do
     end)
   end
 
+  # A LiveChess pick of a pairing another table plays: asked like the
+  # select, then placed the LiveChess way.
+  def handle_event(
+        "confirm_move",
+        _params,
+        %{assigns: %{move_request: %{livechess: {tid, round, no}} = req}} = socket
+      ) do
+    with_board(socket, req.board_id, fn board ->
+      socket = assign(socket, move_request: nil)
+
+      case Alnasl.LiveChessMatch.choose(board.id, tid, round, no) do
+        :ok -> {:noreply, load(socket)}
+        _gone -> {:noreply, socket |> put_flash(:error, pairing_gone()) |> load()}
+      end
+    end)
+  end
+
   def handle_event("confirm_move", _params, %{assigns: %{move_request: %{} = req}} = socket) do
     with_board(socket, req.board_id, fn board ->
       Boards.link(board, socket.assigns.round, req.board_no)
@@ -484,6 +501,50 @@ defmodule AlnaslWeb.BoardsLive do
 
   def handle_event("cancel_move", _params, socket),
     do: {:noreply, assign(socket, move_request: nil)}
+
+  # A LiveChess board on a pairing the arbiter picks. A pairing another
+  # table already plays is asked first, as the select asks (`confirm_move`):
+  # one click on a candidate must not leave the other table feeding nothing.
+  def handle_event("livechess_place", %{"id" => id} = params, socket) do
+    with_board(socket, id, fn board ->
+      with {tid, ""} <- Integer.parse(params["tid"] || ""),
+           {round, ""} <- Integer.parse(params["round"] || ""),
+           {no, ""} <- Integer.parse(params["no"] || "") do
+        case occupant_in(board, tid, round, no) do
+          nil ->
+            case Alnasl.LiveChessMatch.choose(board.id, tid, round, no) do
+              :ok ->
+                {:noreply, socket |> assign(move_request: nil) |> load()}
+
+              _gone ->
+                {:noreply, socket |> put_flash(:error, pairing_gone()) |> load()}
+            end
+
+          other ->
+            request = %{
+              board_id: board.id,
+              to: board.name,
+              from: other.name,
+              board_no: no,
+              livechess: {tid, round, no}
+            }
+
+            {:noreply, socket |> assign(move_request: request) |> load()}
+        end
+      else
+        _no -> {:noreply, socket |> put_flash(:error, pairing_gone()) |> load()}
+      end
+    end)
+  end
+
+  defp pairing_gone, do: gettext("That pairing is not there any more.")
+
+  def handle_event("livechess_rematch", %{"id" => id}, socket) do
+    with_board(socket, id, fn board ->
+      Alnasl.LiveChessMatch.rematch(board.id)
+      {:noreply, load(socket)}
+    end)
+  end
 
   # Which tournament this board plays in: one board, by hand. A range of
   # tables is given to a tournament on the Setup page.
@@ -616,11 +677,109 @@ defmodule AlnaslWeb.BoardsLive do
 
   # The board an event names, or a word that it is gone: another tab, or
   # another arbiter, may have removed it since this page was drawn.
-  defp occupant(board, round, board_no) do
+  defp occupant(board, round, board_no), do: occupant_in(board, board.tournament_id, round, board_no)
+
+  defp occupant_in(board, tid, round, board_no) do
     Enum.find(Boards.list(), fn other ->
-      other.id != board.id and other.tournament_id == board.tournament_id and
+      other.id != board.id and other.tournament_id == tid and
         other.round == round and other.board_no == board_no
     end)
+  end
+
+  # A LiveChess board: who LiveChess says is playing, which pairing that
+  # is (`Alnasl.LiveChessMatch`), and when it is none, why, with the
+  # pairings to pick from.
+  attr :board, :map, required: true
+  attr :lc, :map, required: true
+  attr :may_arbiter, :boolean, default: false
+
+  defp livechess(assigns) do
+    assigns = assign(assigns, facts: assigns.lc.facts, match: assigns.lc.match || %{})
+
+    ~H"""
+    <div id={"livechess-#{@board.id}"} class="stack livechess">
+      <div id={"livechess-players-#{@board.id}"} class="note">
+        <b>{gettext("LiveChess")}</b>
+        <span :if={@facts[:round] && @facts[:game]}>
+          · {gettext("round %{r}, game %{g}", r: @facts.round, g: @facts.game)}
+        </span>
+        <div>
+          <span class="dot white"></span>{player_name(@facts[:white]) || gettext("White")} - <span class="dot black"></span>{player_name(
+            @facts[:black]
+          ) || gettext("Black")}
+        </div>
+      </div>
+
+      <.badge
+        :if={@facts[:forfeit]}
+        id={"livechess-forfeit-#{@board.id}"}
+        tone="warn"
+        icon="warning"
+      >
+        {gettext("LiveChess says: forfeit (%{side}).", side: Words.forfeit_side(@facts.forfeit))}
+      </.badge>
+
+      <%= case @match[:status] do %>
+        <% status when status in [:placed, :manual] -> %>
+          <div id={"livechess-placed-#{@board.id}"} class="note">
+            {if status == :manual,
+              do: gettext("Put on this board by hand."),
+              else: gettext("On its pairing by its players.")}
+            <.button
+              :if={status == :manual and @may_arbiter}
+              id={"livechess-rematch-#{@board.id}"}
+              small
+              variant="ghost"
+              phx-click="livechess_rematch"
+              phx-value-id={@board.id}
+            >{gettext("Match by players again")}</.button>
+          </div>
+          <.badge
+            :if={@match[:reversed?]}
+            id={"livechess-reversed-#{@board.id}"}
+            tone="warn"
+            icon="warning"
+          >
+            {gettext("The colours are the other way round from the pairing.")}
+          </.badge>
+        <% status when status in [:none, :ambiguous, :claimed, :taken, :no_pairings] -> %>
+          <div id={"livechess-unplaced-#{@board.id}"} class="callout warn">
+            <div>
+              {gettext("On no pairing: %{why}.", why: Words.livechess_why(status))}
+              <span :if={@match[:other]}>({@match.other})</span>
+            </div>
+            <div :if={@may_arbiter and (@match[:candidates] || []) != []} class="row wrap">
+              <.button
+                :for={c <- Enum.take(@match.candidates, 12)}
+                id={"livechess-pick-#{@board.id}-#{c.tid}-#{c.round}-#{c.board}"}
+                small
+                phx-click="livechess_place"
+                phx-value-id={@board.id}
+                phx-value-tid={c.tid}
+                phx-value-round={c.round}
+                phx-value-no={c.board}
+              >
+                {candidate_text(c)}
+              </.button>
+            </div>
+          </div>
+        <% _waiting -> %>
+      <% end %>
+    </div>
+    """
+  end
+
+  defp player_name(%{name: name}) when is_binary(name), do: name
+  defp player_name(_none), do: nil
+
+  defp candidate_text(c) do
+    board =
+      case c.match do
+        %{number: m, board: b} -> gettext("match %{m}, board %{b}", m: m, b: b)
+        _none -> gettext("board %{n}", n: c.label || c.board)
+      end
+
+    "#{board}: #{c.white || "?"} - #{c.black || "?"}"
   end
 
   defp with_board(socket, id, fun) do
@@ -1176,6 +1335,13 @@ defmodule AlnaslWeb.BoardsLive do
                     <span :if={s.serial}>{gettext("serial %{s}", s: s.serial)}</span>
                     <span :if={s.firmware}> · {gettext("firmware %{v}", v: s.firmware)}</span>
                   </div>
+
+                  <.livechess
+                    :if={s[:livechess]}
+                    board={s}
+                    lc={s.livechess}
+                    may_arbiter={@may_arbiter}
+                  />
                 </td>
 
                 <td class="b-reads">

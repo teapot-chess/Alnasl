@@ -19,6 +19,8 @@ section, word for word. See [docs/releasing.md](docs/releasing.md).
 
 ## [Unreleased]
 
+- [Feature] **A LiveChess game finds its own pairing.** Each game a bridge reads from a LiveChess export folder now brings its players, and the board is put on the pairing they play in the round in play of the hall's OpenPairings tournaments, team events included: by FIDE ID, else by name, however LiveChess spelt or ordered it. Colours the wrong way round still fit, and are said. When it cannot tell (nobody fits, two pairings fit, two games want one pairing, another board has it, no pairings yet) the Boards page says why and offers the candidates, one click each. Every LiveChess board is looked up again each round. A result in the PGN is suggested to the arbiter, as a board suggests one; a forfeit is shown, not entered. Without OpenPairings the tiles carry LiveChess's names.
+
 ## [0.23.2] - 2026-11-23
 
 - [Fix] **The board select stays open long enough to choose.** The Boards list re-renders whenever a board says anything, and LiveView, finding a focused select whose options had changed under it, blurs it on purpose - so the list snapped shut half a second after it opened and the choice went nowhere. The board and tournament selects in that list now sit out the page's updates and catch up on their own once nobody is holding them; what was chosen is what gets linked.

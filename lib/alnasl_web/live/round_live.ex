@@ -441,8 +441,12 @@ defmodule AlnaslWeb.RoundLive do
       no: no,
       dom: Scope.dom(tid, no),
       path: Scope.game_path(tid, (snap && snap.round) || (game && game.round) || 1, no),
-      white: (snap && snap[:white]) || (game && game.white) || pairing[:white],
-      black: (snap && snap[:black]) || (game && game.black) || pairing[:black],
+      white:
+        (snap && snap[:white]) || (game && game.white) || pairing[:white] ||
+          livechess_name(snap, :white),
+      black:
+        (snap && snap[:black]) || (game && game.black) || pairing[:black] ||
+          livechess_name(snap, :black),
       white_rating: pairing[:white_rating],
       black_rating: pairing[:black_rating],
       # A team event: the board's match, and the team each player plays for.
@@ -576,6 +580,17 @@ defmodule AlnaslWeb.RoundLive do
   end
 
   defp raw_diff(_raw, _fen), do: []
+
+  # A LiveChess board in a hall with no names of its own: the names
+  # LiveChess has.
+  defp livechess_name(%{livechess: %{facts: facts}}, side) do
+    case facts[side] do
+      %{name: name} when is_binary(name) -> name
+      _none -> nil
+    end
+  end
+
+  defp livechess_name(_snap, _side), do: nil
 
   defp tile_state(nil, nil), do: :unlinked
   defp tile_state(nil, %{status: "finished"}), do: :finished

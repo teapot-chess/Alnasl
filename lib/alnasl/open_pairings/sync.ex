@@ -92,6 +92,9 @@ defmodule Alnasl.OpenPairings.Sync do
 
     reconcile(tournament)
 
+    # A LiveChess game waiting for its pairing may have one now.
+    Alnasl.LiveChessMatch.again()
+
     # A results page that has just arrived (or is another one now) gets every
     # game as it stands; there was nowhere to send them until now.
     if Tournaments.openresults_configured?(tournament) and
