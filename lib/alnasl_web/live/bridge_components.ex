@@ -245,6 +245,27 @@ defmodule AlnaslWeb.BridgeComponents do
             & &1["id"]
           )}
         </p>
+        <%!-- A hall on DGT LiveChess: the folder its exporter writes to, on the bridge's machine. --%>
+        <form
+          :if={@owner?}
+          id={"bridge-#{@bridge.id}-folder"}
+          class="row"
+          phx-submit="bridge_command"
+        >
+          <.input type="hidden" id={"bridge-#{@bridge.id}-folder-id"} name="id" value={@bridge.id} />
+          <.input type="hidden" id={"bridge-#{@bridge.id}-folder-cmd"} name="cmd" value="add_folder" />
+          <.input
+            id={"bridge-#{@bridge.id}-folder-path"}
+            type="text"
+            name="folder"
+            value=""
+            label={gettext("LiveChess export folder")}
+            placeholder={gettext("The folder on the bridge's computer")}
+          />
+          <.button id={"bridge-#{@bridge.id}-folder-add"} type="submit" small>
+            {gettext("Read folder")}
+          </.button>
+        </form>
       <% end %>
     </div>
     """
@@ -287,7 +308,8 @@ defmodule AlnaslWeb.BridgeComponents do
   def handle("bridge_command", %{"id" => id, "cmd" => cmd} = params, socket, hall_id) do
     message =
       with %{} = bridge <- here(id, hall_id),
-           {:ok, _id} <- Bridges.command(bridge.id, cmd, Map.take(params, ["port", "board"])) do
+           {:ok, _id} <-
+             Bridges.command(bridge.id, cmd, Map.take(params, ["port", "board", "folder"])) do
         gettext("Sent to the bridge.")
       else
         nil -> gettext("The bridge does not know that.")

@@ -9,7 +9,7 @@
       "const": 1
     },
     "board_id": {
-      "description": "A board's name on the link (Arkab.Protocol.board_id/2): its port, \"COM3\", or on a DGT loop \"<port>#<bus address>\", \"/dev/ttyUSB0#12799\". A played-back board is called whatever the bridge's source names it.",
+      "description": "A board's name on the link (Arkab.Protocol.board_id/2): its port, \"COM3\", or on a DGT loop \"<port>#<bus address>\", \"/dev/ttyUSB0#12799\". A played-back board is called whatever the bridge's source names it; a game of a LiveChess export folder \"<folder name>#<game number>\", \"LiveChess#3\".",
       "type": "string",
       "minLength": 1
     },

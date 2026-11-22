@@ -11,6 +11,7 @@
     "examples/ack.json",
     "examples/boards.empty.json",
     "examples/boards.json",
+    "examples/command.add-folder.json",
     "examples/command.add-port.json",
     "examples/command.forget-board.json",
     "examples/command.forget-port.json",

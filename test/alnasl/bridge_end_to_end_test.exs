@@ -196,4 +196,62 @@ defmodule Alnasl.BridgeEndToEndTest do
     assert List.last(seqs) == Store.last_seq()
     nothing_lost_nothing_twice(remote)
   end
+
+  # A LiveChess export: tournament.json, round-1/game-1.pgn. Made-up players.
+  defp livechess_game(dir, sans) do
+    round = Path.join([dir, "export", "round-1"])
+    File.mkdir_p!(round)
+
+    File.write!(
+      Path.join([dir, "export", "tournament.json"]),
+      ~s({"name":"Test open","rounds":[{"count":1,"live":1}]})
+    )
+
+    moves =
+      sans
+      |> Enum.with_index()
+      |> Enum.map_join(" ", fn {san, i} ->
+        clk = "1:#{String.pad_leading(to_string(29 - div(i, 2)), 2, "0")}:00"
+        number = if rem(i, 2) == 0, do: "#{div(i, 2) + 1}. ", else: ""
+        "#{number}#{san} {[%clk #{clk}]}"
+      end)
+
+    File.write!(
+      Path.join(round, "game-1.pgn"),
+      ~s([Event "Test open"]\n[White "Pauwels, Ada"]\n[Black "Kerckx, Bo"]\n[Result "*"]\n[WhiteClock "1:30:00"]\n[BlackClock "1:30:00"]\n\n#{moves} *\n)
+    )
+
+    Path.join(dir, "export")
+  end
+
+  test "a LiveChess export folder: a game met halfway is caught up, later moves follow",
+       %{dir: dir, listener: listener} do
+    start_bridge(dir)
+    bridge = join(listener)
+
+    opening = ~w(e4 e5 Nf3 Nc6 Bb5 a6 Ba4 Nf6 O-O Be7)
+    folder = livechess_game(dir, opening)
+
+    {:ok, remote} =
+      Boards.create(%{
+        name: "LiveChess board",
+        driver: "remote",
+        port: Bridges.port(bridge, "LiveChess#1"),
+        round: 1,
+        board_no: 1
+      })
+
+    {:ok, _id} = Bridges.command(bridge.id, "add_folder", %{"folder" => folder})
+
+    # Met halfway: the ten moves arrive as the board's memory, not guessed.
+    eventually(fn -> game(remote).sans == ~w(e4 e5 Nf3 Nc6 Bb5 a6 Ba4 Nf6 O-O Be7) end, 40_000)
+
+    # Three moves written at once: three moves, in order.
+    livechess_game(dir, opening ++ ~w(Re1 b5 Bb3))
+
+    eventually(
+      fn -> game(remote).sans == ~w(e4 e5 Nf3 Nc6 Bb5 a6 Ba4 Nf6 O-O Be7 Re1 b5 Bb3) end,
+      40_000
+    )
+  end
 end
