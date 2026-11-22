@@ -19,7 +19,10 @@ section, word for word. See [docs/releasing.md](docs/releasing.md).
 
 ## [Unreleased]
 
+- [Feature] **A board can show its working.** Setup > Advanced > Board debug log puts a panel beside the board on its page: every square that changed, the move Alnasl made of it and on what grounds (seen, worked out from the squares, guessed, misread and put right, from the board's memory), the clock pressed and stopped, and what the results site, OpenPairings and Lichess said about each update. Results get the full story: which squares the kings stand on for the gesture, who is mated after which move, whether the arbiter set it on the board's page or in OpenPairings, and whether the auto-send setting let it go by itself. Plain sentences first, FEN and the board's last bytes behind "Technical detail", filters, a Copy button. Off by default, shown only to people who may arbitrate in the hall, on a box and on the server alike. The last 500 lines a board are kept in memory whether it is on or not, so switching it on mid-mystery shows the mystery rather than an empty box and good intentions. `Alnasl.BoardLog`.
+- [Change] **A result finished from OpenPairings says so.** The arbiter's log used to file it under "set by the arbiter in Alnasl", which was true of the arbiter and false of the place.
 - [Fix] **Serial ports on an older Mac.** The Mac builds promise macOS 10.13 (Intel) and 11 (Apple Silicon), but the serial program asked IOKit for a value that only exists from macOS 12, and died the moment it was asked for the ports: "no serial devices found" on a 10.14 MacBook. It now asks the way every macOS understands.
+
 ## [0.19.1] - 2026-11-21
 
 - [Fix] **The time that goes down is the time that runs.** A clock can keep naming one side as running while the other side's time is the one ticking away, after a pause and a lever tipped by hand. Two readings in a row like that and Alnasl believes the times over the flag: the running side, the push to the results site and the press count follow the clock as it really runs. Once is still two presses nobody saw; a real press is a press as ever.

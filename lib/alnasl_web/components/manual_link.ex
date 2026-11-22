@@ -24,6 +24,7 @@ defmodule AlnaslWeb.Components.ManualLink do
     pgn: {"recording-and-troubleshooting", "pgn"},
     recordings: {"recording-and-troubleshooting", "recordings"},
     log: {"recording-and-troubleshooting", "the-log"},
+    board_debug_log: {"recording-and-troubleshooting", "board-debug-log"},
     halls: {"accounts-and-halls", "halls"},
     bridges: {"bridges", "joining"},
     setup: {"openpairings-and-openresults", "linking-to-openpairings"},

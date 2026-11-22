@@ -18,6 +18,21 @@ De pagina Opnames toont de borden van de zaal waar je naar kijkt; vink **Al mijn
 
 Wat er gebeurd is, in zinnen, met filters: bord aangesloten, zetten hersteld, niet synchroon, hersteld door de arbiter, offline, terug. Alles wat je op de pagina van een bord doet, een herstel of een correctie, staat er met het tijdstip in. Het toont de regels van deze zaal (**Al mijn zalen** toont de rest), vijftig per pagina, en met het zoekvak vind je een woord erin.
 
+## Het debuglog van een bord {#board-debug-log}
+
+Voor wie live borden kent en wil zien hoe Alnasl tot iets kwam. Zet het aan in **Instellingen > Geavanceerd > Debuglog van het bord**; tot dan staat het uit. Vanaf dan heeft de pagina van een bord een paneel naast het bord (eronder op een smal scherm, het kleine scherm van het kastje inbegrepen) met de laatste 500 dingen die op dat bord gebeurden, nieuwste eerst, terwijl ze gebeuren:
+
+- **Aflezingen**: elk veld dat veranderde ("pion (wit) opgetild van e2", "pion (wit) neergezet op e4"), en of de aflezing gebruikt werd.
+- **Zetten**: de zet die ervan gemaakt werd en waarom: gezien, afgeleid uit de velden, geraden, verkeerd gelezen en rechtgezet, uit het geheugen van het bord, een teruggenomen zet.
+- **Klok**: ingedrukt, gestart, stilgezet, uitgeschakeld.
+- **Resultaten**: waarom een resultaat voorgesteld of ingesteld werd: op welke velden de koningen staan voor het resultaatgebaar, wie mat staat na welke zet, de arbiter op de pagina van het bord of in OpenPairings, en of "Mat en pat aan de uitslagensite voorstellen zonder op de arbiter te wachten" het vanzelf liet vertrekken.
+- **Verbinding**: de driver, het bord dat zegt wie het is, onbeantwoorde vragen, het geheugen van het bord.
+- **Verstuurd**: wat klaargezet werd, en wat de uitslagensite, OpenPairings en Lichess op elke update antwoordden.
+
+Elke regel heeft eerst de gewone zin; **Technisch detail** toont de FEN voor en na een zet, de opstelling van een aflezing en de laatste bytes die het bord stuurde. De knoppen bovenaan filteren, **Kopiëren** zet de hele lijst op het klembord, voor een bericht aan wie Alnasl onderhoudt. De regels van het Logboek over het bord staan er ook in.
+
+Alleen wie in de zaal arbiter mag zijn ziet het; kijkers en toeschouwers nooit. De regels blijven in het geheugen, ook terwijl de instelling uit staat, dus wie het midden in een raadsel aanzet, ziet het raadsel. Een herstart vergeet ze; het Logboek en de opnames blijven.
+
 ## De pagina Resultaten {#the-outbox}
 
 De verbindingen, eerlijk: voor de uitslagensite en voor elke andere bestemming, verbonden of niet, laatste succes, hoeveel er wacht en waarom het niet weggaat, in woorden, per toernooi. Zetten van een toernooi dat weg is, of nog geen uitslagenpagina heeft, kunnen nergens heen: de pagina zegt dat ("Er kan niets verstuurd worden") en biedt "Deze zetten weggooien" voor dat toernooi, na een bevestiging. Er wordt nooit iets uit zichzelf weggegooid. Elk heeft zijn eigen schakelaar en zijn eigen "Nu versturen". Wat wacht, wat de server weigerde en wat weggegaan is. Alles, de tellers en het getal in de omlijsting inbegrepen, gaat over de toernooien die gespeeld worden in de zaal waar je naar kijkt.

@@ -844,6 +844,9 @@ defmodule AlnaslWeb.Words do
   defp log("result.set", %{"by" => "board"} = d),
     do: gettext("Result %{result}, from the position.", result: d["result"])
 
+  defp log("result.set", %{"by" => "openpairings"} = d),
+    do: gettext("Result %{result}, set by the arbiter in OpenPairings.", result: d["result"])
+
   defp log("result.set", d),
     do: gettext("Result %{result}, set by the arbiter in Alnasl.", result: d["result"])
 

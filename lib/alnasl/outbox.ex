@@ -427,7 +427,37 @@ defmodule Alnasl.Outbox do
 
   defp finished?(%Entry{body: body}), do: String.contains?(body, ~s("status":"finished"))
 
+  # Each try is a line in the board's debug log (`Alnasl.BoardLog`), with
+  # what the server answered.
   defp post(%Entry{} = entry, %Tournament{} = tournament) do
+    result = send_entry(entry, tournament)
+    debug_sent(entry, result)
+    result
+  end
+
+  defp debug_sent(entry, result) do
+    {outcome, detail} =
+      case result do
+        {:sent, %Entry{error: note}} -> {:sent, note}
+        {:rejected, %Entry{error: code}} -> {:rejected, code}
+        {:retry, reason, _wait} -> {:retry, inspect(reason)}
+        {:blocked, reason} -> {:blocked, inspect(reason)}
+        _other -> {:other, nil}
+      end
+
+    Alnasl.BoardLog.for_game(
+      entry.tournament_id,
+      entry.round,
+      entry.board_no,
+      :sent,
+      "sent",
+      %{destination: "openresults", outcome: outcome, detail: detail, seq: entry.seq},
+      "outbox row #{entry.id}, #{entry.plies} plies#{if entry.replace, do: ", replace"}",
+      if(outcome == :sent, do: :info, else: :warn)
+    )
+  end
+
+  defp send_entry(%Entry{} = entry, %Tournament{} = tournament) do
     url = tournament.server_url <> "/api/tournaments/" <> URI.encode(tournament.slug) <> "/live"
 
     request =

@@ -5734,3 +5734,108 @@ button.menu-item {
   }
 }
 /* ==== end compact-480 ==== */
+
+/* --- board debug log (game page) ------------------------------------------ */
+
+.debug-cats {
+  padding: 0.5rem 0.95rem;
+  border-bottom: 1px solid var(--rule);
+  overflow-x: auto;
+}
+
+.debug-cats .seg {
+  flex-wrap: nowrap;
+}
+
+.debug-log {
+  max-height: 26rem;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+.debug-log li.debug-line {
+  grid-template-columns: 4.6rem 5.6rem minmax(0, 1fr);
+  padding: 0.35rem 0.95rem;
+  animation: debug-in 220ms ease-out;
+}
+
+.debug-log .what {
+  font-size: 0.875rem;
+  overflow-wrap: anywhere;
+}
+
+.debug-log .where {
+  color: var(--quiet);
+  font-weight: 600;
+}
+
+.debug-tech {
+  grid-column: 3;
+  font-size: 0.75rem;
+}
+
+.debug-tech summary {
+  cursor: pointer;
+  color: var(--quiet);
+  width: fit-content;
+}
+
+.debug-tech summary:hover {
+  color: var(--ink);
+}
+
+.debug-tech pre {
+  margin: 0.25rem 0 0;
+  padding: 0.4rem 0.5rem;
+  background: var(--sunken);
+  border-radius: var(--radius);
+  font-family: var(--mono);
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+@keyframes debug-in {
+  from {
+    background: var(--sunken);
+  }
+  to {
+    background: transparent;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .debug-log li.debug-line {
+    animation: none;
+  }
+}
+
+@media (max-width: 560px) {
+  .debug-log li.debug-line {
+    grid-template-columns: 4.2rem minmax(0, 1fr);
+  }
+
+  .debug-log .where {
+    display: none;
+  }
+
+  .debug-tech {
+    grid-column: 2;
+  }
+}
+
+:root[data-compact] .debug-log {
+  max-height: 14rem;
+}
+
+:root[data-compact] .debug-log li.debug-line {
+  grid-template-columns: 3.8rem minmax(0, 1fr);
+  padding: 0.25rem 0.6rem;
+}
+
+:root[data-compact] .debug-log .where {
+  display: none;
+}
+
+:root[data-compact] .debug-tech {
+  grid-column: 2;
+}

@@ -291,6 +291,8 @@ defmodule AlnaslWeb.SetupLive do
       accounts?: Alnasl.Accounts.any?(),
       server?: Alnasl.Accounts.server?(),
       first_form: to_form(%{"email" => "", "password" => ""}, as: :user),
+      debug_form:
+        to_form(%{"board_debug_log" => Settings.get("board_debug_log") == true}, as: :debug),
       tracker_form:
         to_form(
           tracker
@@ -921,6 +923,12 @@ defmodule AlnaslWeb.SetupLive do
          |> put_flash(:error, gettext("Windows did not accept that. Nothing was changed."))
          |> load()}
     end
+  end
+
+  def handle_event("save_debug_log", %{"debug" => params}, socket) do
+    Settings.put("board_debug_log", params["board_debug_log"] == "true")
+    Log.add(:info, "setup.saved", %{})
+    {:noreply, socket |> put_flash(:info, gettext("Saved.")) |> load()}
   end
 
   def handle_event("save_tracker", %{"tracker" => params}, socket) do
@@ -3178,6 +3186,33 @@ defmodule AlnaslWeb.SetupLive do
                     phx-click="reset_tracker"
                   >{gettext("Back to the defaults")}</.button>
                 </div>
+              </.form>
+            </.panel>
+
+            <.panel :if={@box_admin?} id="setup-debug-log" title={gettext("Board debug log")}>
+              <:actions>
+                <AlnaslWeb.Components.ManualLink.manual_link topic={:board_debug_log} />
+              </:actions>
+              <p class="note">
+                {gettext(
+                  "For whoever knows live boards and wants to see the works: beside the board, on its page, everything the board did lately - every square that changed, the move Alnasl made of it and on what grounds, the clock, why a result was suggested or set, and what each destination answered. Shown to whoever may arbitrate there, never to spectators. The last %{n} lines of each board are kept in memory, also while this is off, and are gone with a restart.",
+                  n: Alnasl.BoardLog.keep()
+                )}
+              </p>
+
+              <.form
+                :if={@may_admin}
+                for={@debug_form}
+                id="debug-log-form"
+                phx-change="save_debug_log"
+                class="stack"
+              >
+                <.input
+                  field={@debug_form[:board_debug_log]}
+                  id="debug-log-on"
+                  type="checkbox"
+                  label={gettext("Show the board debug log beside each board")}
+                />
               </.form>
             </.panel>
           </div>

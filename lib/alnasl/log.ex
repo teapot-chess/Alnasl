@@ -37,6 +37,8 @@ defmodule Alnasl.Log do
     try do
       event = Repo.insert!(event)
       Phoenix.PubSub.broadcast(Alnasl.PubSub, @topic, {:log, event})
+      # The board's own debug log has the arbiter's lines about it too.
+      Alnasl.BoardLog.mirror(event)
       event
     rescue
       _error -> event

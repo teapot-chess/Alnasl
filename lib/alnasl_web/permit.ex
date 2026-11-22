@@ -142,6 +142,7 @@ defmodule AlnaslWeb.Permit do
       "update_apply" => :admin,
       "set_autostart" => :admin,
       "save_tracker" => :admin,
+      "save_debug_log" => :admin,
       "preset_tracker" => :admin,
       "reset_tracker" => :admin
     }

@@ -18,6 +18,21 @@ The Recordings page shows the boards of the hall you are looking at; tick **All 
 
 What happened, in sentences, with filters: board connected, moves recovered, out of sync, repaired by the arbiter, offline, back. Everything you do on a board's page, a repair or a correction, is in it with the time. It shows this hall's lines (**All my halls** shows the rest), fifty a page, and a search box finds a word in them.
 
+## The board debug log {#board-debug-log}
+
+For whoever knows live boards and wants to see how Alnasl got where it is. Turn it on in **Setup > Advanced > Board debug log**; it is off until then. From then on a board's page has a panel beside the board (below it on a narrow screen, the box's own small screen included) with the last 500 things that happened on that board, newest first, as they happen:
+
+- **Readings**: every square that changed ("white pawn lifted from e2", "white pawn set down on e4"), and whether the reading was used at all.
+- **Moves**: the move made of it and on what grounds: seen, worked out from the squares, guessed, read wrong and put right, taken from the board's memory, a takeback.
+- **Clock**: pressed, started, stopped, switched off.
+- **Results**: why a result was suggested or set: which squares the kings stand on for the result gesture, who is mated after which move, the arbiter on the board's page or in OpenPairings, and whether "Offer mate and stalemate to the results site without waiting for me" let it go out by itself.
+- **Connection**: the driver, the board saying who it is, polls not answered, the board's memory.
+- **Sent**: what was queued, and what the results site, OpenPairings and Lichess answered for each update.
+
+Every line has the plain sentence first; **Technical detail** opens the FEN before and after a move, the piece placement of a reading and the last bytes the board sent. The chips at the top filter, **Copy** puts the whole list on the clipboard for a message to whoever maintains Alnasl. The lines of the arbiter's Log about the board are in it too.
+
+Only people who may arbitrate in the hall see it; viewers and spectators never do. The lines are kept in memory, also while the setting is off, so turning it on in the middle of a mystery shows the mystery. A restart forgets them; the Log and the recordings are what stays.
+
 ## The Results page {#the-outbox}
 
 The connections, honestly: for the results site and for every other destination, connected or not, last success, how much is waiting and why it is not going, in words, tournament by tournament. Moves of a tournament that is gone, or has no results page, can go nowhere: the page says so ("Nothing can be sent") and offers "Discard these moves" for that tournament, after a confirmation. Nothing is ever discarded by itself. Each has its own switch and its own "Send now". What waits, what the server refused, and what went out. All of it, the counts and the number in the frame included, is about the tournaments played in the hall you are looking at.
