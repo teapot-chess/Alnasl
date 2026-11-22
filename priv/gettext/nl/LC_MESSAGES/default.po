@@ -10669,67 +10669,67 @@ msgstr[1] ""
 #: lib/alnasl_web/board_log_words.ex:49
 #, elixir-autogen, elixir-format
 msgid "%{n} boards answer on this port"
-msgstr ""
+msgstr "%{n} borden antwoorden op deze poort"
 
 #: lib/alnasl_web/board_log_words.ex:59
 #, elixir-autogen, elixir-format
 msgid "%{n} polls in a row without an answer: the board counts as not heard, and moves may be reconstructed across the gap."
-msgstr ""
+msgstr "%{n} keer na elkaar geen antwoord: het bord geldt als niet gehoord, en zetten kunnen over het gat heen afgeleid worden."
 
 #: lib/alnasl_web/board_log_words.ex:337
 #, elixir-autogen, elixir-format
 msgid "%{piece} lifted from %{square}"
-msgstr ""
+msgstr "%{piece} opgetild van %{square}"
 
 #: lib/alnasl_web/board_log_words.ex:341
 #, elixir-autogen, elixir-format
 msgid "%{piece} set down on %{square}"
-msgstr ""
+msgstr "%{piece} neergezet op %{square}"
 
 #: lib/alnasl_web/board_log_words.ex:220
 #, elixir-autogen, elixir-format
 msgid "%{result} from the position: %{side} is checkmated after %{last}."
-msgstr ""
+msgstr "%{result} uit de stelling: %{side} staat mat na %{last}."
 
 #: lib/alnasl_web/board_log_words.ex:230
 #, elixir-autogen, elixir-format
 msgid "%{result} from the position: %{side} is to move and has no legal move (stalemate)."
-msgstr ""
+msgstr "%{result} uit de stelling: %{side} is aan zet en heeft geen geldige zet (pat)."
 
 #: lib/alnasl_web/board_log_words.ex:238
 #, elixir-autogen, elixir-format
 msgid "%{result} from the position: neither side has enough material left to mate."
-msgstr ""
+msgstr "%{result} uit de stelling: geen van beide kanten heeft genoeg materiaal over om mat te zetten."
 
 #: lib/alnasl_web/board_log_words.ex:208
 #, elixir-autogen, elixir-format
 msgid "%{result} from the result gesture: white king on %{white}, black king on %{black}, %{colour}."
-msgstr ""
+msgstr "%{result} uit het resultaatgebaar: witte koning op %{white}, zwarte koning op %{black}, %{colour}."
 
 #: lib/alnasl_web/board_log_words.ex:247
 #, elixir-autogen, elixir-format
 msgid "%{result} set by itself: it is a fact of the position, and \"Offer mate and stalemate to the results site without waiting for me\" is on."
-msgstr ""
+msgstr "%{result} vanzelf ingesteld: het volgt uit de stelling, en \"Mat en pat aan de uitslagensite voorstellen zonder op de arbiter te wachten\" staat aan."
 
 #: lib/alnasl_web/board_log_words.ex:268
 #, elixir-autogen, elixir-format
 msgid "%{result} set by the arbiter in OpenPairings (a command Alnasl fetched)%{was}."
-msgstr ""
+msgstr "%{result} ingesteld door de arbiter in OpenPairings (een opdracht die Alnasl ophaalde)%{was}."
 
 #: lib/alnasl_web/board_log_words.ex:275
 #, elixir-autogen, elixir-format
 msgid "%{result} set by the arbiter on the board's page%{was}."
-msgstr ""
+msgstr "%{result} ingesteld door de arbiter op de pagina van het bord%{was}."
 
 #: lib/alnasl_web/board_log_words.ex:261
 #, elixir-autogen, elixir-format
 msgid "%{result} stays a suggestion for the arbiter: \"Offer mate and stalemate to the results site without waiting for me\" is off."
-msgstr ""
+msgstr "%{result} blijft een voorstel voor de arbiter: \"Mat en pat aan de uitslagensite voorstellen zonder op de arbiter te wachten\" staat uit."
 
 #: lib/alnasl_web/board_log_words.ex:254
 #, elixir-autogen, elixir-format
 msgid "%{result} stays a suggestion for the arbiter: a gesture is never taken as a result by itself."
-msgstr ""
+msgstr "%{result} blijft een voorstel voor de arbiter: een gebaar wordt nooit vanzelf een resultaat."
 
 #: lib/alnasl_web/board_log_words.ex:243
 #, elixir-autogen, elixir-format
@@ -10739,113 +10739,113 @@ msgstr "%{result} voorgesteld (%{why})."
 #: lib/alnasl_web/board_log_words.ex:138
 #, elixir-autogen, elixir-format
 msgid "%{san} recognised."
-msgstr ""
+msgstr "%{san} herkend."
 
 #: lib/alnasl_web/board_log_words.ex:132
 #, elixir-autogen, elixir-format
 msgid "%{san} recognised: %{who} from %{from} to %{to}."
-msgstr ""
+msgstr "%{san} herkend: %{who} van %{from} naar %{to}."
 
 #: lib/alnasl_web/board_log_words.ex:345
 #, elixir-autogen, elixir-format
 msgid "%{square}: %{before} replaced by %{after}"
-msgstr ""
+msgstr "%{square}: %{before} vervangen door %{after}"
 
 #: lib/alnasl_web/board_log_words.ex:309
 #, elixir-autogen, elixir-format
 msgid "%{where} answered update %{seq} without applying it: %{why}."
-msgstr ""
+msgstr "%{where} beantwoordde update %{seq} zonder hem toe te passen: %{why}."
 
 #: lib/alnasl_web/board_log_words.ex:323
 #, elixir-autogen, elixir-format
 msgid "%{where} could not be reached for update %{seq}; it is tried again (%{why})."
-msgstr ""
+msgstr "%{where} was niet bereikbaar voor update %{seq}; het wordt opnieuw geprobeerd (%{why})."
 
 #: lib/alnasl_web/board_log_words.ex:316
 #, elixir-autogen, elixir-format
 msgid "%{where} refused update %{seq}: %{why}."
-msgstr ""
+msgstr "%{where} weigerde update %{seq}: %{why}."
 
 #: lib/alnasl_web/board_log_words.ex:306
 #, elixir-autogen, elixir-format
 msgid "%{where} took update %{seq}."
-msgstr ""
+msgstr "%{where} nam update %{seq} aan."
 
 #: lib/alnasl_web/board_log_words.ex:401
 #, elixir-autogen, elixir-format
 msgid "(as the board suggested)"
-msgstr ""
+msgstr "(zoals het bord voorstelde)"
 
 #: lib/alnasl_web/board_log_words.ex:86
 #, elixir-autogen, elixir-format
 msgid "(read turned round)"
-msgstr ""
+msgstr "(omgedraaid gelezen)"
 
 #: lib/alnasl_web/board_log_words.ex:404
 #, elixir-autogen, elixir-format
 msgid "(the board suggested %{other})"
-msgstr ""
+msgstr "(het bord stelde %{other} voor)"
 
 #: lib/alnasl_web/live/game_live.ex:1368
 #: lib/alnasl_web/live/setup_live.ex:3192
 #, elixir-autogen, elixir-format
 msgid "Board debug log"
-msgstr ""
+msgstr "Debuglog van het bord"
 
 #: lib/alnasl_web/board_log_words.ex:185
 #, elixir-autogen, elixir-format
 msgid "Clock pressed: Black's time stops, White's runs."
-msgstr ""
+msgstr "Klok ingedrukt: de tijd van zwart stopt, die van wit loopt."
 
 #: lib/alnasl_web/board_log_words.ex:187
 #, elixir-autogen, elixir-format
 msgid "Clock pressed: White's time stops, Black's runs."
-msgstr ""
+msgstr "Klok ingedrukt: de tijd van wit stopt, die van zwart loopt."
 
 #: lib/alnasl_web/live/game_live.ex:1377
 #, elixir-autogen, elixir-format
 msgid "Copied"
-msgstr ""
+msgstr "Gekopieerd"
 
 #: lib/alnasl_web/live/game_live.ex:1378
 #, elixir-autogen, elixir-format
 msgid "Copy"
-msgstr ""
+msgstr "Kopiëren"
 
 #: lib/alnasl_web/board_log_words.ex:34
 #, elixir-autogen, elixir-format
 msgid "Driver started: %{driver} on %{where}."
-msgstr ""
+msgstr "Driver gestart: %{driver} op %{where}."
 
 #: lib/alnasl_web/board_log_words.ex:38
 #, elixir-autogen, elixir-format
 msgid "Driver started: %{driver}."
-msgstr ""
+msgstr "Driver gestart: %{driver}."
 
 #: lib/alnasl_web/board_log_words.ex:385
 #, elixir-autogen, elixir-format
 msgid "Entered by hand."
-msgstr ""
+msgstr "Met de hand ingevoerd."
 
 #: lib/alnasl_web/board_log_words.ex:377
 #, elixir-autogen, elixir-format
 msgid "First read as %{read}, a piece set down beside its square, and put right."
-msgstr ""
+msgstr "Eerst gelezen als %{read}, een stuk naast zijn veld neergezet, en rechtgezet."
 
 #: lib/alnasl_web/board_log_words.ex:75
 #, elixir-autogen, elixir-format
 msgid "First reading of the board."
-msgstr ""
+msgstr "Eerste aflezing van het bord."
 
 #: lib/alnasl_web/live/setup_live.ex:3197
 #, elixir-autogen, elixir-format
 msgid "For whoever knows live boards and wants to see the works: beside the board, on its page, everything the board did lately - every square that changed, the move Alnasl made of it and on what grounds, the clock, why a result was suggested or set, and what each destination answered. Shown to whoever may arbitrate there, never to spectators. The last %{n} lines of each board are kept in memory, also while this is off, and are gone with a restart."
-msgstr ""
+msgstr "Voor wie live borden kent en het binnenwerk wil zien: naast het bord, op zijn pagina, alles wat het bord de laatste tijd deed - elk veld dat veranderde, de zet die Alnasl ervan maakte en waarom, de klok, waarom een resultaat voorgesteld of ingesteld werd, en wat elke bestemming antwoordde. Te zien voor wie daar arbiter mag zijn, nooit voor toeschouwers. De laatste %{n} regels van elk bord blijven in het geheugen, ook terwijl dit uit staat, en verdwijnen bij een herstart."
 
 #: lib/alnasl_web/board_log_words.ex:358
 #, elixir-autogen, elixir-format
 msgid "Held back: the board's memory is expected first."
-msgstr ""
+msgstr "Tegengehouden: eerst wordt het geheugen van het bord verwacht."
 
 #: lib/alnasl_web/board_log_words.ex:408
 #, elixir-autogen, elixir-format
@@ -10855,47 +10855,47 @@ msgstr "Lichess"
 #: lib/alnasl_web/board_log_words.ex:169
 #, elixir-autogen, elixir-format
 msgid "Linked to round %{round}, board %{board}, game %{game} (%{plies} plies restored, %{status})."
-msgstr ""
+msgstr "Gekoppeld aan ronde %{round}, bord %{board}, partij %{game} (%{plies} halve zetten hersteld, %{status})."
 
 #: lib/alnasl_web/board_log_words.ex:178
 #, elixir-autogen, elixir-format
 msgid "Not linked to any game: readings are not used."
-msgstr ""
+msgstr "Aan geen partij gekoppeld: aflezingen worden niet gebruikt."
 
 #: lib/alnasl_web/board_log_words.ex:372
 #, elixir-autogen, elixir-format
 msgid "Not seen move by move: worked out from the squares; only this line of moves fits."
-msgstr ""
+msgstr "Niet zet voor zet gezien: afgeleid uit de velden; alleen deze reeks zetten past."
 
 #: lib/alnasl_web/board_log_words.ex:366
 #, elixir-autogen, elixir-format
 msgid "Not seen: one of several lines of moves that fit the board was taken. Check it."
-msgstr ""
+msgstr "Niet gezien: een van meerdere reeksen zetten die bij het bord passen werd genomen. Controleer het."
 
 #: lib/alnasl_web/board_log_words.ex:369
 #, elixir-autogen, elixir-format
 msgid "Not seen: worked out after a gap in contact; only this line of moves fits."
-msgstr ""
+msgstr "Niet gezien: afgeleid na een onderbreking van het contact; alleen deze reeks zetten past."
 
 #: lib/alnasl_web/board_log_words.ex:354
 #, elixir-autogen, elixir-format
 msgid "Not used: the board feeds no game."
-msgstr ""
+msgstr "Niet gebruikt: het bord voedt geen partij."
 
 #: lib/alnasl_web/board_log_words.ex:355
 #, elixir-autogen, elixir-format
 msgid "Not used: the game is over."
-msgstr ""
+msgstr "Niet gebruikt: de partij is voorbij."
 
 #: lib/alnasl_web/live/game_live.ex:1398
 #, elixir-autogen, elixir-format
 msgid "Nothing yet. Lift a piece."
-msgstr ""
+msgstr "Nog niets. Til een stuk op."
 
 #: lib/alnasl_web/board_log_words.ex:25
 #, elixir-autogen, elixir-format
 msgid "Other"
-msgstr ""
+msgstr "Overig"
 
 #: lib/alnasl_web/board_log_words.ex:292
 #, elixir-autogen, elixir-format
@@ -10912,37 +10912,37 @@ msgstr "Resultaat %{result}, ingesteld door de arbiter in OpenPairings."
 #: lib/alnasl_web/board_log_words.ex:391
 #, elixir-autogen, elixir-format
 msgid "Seen and legal, made while a piece stood unseen."
-msgstr ""
+msgstr "Gezien en geldig, gespeeld terwijl een stuk ongezien stond."
 
 #: lib/alnasl_web/board_log_words.ex:394
 #, elixir-autogen, elixir-format
 msgid "Seen: the piece left one square and arrived on the other, and it is legal there."
-msgstr ""
+msgstr "Gezien: het stuk verliet het ene veld en kwam op het andere aan, en dat is een geldige zet."
 
 #: lib/alnasl_web/board_log_words.ex:388
 #, elixir-autogen, elixir-format
 msgid "Seen; the promotion piece was not, so a queen is assumed."
-msgstr ""
+msgstr "Gezien; het promotiestuk niet, dus wordt een dame aangenomen."
 
 #: lib/alnasl_web/live/setup_live.ex:3214
 #, elixir-autogen, elixir-format
 msgid "Show the board debug log beside each board"
-msgstr ""
+msgstr "Het debuglog naast elk bord tonen"
 
 #: lib/alnasl_web/board_log_words.ex:41
 #, elixir-autogen, elixir-format
 msgid "Starting the driver again."
-msgstr ""
+msgstr "De driver wordt opnieuw gestart."
 
 #: lib/alnasl_web/board_log_words.ex:382
 #, elixir-autogen, elixir-format
 msgid "Taken from the board's own memory."
-msgstr ""
+msgstr "Uit het eigen geheugen van het bord genomen."
 
 #: lib/alnasl_web/live/game_live.ex:1410
 #, elixir-autogen, elixir-format
 msgid "Technical detail"
-msgstr ""
+msgstr "Technisch detail"
 
 #: lib/alnasl_web/board_log_words.ex:66
 #, elixir-autogen, elixir-format
@@ -10954,42 +10954,42 @@ msgstr[1] ""
 #: lib/alnasl_web/board_log_words.ex:54
 #, elixir-autogen, elixir-format
 msgid "The board says who it is: %{parts}."
-msgstr ""
+msgstr "Het bord zegt wie het is: %{parts}."
 
 #: lib/alnasl_web/board_log_words.ex:192
 #, elixir-autogen, elixir-format
 msgid "The clock is started: Black's time runs."
-msgstr ""
+msgstr "De klok is gestart: de tijd van zwart loopt."
 
 #: lib/alnasl_web/board_log_words.ex:190
 #, elixir-autogen, elixir-format
 msgid "The clock is started: White's time runs."
-msgstr ""
+msgstr "De klok is gestart: de tijd van wit loopt."
 
 #: lib/alnasl_web/board_log_words.ex:193
 #, elixir-autogen, elixir-format
 msgid "The clock is stopped."
-msgstr ""
+msgstr "De klok is stilgezet."
 
 #: lib/alnasl_web/board_log_words.ex:196
 #, elixir-autogen, elixir-format
 msgid "The clock is switched off or unplugged: no clock checks until it reports again."
-msgstr ""
+msgstr "De klok is uitgeschakeld of losgekoppeld: geen klokcontroles tot hij zich weer meldt."
 
 #: lib/alnasl_web/board_log_words.ex:182
 #, elixir-autogen, elixir-format
 msgid "The clock reports."
-msgstr ""
+msgstr "De klok meldt zich."
 
 #: lib/alnasl_web/board_log_words.ex:157
 #, elixir-autogen, elixir-format
 msgid "The game is cut back to %{keep} plies (%{reason}), then: %{moves}"
-msgstr ""
+msgstr "De partij wordt teruggebracht tot %{keep} halve zetten (%{reason}), daarna: %{moves}"
 
 #: lib/alnasl_web/board_log_words.ex:165
 #, elixir-autogen, elixir-format
 msgid "The game starts over from the position on the board (a set-up position)."
-msgstr ""
+msgstr "De partij begint opnieuw vanaf de stelling op het bord (een opgezette stelling)."
 
 #: lib/alnasl_web/board_log_words.ex:406
 #, elixir-autogen, elixir-format
@@ -10999,43 +10999,43 @@ msgstr "De uitslagensite"
 #: lib/alnasl_web/board_log_words.ex:120
 #, elixir-autogen, elixir-format
 msgid "Tracker: %{status}."
-msgstr ""
+msgstr "Tracker: %{status}."
 
 #: lib/alnasl_web/board_log_words.ex:103
 #, elixir-autogen, elixir-format
 msgid "Tracker: a change on the board, waiting for it to stand still."
-msgstr ""
+msgstr "Tracker: iets veranderde op het bord, wachten tot het stilstaat."
 
 #: lib/alnasl_web/board_log_words.ex:93
 #, elixir-autogen, elixir-format
 msgid "Tracker: following the game."
-msgstr ""
+msgstr "Tracker: volgt de partij."
 
 #: lib/alnasl_web/board_log_words.ex:113
 #: lib/alnasl_web/board_log_words.ex:116
 #, elixir-autogen, elixir-format
 msgid "Tracker: out of sync - %{why}."
-msgstr ""
+msgstr "Tracker: niet synchroon - %{why}."
 
 #: lib/alnasl_web/board_log_words.ex:98
 #, elixir-autogen, elixir-format
 msgid "Tracker: the kings stand in the centre (%{result}); waiting."
-msgstr ""
+msgstr "Tracker: de koningen staan in het midden (%{result}); wachten."
 
 #: lib/alnasl_web/board_log_words.ex:107
 #, elixir-autogen, elixir-format
 msgid "Tracker: waiting for the starting position."
-msgstr ""
+msgstr "Tracker: wacht op de beginstelling."
 
 #: lib/alnasl_web/board_log_words.ex:149
 #, elixir-autogen, elixir-format
 msgid "a move read too early and revised"
-msgstr ""
+msgstr "een zet te vroeg gelezen en herzien"
 
 #: lib/alnasl_web/board_log_words.ex:151
 #, elixir-autogen, elixir-format
 msgid "a move read wrong and put right"
-msgstr ""
+msgstr "een zet verkeerd gelezen en rechtgezet"
 
 #: lib/alnasl_web/board_log_words.ex:127
 #, elixir-autogen, elixir-format
@@ -11045,17 +11045,17 @@ msgstr "een stuk"
 #: lib/alnasl_web/board_log_words.ex:148
 #, elixir-autogen, elixir-format
 msgid "a takeback"
-msgstr ""
+msgstr "een teruggenomen zet"
 
 #: lib/alnasl_web/board_log_words.ex:204
 #, elixir-autogen, elixir-format
 msgid "both on dark squares (d4, e5): Black won"
-msgstr ""
+msgstr "beide op donkere velden (d4, e5): zwart won"
 
 #: lib/alnasl_web/board_log_words.ex:203
 #, elixir-autogen, elixir-format
 msgid "both on light squares (e4, d5): White won"
-msgstr ""
+msgstr "beide op lichte velden (e4, d5): wit won"
 
 #: lib/alnasl_web/board_log_words.ex:47
 #, elixir-autogen, elixir-format
@@ -11065,17 +11065,17 @@ msgstr "firmware %{f}"
 #: lib/alnasl_web/board_log_words.ex:48
 #, elixir-autogen, elixir-format
 msgid "loop address %{a}"
-msgstr ""
+msgstr "lusadres %{a}"
 
 #: lib/alnasl_web/board_log_words.ex:205
 #, elixir-autogen, elixir-format
 msgid "one on a light and one on a dark square: a draw"
-msgstr ""
+msgstr "een op een licht en een op een donker veld: remise"
 
 #: lib/alnasl_web/board_log_words.ex:152
 #, elixir-autogen, elixir-format
 msgid "the arbiter"
-msgstr ""
+msgstr "de arbiter"
 
 #: lib/alnasl_web/board_log_words.ex:153
 #, elixir-autogen, elixir-format
@@ -11085,17 +11085,17 @@ msgstr "het geheugen van het bord"
 #: lib/alnasl_web/board_log_words.ex:289
 #, elixir-autogen, elixir-format
 msgid "the change"
-msgstr ""
+msgstr "de wijziging"
 
 #: lib/alnasl_web/board_log_words.ex:286
 #, elixir-autogen, elixir-format
 msgid "the clocks, as they read now"
-msgstr ""
+msgstr "de klokken, zoals ze nu staan"
 
 #: lib/alnasl_web/board_log_words.ex:150
 #, elixir-autogen, elixir-format
 msgid "the promotion piece set down"
-msgstr ""
+msgstr "het promotiestuk neergezet"
 
 #: lib/alnasl_web/board_log_words.ex:289
 #, elixir-autogen, elixir-format
