@@ -159,6 +159,13 @@ defmodule AlnaslWeb.PagesTest do
       view |> element("#bridge-#{bridge.id}-read-1") |> render_click()
       assert_receive {:command, %{"cmd" => "add_port"}}
       assert has_element?(view, "#add-bridge-message")
+
+      # A hall on DGT LiveChess: the export folder on the bridge's computer.
+      view
+      |> form("#bridge-#{bridge.id}-folder", %{"folder" => "C:/LiveChess/export"})
+      |> render_submit()
+
+      assert_receive {:command, %{"cmd" => "add_folder", "folder" => "C:/LiveChess/export"}}
     end
 
     test "a port with two boards on it is a loop: one Add, a row for each, and their numbers in small print",

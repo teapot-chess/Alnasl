@@ -5806,7 +5806,7 @@ msgstr ""
 msgid "Send every board again"
 msgstr ""
 
-#: lib/alnasl_web/live/bridge_components.ex:291
+#: lib/alnasl_web/live/bridge_components.ex:313
 #, elixir-autogen, elixir-format
 msgid "Sent to the bridge."
 msgstr ""
@@ -5832,14 +5832,14 @@ msgstr ""
 msgid "The bridge did it."
 msgstr ""
 
-#: lib/alnasl_web/live/bridge_components.ex:293
-#: lib/alnasl_web/live/bridge_components.ex:295
-#: lib/alnasl_web/live/bridge_components.ex:307
+#: lib/alnasl_web/live/bridge_components.ex:315
+#: lib/alnasl_web/live/bridge_components.ex:317
+#: lib/alnasl_web/live/bridge_components.ex:329
 #, elixir-autogen, elixir-format
 msgid "The bridge does not know that."
 msgstr ""
 
-#: lib/alnasl_web/live/bridge_components.ex:294
+#: lib/alnasl_web/live/bridge_components.ex:316
 #, elixir-autogen, elixir-format
 msgid "The bridge is not connected."
 msgstr ""
@@ -6112,7 +6112,7 @@ msgstr ""
 msgid "Rename"
 msgstr ""
 
-#: lib/alnasl_web/live/bridge_components.ex:305
+#: lib/alnasl_web/live/bridge_components.ex:327
 #: lib/alnasl_web/live/halls_live.ex:197
 #, elixir-autogen, elixir-format
 msgid "Renamed."
@@ -8985,7 +8985,7 @@ msgstr ""
 msgid "A bridge was renamed \"%{name}\"."
 msgstr ""
 
-#: lib/alnasl_web/live/bridge_components.ex:308
+#: lib/alnasl_web/live/bridge_components.ex:330
 #, elixir-autogen, elixir-format
 msgid "A bridge's name is one to 80 characters."
 msgstr ""
@@ -11100,4 +11100,19 @@ msgstr ""
 #: lib/alnasl_web/board_log_words.ex:289
 #, elixir-autogen, elixir-format
 msgid "the whole game again"
+msgstr ""
+
+#: lib/alnasl_web/live/bridge_components.ex:262
+#, elixir-autogen, elixir-format
+msgid "LiveChess export folder"
+msgstr ""
+
+#: lib/alnasl_web/live/bridge_components.ex:266
+#, elixir-autogen, elixir-format
+msgid "Read folder"
+msgstr ""
+
+#: lib/alnasl_web/live/bridge_components.ex:263
+#, elixir-autogen, elixir-format
+msgid "The folder on the bridge's computer"
 msgstr ""

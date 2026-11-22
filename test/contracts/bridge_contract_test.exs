@@ -166,6 +166,7 @@ defmodule Alnasl.Contracts.BridgeTest do
       for {cmd, fields} <- [
             {"rescan", %{"port" => "COM3"}},
             {"add_port", %{"port" => "/dev/ttyUSB7"}},
+            {"add_folder", %{"folder" => "C:/LiveChess/export"}},
             {"forget_port", %{"port" => "COM4"}},
             {"resend", %{}},
             {"forget_board", %{"board" => "COM4#12799"}}

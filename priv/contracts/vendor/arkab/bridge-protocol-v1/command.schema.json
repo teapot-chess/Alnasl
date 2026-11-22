@@ -39,6 +39,17 @@
       "additionalProperties": false
     },
     {
+      "description": "Owner only: read this DGT LiveChess export folder on the bridge's machine from now on, also after a restart: a board per game of the round being played. Listed with the ports under the name the bridge gives it (LiveChess, LiveChess 2, ...). Error no_such_folder when it is not a folder there.",
+      "properties": {
+        "type": { "const": "command" },
+        "id": { "$ref": "#/definitions/id" },
+        "cmd": { "const": "add_folder" },
+        "folder": { "type": "string", "minLength": 1 }
+      },
+      "required": ["type", "id", "cmd", "folder"],
+      "additionalProperties": false
+    },
+    {
       "description": "Owner only: stop reading this port.",
       "properties": {
         "type": { "const": "command" },

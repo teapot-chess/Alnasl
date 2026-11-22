@@ -56,8 +56,15 @@ While a bridge is connected, its panel lists the ports it sees and the boards on
 | Read again | Asks the line again who is on it |
 | Forget | Stops reading a port on the bridge (it asks first) |
 | Send every board again | The bridge sends what it has of every board from the start |
+| Read folder | Starts reading a DGT LiveChess export folder on the bridge's computer (see below) |
 
 If a command cannot be done, the panel says so in words: "The bridge is not connected.", "The bridge does not know that.", or what the bridge itself answered.
+
+## A hall on DGT LiveChess {#livechess}
+
+A hall that already runs DGT LiveChess can be followed without unplugging a board from it. In LiveChess, switch on the export to the file system (the "filesystem exporter") and choose a folder. Then give that folder to the bridge on the same computer: in its own page under "LiveChess export folder", or here in the bridge's panel under "LiveChess export folder" and "Read folder".
+
+Every game of the round being played becomes a board, LiveChess#1, LiveChess#2 and so on by game number, and is placed at a table like any other board. The next round's games arrive on the same boards. Positions and clocks come from LiveChess's PGN files. A game that was already under way when the bridge first saw it is handed over as the board's memory, so the moves before then are added in one go, marked as from the board's memory, instead of guessed. The players' names come from OpenPairings, as for every board; LiveChess's own pairings are not read. Lichess, OpenResults and OpenPairings get these games exactly as they get any other.
 
 ## When the line drops {#line-drops}
 

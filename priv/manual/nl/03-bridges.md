@@ -56,8 +56,15 @@ Zolang een brug verbonden is, toont haar paneel de poorten die ze ziet en de bor
 | Opnieuw lezen | Vraagt de lijn opnieuw wie erop zit |
 | Vergeten | Stopt met het lezen van een poort op de brug (vraagt eerst bevestiging) |
 | Alle borden opnieuw sturen | De brug stuurt wat ze van elk bord heeft, van het begin af |
+| Map lezen | Begint een exportmap van DGT LiveChess op de computer van de brug te lezen (zie hieronder) |
 
 Kan een opdracht niet uitgevoerd worden, dan zegt het paneel het in woorden: "De brug is niet verbonden.", "Dat kent de brug niet.", of wat de brug zelf antwoordde.
+
+## Een zaal met DGT LiveChess {#livechess}
+
+Een zaal die al met DGT LiveChess werkt, kan gevolgd worden zonder er een bord los te koppelen. Zet in LiveChess de export naar het bestandssysteem aan (de "filesystem exporter") en kies een map. Geef die map daarna aan de brug op dezelfde computer: op haar eigen pagina onder "Exportmap van LiveChess", of hier in het paneel van de brug onder "Exportmap van LiveChess" en "Map lezen".
+
+Elke partij van de ronde die gespeeld wordt, wordt een bord, LiveChess#1, LiveChess#2 enzovoort naar het nummer van de partij, en komt aan een tafel zoals elk ander bord. De partijen van de volgende ronde komen op dezelfde borden. Stand en klokken komen uit de PGN-bestanden van LiveChess. Een partij die al bezig was toen de brug ze voor het eerst zag, wordt overgedragen als het geheugen van het bord: de zetten van daarvoor komen er in één keer bij, gemarkeerd als uit het geheugen van het bord, in plaats van geraden. De namen van de spelers komen uit OpenPairings, zoals bij elk bord; de paringen van LiveChess zelf worden niet gelezen. Lichess, OpenResults en OpenPairings krijgen deze partijen precies zoals elke andere.
 
 ## Als de lijn wegvalt {#line-drops}
 

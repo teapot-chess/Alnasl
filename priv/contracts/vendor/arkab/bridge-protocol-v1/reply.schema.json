@@ -20,9 +20,9 @@
         "id": { "description": "The command's id, echoed.", "type": "string" },
         "ok": { "const": false },
         "error": {
-          "description": "not_owner: an owner-only command from a server not joined as owner. unknown_command: a command frame without a cmd. bad_command: an unknown cmd or missing/ill-typed fields. no_such_board: resend of a board the bridge does not read. no_such_port: forget_port of a port it does not read. busy: the bridge did not get to it within 30 s.",
+          "description": "not_owner: an owner-only command from a server not joined as owner. unknown_command: a command frame without a cmd. bad_command: an unknown cmd or missing/ill-typed fields. no_such_board: resend of a board the bridge does not read. no_such_port: forget_port of a port it does not read. no_such_folder: add_folder of a path that is not a folder on the bridge's machine. busy: the bridge did not get to it within 30 s.",
           "type": "string",
-          "enum": ["not_owner", "unknown_command", "bad_command", "no_such_board", "no_such_port", "busy"]
+          "enum": ["not_owner", "unknown_command", "bad_command", "no_such_board", "no_such_port", "no_such_folder", "busy"]
         }
       },
       "required": ["type", "id", "ok", "error"],
