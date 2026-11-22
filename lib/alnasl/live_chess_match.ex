@@ -355,7 +355,7 @@ defmodule Alnasl.LiveChessMatch do
         :ok
     end
 
-    if outcome.status not in [:standalone] and (before || %{})[:status] != outcome.status do
+    if (before || %{})[:status] != outcome.status do
       Log.add(:warn, "livechess.unplaced", %{name: board.name, why: to_string(outcome.status)}, %{
         board_id: board.id
       })
