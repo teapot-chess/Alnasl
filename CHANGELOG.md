@@ -19,6 +19,8 @@ section, word for word. See [docs/releasing.md](docs/releasing.md).
 
 ## [Unreleased]
 
+- [Fix] **Alnasl remembers which hall you were in.** The hall picker used to write your choice into the browser session and nowhere else, so every sign-out, closed browser or second phone dropped you in whichever hall happened to sort first, and you went looking for your own again. The last hall you picked is now kept on your account and a new session opens there. A hall that has since been deleted, or taken away from you, is not opened on memory alone: you get your first hall, as before.
+
 ## [0.21.0] - 2026-11-22
 
 - [Feature] **A hall on DGT LiveChess, followed through its bridge.** A bridge's panel has a "LiveChess export folder" field: give it the folder LiveChess's filesystem exporter writes to on the bridge's computer, press "Read folder", and every game of the round being played arrives as a board (`LiveChess#1`, `LiveChess#2`...), placed at a table and carried on to Lichess, OpenResults and OpenPairings like any other. A game already under way comes in as the board's memory, so it is caught up rather than guessed at. Names still come from OpenPairings; LiveChess is asked about squares, not people. Needs the Arkab bridge with LiveChess support (teapot-chess/Arkab#31).

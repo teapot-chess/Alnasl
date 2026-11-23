@@ -30,6 +30,10 @@ defmodule Alnasl.Accounts.User do
     # Simple mode or everything (`AlnaslWeb.Mode`): nil until the person
     # chooses, and then the installation's word counts.
     field :ui_mode, :string
+    # The hall last chosen with the hall picker (`AlnaslWeb.HallController`):
+    # where a session without a hall of its own opens. Checked against the
+    # account's halls on every use, so a hall it lost is never opened.
+    field :last_hall_id, :integer
     timestamps(type: :utc_datetime)
   end
 
@@ -71,6 +75,10 @@ defmodule Alnasl.Accounts.User do
     |> cast(attrs, [:ui_mode])
     |> validate_inclusion(:ui_mode, ~w(simple full))
   end
+
+  @doc "The hall the account last chose: set by the server, never cast from a form."
+  def last_hall_changeset(user, hall_id) when is_integer(hall_id),
+    do: change(user, last_hall_id: hall_id)
 
   @doc "A new password, chosen by the account's holder."
   def password_changeset(user, attrs) do

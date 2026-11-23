@@ -21,7 +21,7 @@ Een 02cloud-login alleen laat niemand binnen. Alleen een uitnodiging, of door de
 
 De poorten van het kastje zelf zijn één zaal. Elke brug hoort bij een zaal, en haar borden en toernooien ook. Een beheerder maakt meer zalen op de pagina Zalen. Elk account ziet zijn eigen zalen en niets van de andere.
 
-Bij meer dan één zaal zegt de zaalkiezer bovenaan de balk over welke zaal de pagina's gaan, en hoeveel van haar borden live zijn. Druk erop voor je zalen, elk met je rol daar en haar live borden (vanaf zeven zalen verschijnt een zoekveld); kies je er een, dan blijf je op de pagina waar je was, nu over die zaal. "Alle zalen" onderaan opent de pagina Zalen, die elke zaal in een tabel toont: jouw rol, borden live, bruggen verbonden, en wat een arbiter nodig heeft.
+Bij meer dan één zaal zegt de zaalkiezer bovenaan de balk over welke zaal de pagina's gaan, en hoeveel van haar borden live zijn. Druk erop voor je zalen, elk met je rol daar en haar live borden (vanaf zeven zalen verschijnt een zoekveld); kies je er een, dan blijf je op de pagina waar je was, nu over die zaal. Alnasl onthoudt de zaal die je het laatst koos: na af- en weer aanmelden, of op een andere telefoon, openen de pagina's in die zaal (of in je eerste zaal, als ze weg is of niet meer de jouwe). "Alle zalen" onderaan opent de pagina Zalen, die elke zaal in een tabel toont: jouw rol, borden live, bruggen verbonden, en wat een arbiter nodig heeft.
 
 De pagina van een zaal heeft tabbladen, elk met een eigen adres: **Mensen**, **Uitnodigingen**, **Bruggen** en **Instellingen** (hernoemen, verwijderen). Uitnodigingen en Instellingen zijn voor een eigenaar; een arbiter of kijker heeft Mensen en Bruggen.
 

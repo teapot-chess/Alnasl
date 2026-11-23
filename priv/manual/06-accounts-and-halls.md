@@ -21,7 +21,7 @@ A 02cloud login alone gets nobody in. Only an invitation, or being named an admi
 
 The box's own ports are one hall. Every bridge belongs to a hall, and so do its boards and tournaments. An admin makes more halls on the Halls page. Each account sees its own halls and nothing of the others.
 
-With more than one hall, the hall picker at the top of the rail says which one the pages are about, and how many of its boards are live. Press it for your halls, each with your role there and its live boards (a search field appears from seven halls on); picking one keeps you on the page you were on, now about that hall. "All halls" at the bottom opens the Halls page, which lists every hall in a table: your role in it, boards live, bridges connected, and what needs an arbiter.
+With more than one hall, the hall picker at the top of the rail says which one the pages are about, and how many of its boards are live. Press it for your halls, each with your role there and its live boards (a search field appears from seven halls on); picking one keeps you on the page you were on, now about that hall. Alnasl remembers the hall you picked last: after signing out and in again, or on another phone, the pages open in that hall (or in your first hall, if it is gone or no longer yours). "All halls" at the bottom opens the Halls page, which lists every hall in a table: your role in it, boards live, bridges connected, and what needs an arbiter.
 
 A hall's own page has tabs, each with an address of its own: **People**, **Invitations**, **Bridges** and **Settings** (rename, delete). Invitations and Settings are an owner's; an arbiter or a viewer has People and Bridges.
 
