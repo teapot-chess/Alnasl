@@ -61,7 +61,9 @@ defmodule Alnasl.Accounts do
 
   @doc """
   The scope of a browser: `user` signed in, with `hall_id` the hall it was
-  looking at last (`nil`: the first it may see). `nil` as the user on a box
+  looking at last (`nil`: the one the account last chose, `User.last_hall_id`,
+  and failing that the first it may see). A hall the account may not see is
+  never picked, whichever of the two named it. `nil` as the user on a box
   that is open gives the open scope; on a box that is not, `nil`.
   """
   def scope(user, hall_id \\ nil)
@@ -85,12 +87,31 @@ defmodule Alnasl.Accounts do
       admin?: admin?,
       roles: roles,
       halls: halls,
-      hall: pick(halls, hall_id),
+      hall: pick(halls, [hall_id, user.last_hall_id]),
       fair_play_shared?: Alnasl.FairPlay.Grants.any_active?(user.id, roles)
     }
   end
 
-  defp pick(halls, id), do: Enum.find(halls, &(&1.id == id)) || List.first(halls)
+  # The first of `ids` that is one of `halls`, else the first hall.
+  defp pick(halls, ids) when is_list(ids),
+    do: Enum.find_value(ids, &find_hall(halls, &1)) || List.first(halls)
+
+  defp pick(halls, id), do: pick(halls, [id])
+
+  defp find_hall(_halls, nil), do: nil
+  defp find_hall(halls, id), do: Enum.find(halls, &(&1.id == id))
+
+  @doc """
+  Remembers `hall_id` as the hall `user` last chose, so the next session
+  opens there. Only written when it changes; a scope without an account
+  (an open box) has nobody to remember it for.
+  """
+  def remember_hall(%User{last_hall_id: id} = user, id) when is_integer(id), do: {:ok, user}
+
+  def remember_hall(%User{} = user, hall_id) when is_integer(hall_id),
+    do: user |> User.last_hall_changeset(hall_id) |> Repo.update()
+
+  def remember_hall(_none, _hall_id), do: :ok
 
   # --- accounts ----------------------------------------------------------------
 
