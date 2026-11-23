@@ -19,6 +19,12 @@ section, word for word. See [docs/releasing.md](docs/releasing.md).
 
 ## [Unreleased]
 
+## [0.23.2] - 2026-11-23
+
+- [Fix] **The board select stays open long enough to choose.** The Boards list re-renders whenever a board says anything, and LiveView, finding a focused select whose options had changed under it, blurs it on purpose - so the list snapped shut half a second after it opened and the choice went nowhere. The board and tournament selects in that list now sit out the page's updates and catch up on their own once nobody is holding them; what was chosen is what gets linked.
+- [Feature] **A board linked mid-game gets its whole game back.** The box records every reading of every board anyway, so a table linked or relinked halfway through a game no longer starts the game from the position it happens to find. The recording is read back from the last starting position, replayed, and accepted only if it ends exactly where the board stands; the moves come in marked as imported, without times, except the ones the game row already had, which keep theirs. The results site gets the whole line, replacing what it held. A recording that does not reach the board changes nothing and says why in the log, and the old start-from-here still applies.
+- [Fix] **A game begun at the wrong moment is set straight.** A game row started from a mid-game position - one move from ply 23 while the board was at 86 - stayed out of sync until somebody noticed. A board stuck out of sync with no explanation now tries its own recording once per episode, and a replay that reaches the board replaces the stale row, trusting the recording over the row it was supposed to agree with.
+
 ## [0.23.1] - 2026-11-23
 
 - [Fix] **A board number is not stolen in passing.** Choosing the board of the round in the Boards list linked on every change of the select, and a select run through with the arrow keys or a scroll wheel changes once per option: each one it passed took that board away from the table that played it. One round of that left six tables of eight feeding nothing. A number another table already plays is now asked first - "Board 3 is already played on ..." - and only the button moves it; a free number still links at once.

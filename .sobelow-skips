@@ -89,6 +89,7 @@ Traversal.FileModule: Directory Traversal in `File.read!`,lib/alnasl_web/live/fa
 Traversal.FileModule: Directory Traversal in `File.read!`,lib/alnasl_web/live/fair_play_live.ex:476,1793E1D
 Traversal.FileModule: Directory Traversal in `File.read!`,lib/alnasl_web/live/pgn_live.ex:79,4AF85C6
 Traversal.FileModule: Directory Traversal in `File.read`,lib/alnasl/access_pin.ex:171,30E3701
+Traversal.FileModule: Directory Traversal in `File.read`,lib/alnasl/board_history/capture.ex:134,65B59F8
 Traversal.FileModule: Directory Traversal in `File.read`,lib/alnasl/fair_play/calibration.ex:243,2F1A135
 Traversal.FileModule: Directory Traversal in `File.read`,lib/alnasl/fair_play/calibration.ex:279,6E4181B
 Traversal.FileModule: Directory Traversal in `File.read`,lib/alnasl/fair_play/calibration.ex:299,55F5482

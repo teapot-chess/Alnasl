@@ -2097,6 +2097,11 @@ code,
   overflow-x: auto;
 }
 
+/* The wrapper that keeps a select out of LiveView's patches: no box of its own. */
+.steady-select {
+  display: contents;
+}
+
 table {
   width: 100%;
   border-collapse: collapse;

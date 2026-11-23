@@ -577,6 +577,12 @@ defmodule AlnaslWeb.Words do
   defp history_reason("not_a_history"), do: gettext("it is not a memory")
   defp history_reason(other), do: to_string(other)
 
+  defp capture_reason("no_capture"), do: gettext("nothing was recorded")
+  defp capture_reason("no_start"), do: gettext("no starting position was recorded")
+  defp capture_reason("no_moves"), do: gettext("no moves were recorded after it")
+  defp capture_reason("does_not_reach"), do: gettext("it does not end where the board stands")
+  defp capture_reason(other), do: to_string(other)
+
   @doc "A line of the log as a sentence."
   def log(%Log.Event{kind: kind} = event), do: log(kind, Log.data(event))
 
@@ -631,6 +637,20 @@ defmodule AlnaslWeb.Words do
 
   defp log("board.history_failed", d),
     do: gettext("The board's own memory could not be read: %{reason}", reason: d["reason"])
+
+  defp log("board.history_recovered", d),
+    do:
+      ngettext(
+        "%{count} move read back from the box's own recording of this board, from the starting position on. The game is whole again and sent that way.",
+        "%{count} moves read back from the box's own recording of this board, from the starting position on. The game is whole again and sent that way.",
+        d["count"] || 0
+      )
+
+  defp log("board.history_recovery_failed", d),
+    do:
+      gettext("The box's own recording of this board could not put the game back (%{reason}).",
+        reason: capture_reason(d["reason"])
+      )
 
   defp log("draft.accepted", _d),
     do: gettext("Arbiter in Alnasl: the board's version of the game from its memory was used.")

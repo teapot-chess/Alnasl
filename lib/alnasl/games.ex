@@ -933,4 +933,14 @@ defmodule Alnasl.Games do
         where: g.local and g.status == "live" and g.updated_at >= ^cutoff
     )
   end
+
+  @doc """
+  Replaces the moves of a game under way by a line read back from the
+  board's captures (`Alnasl.BoardHistory.Capture.plies/3`: stored plies,
+  decoded JSON), from the standard starting position. The result and the
+  rest of the row stay as they are. (Down here, not beside `attach/4`:
+  Sobelow's skips know the lines above by number.)
+  """
+  def recover_line(%Game{} = game, plies) when is_list(plies),
+    do: save(game, %{plies: plies, start_fen: nil})
 end
