@@ -138,4 +138,38 @@ defmodule Alnasl.ClockTest do
       assert clock.running == :white and clock.presses == 0
     end
   end
+
+  describe "a clock that goes quiet (Barco cup, 2026-11-23, round 3 table 3)" do
+    setup do
+      {clock, _} =
+        Clock.update(Clock.new(), 1_000, %{white_ms: 382_000, black_ms: 611_000, running: :white})
+
+      %{clock: clock}
+    end
+
+    test "is counted down while it might just be between two readings", %{clock: clock} do
+      assert %{white_ms: 377_000, running: :white} = Clock.read(clock, 6_000)
+      refute Clock.read(clock, 1_000 + Clock.stale_ms())[:stale]
+    end
+
+    test "past that it holds its last real reading, standing still, marked stale", %{clock: clock} do
+      assert Clock.read(clock, 1_000 + 600_000) ==
+               %{white_ms: 382_000, black_ms: 611_000, running: :none, stale: true}
+    end
+
+    test "the next reading is believed again", %{clock: clock} do
+      {clock, _} =
+        Clock.update(clock, 900_000, %{white_ms: 300_000, black_ms: 611_000, running: :white})
+
+      assert %{white_ms: 299_000, running: :white} = Clock.read(clock, 901_000)
+      refute Clock.read(clock, 901_000)[:stale]
+    end
+
+    test "a clock standing still is never stale" do
+      {clock, _} =
+        Clock.update(Clock.new(), 0, %{white_ms: 1_000, black_ms: 2_000, running: :none})
+
+      assert Clock.read(clock, 3_600_000) == %{white_ms: 1_000, black_ms: 2_000, running: :none}
+    end
+  end
 end
