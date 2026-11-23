@@ -243,7 +243,27 @@ defmodule Alnasl.Clock do
     }
   end
 
-  @doc "The clock as it reads at `t`: the running side counted down since the last reading."
+  # A running clock reports every second. Past this without a word it is
+  # not running out of time, it is not talking: the board went quiet, a
+  # cable came loose, the bridge lost it. 2026-11-23, Barco cup round 3:
+  # table 3 fell silent with White on 6:22 and we counted White down to a
+  # flag that never fell, on every screen in the hall and on the site.
+  @stale_ms 10_000
+
+  @doc "How long a running clock may go without a reading before `read/2` stops trusting it."
+  def stale_ms, do: @stale_ms
+
+  @doc """
+  The clock as it reads at `t`: the running side counted down since the
+  last reading.
+
+  A running clock not heard from for longer than `stale_ms/0` is not
+  counted down any further: the reading is the last one it actually sent,
+  standing still (`running: :none`), with `stale: true`. Whoever shows it
+  shows a time the clock really had; whoever writes a move's `[%clk]` from
+  it writes nothing (`Alnasl.Session`), because a time made up for a move is
+  worse in a PGN than no time. The next reading puts everything back.
+  """
   @spec read(t(), integer()) :: reading() | nil
   def read(%__MODULE__{at: nil}, _t), do: nil
   def read(%__MODULE__{off?: true}, _t), do: nil
@@ -251,11 +271,15 @@ defmodule Alnasl.Clock do
   def read(%__MODULE__{} = clock, t) do
     gone = max(t - clock.at, 0)
 
-    %{
-      white_ms: down(clock.white_ms, clock.running == :white, gone),
-      black_ms: down(clock.black_ms, clock.running == :black, gone),
-      running: clock.running
-    }
+    if clock.running in [:white, :black] and gone > @stale_ms do
+      %{white_ms: clock.white_ms, black_ms: clock.black_ms, running: :none, stale: true}
+    else
+      %{
+        white_ms: down(clock.white_ms, clock.running == :white, gone),
+        black_ms: down(clock.black_ms, clock.running == :black, gone),
+        running: clock.running
+      }
+    end
   end
 
   defp down(nil, _running?, _gone), do: nil

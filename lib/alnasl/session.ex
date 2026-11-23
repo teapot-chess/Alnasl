@@ -301,7 +301,9 @@ defmodule Alnasl.Session do
   defp stamp([], _reading), do: []
 
   defp stamp(plies, reading) do
-    clock = reading && Map.take(reading, [:white_ms, :black_ms])
+    # A clock gone quiet (`Clock.read/2`, `stale`) gives the move no time:
+    # its last real time is not the time after this move.
+    clock = if reading && !reading[:stale], do: Map.take(reading, [:white_ms, :black_ms])
     {earlier, [last]} = Enum.split(plies, -1)
     Enum.map(earlier, &Map.put(&1, :clock, nil)) ++ [Map.put(last, :clock, clock)]
   end
