@@ -153,6 +153,12 @@ defmodule Alnasl.BoardServer do
       # start time it waits for (`no_clock/1`); when the game started so.
       no_clock: %{on?: false, at: nil},
       started_without_clock: nil,
+      # The captures were read for this game and this board, and gave
+      # nothing (`from_capture/2`): `{game_id, board}`, so the same question
+      # is not asked of the same files twice.
+      capture_tried: nil,
+      # Out of sync, and the captures already asked once this time.
+      capture_episode?: false,
       dirty?: false
     }
 
@@ -226,7 +232,8 @@ defmodule Alnasl.BoardServer do
         warning: nil,
         begin_at: nil,
         started_without_clock: nil,
-        no_clock: no_clock(state.board)
+        no_clock: no_clock(state.board),
+        capture_episode?: false
     })
   end
 
@@ -561,7 +568,9 @@ defmodule Alnasl.BoardServer do
 
       {:unmatched, reason} ->
         Log.add(:info, "board.history_unmatched", %{reason: to_string(reason)}, ref(state))
-        state
+        # A board that remembers nothing the game knows (a LiveChess board
+        # gives no memory worth the name): the box's own recording of it.
+        if reason == :no_anchor, do: elem(from_capture(state, :memory), 1), else: state
     end
   end
 
@@ -569,6 +578,124 @@ defmodule Alnasl.BoardServer do
 
   defp log_confirmed(state, count),
     do: Log.add(:info, "board.history_confirmed", %{count: count}, ref(state))
+
+  # --- the box's own recording of the board ------------------------------------
+
+  # How far the tracker's late start reaches by itself (`Tracker`, `paths/5`).
+  @late_start_plies 2
+
+  # The board stands somewhere the game the box has for it never was: the
+  # box reads its own captures of the board back from the last starting
+  # position (`Alnasl.BoardHistory.Capture`) and, when that line ends on
+  # the board as it stands, the game becomes it, sent whole. `why` says what
+  # asked: `:linked` (linked mid-game to a game with no moves),
+  # `:clock_started` (instead of beginning from the board), `:out_of_sync`
+  # (stuck), `:memory` (the board's own memory knew nothing). Returns
+  # `{:ok | :error, state}`; asked once per game and board position.
+  defp from_capture(state, why) do
+    key = state.game && {state.game.id, state.seen}
+
+    if capture_wanted?(state) and state.capture_tried != key do
+      read_capture(%{state | capture_tried: key}, why)
+    else
+      {:error, state}
+    end
+  end
+
+  defp capture_wanted?(%{session: %{tracker: tracker}, game: game, seen: seen})
+       when seen != nil,
+       do: game.status != "finished" and tracker.pos.board != seen
+
+  defp capture_wanted?(_state), do: false
+
+  defp read_capture(state, why) do
+    result =
+      Alnasl.BoardHistory.Capture.recover(state.board.id,
+        target: state.seen,
+        flipped?: state.board.flipped,
+        tracker: Settings.tracker_opts()
+      )
+
+    case result do
+      # A board plugged in a move or two into its game is the tracker's own
+      # late start, which catches it up and marks it so.
+      {:ok, sans} when why == :linked and length(sans) <= @late_start_plies ->
+        if state.session.tracker.opts.late_start,
+          do: {:error, %{state | capture_tried: nil}},
+          else: take_capture(state, sans, why)
+
+      {:ok, sans} ->
+        take_capture(state, sans, why)
+
+      {:error, reason} ->
+        Log.add(
+          :info,
+          "board.history_recovery_failed",
+          %{reason: to_string(reason), why: to_string(why)},
+          ref(state)
+        )
+
+        {:error, state}
+    end
+  rescue
+    error ->
+      Log.add(
+        :error,
+        "board.history_recovery_failed",
+        %{reason: Exception.message(error), why: to_string(why)},
+        ref(state)
+      )
+
+      {:error, state}
+  end
+
+  defp take_capture(state, sans, why) do
+    stored = Jason.decode!(state.game.plies)
+    plies = Alnasl.BoardHistory.Capture.plies(sans, state.game.start_fen, stored)
+    game = Games.recover_line(state.game, plies)
+
+    Log.add(
+      :warn,
+      "board.history_recovered",
+      %{count: length(sans), why: to_string(why)},
+      ref(state)
+    )
+
+    state = %{state | capture_tried: nil}
+    {:ok, state |> resume(game) |> enqueue(now(state), true) |> refeed() |> dirty()}
+  end
+
+  # Linked to a game with no moves while the board is in the middle of one:
+  # the captures, before anything begins from the pieces as they stand.
+  defp linked_mid_game(%{session: %{tracker: %{plies: []} = tracker}, seen: seen} = state)
+       when seen != nil do
+    if seen != start_board(tracker), do: elem(from_capture(state, :linked), 1), else: state
+  end
+
+  defp linked_mid_game(state), do: state
+
+  # Out of sync with nothing to show for it: the captures, once a time.
+  defp stuck(state, events) do
+    stuck? =
+      Enum.any?(events, fn
+        {:status, :out_of_sync, why} -> why in [:unexplained, :search_gave_up]
+        _other -> false
+      end)
+
+    back? =
+      Enum.any?(events, &match?({:status, status, _} when status in [:live, :waiting_start], &1))
+
+    cond do
+      back? ->
+        %{state | capture_episode?: false}
+
+      stuck? and not state.capture_episode? ->
+        elem(from_capture(%{state | capture_episode?: true}, :out_of_sync), 1)
+
+      true ->
+        state
+    end
+  end
 
   # --- a game the clock starts ---------------------------------------------------
 
@@ -632,6 +759,14 @@ defmodule Alnasl.BoardServer do
 
   defp begin_here(state, t, turn) do
     state = if memory_fits?(state), do: recover(state, state.memory), else: state
+
+    # Then the box's own recording of the board, which has the game from
+    # its starting position when the box was listening all along. Only
+    # failing that does the game begin where the pieces stand.
+    state =
+      if state.session.tracker.plies == [],
+        do: elem(from_capture(state, :clock_started), 1),
+        else: state
 
     if state.session.tracker.plies != [] do
       Log.add(:info, "game.caught_up", %{count: length(state.session.tracker.plies)}, ref(state))
@@ -1112,7 +1247,7 @@ defmodule Alnasl.BoardServer do
       end)
 
     state = if queue, do: enqueue(state, t, queue == :replace), else: state
-    dirty(state)
+    state |> stuck(events) |> dirty()
   end
 
   defp log_moves(state, plies) do
@@ -1344,7 +1479,7 @@ defmodule Alnasl.BoardServer do
         heartbeat_ms: (Settings.get("clock_heartbeat_s") || 20) * 1000
     }
 
-    state = if relink?, do: state |> load_game() |> refeed(), else: state
+    state = if relink?, do: state |> load_game() |> refeed() |> linked_mid_game(), else: state
     {:reply, :ok, dirty(state)}
   end
 

@@ -171,6 +171,53 @@ defmodule AlnaslWeb.BoardsLive do
     end
   end
 
+  attr :id, :string, required: true
+  attr :name, :string, required: true
+  attr :class, :string, default: nil
+  attr :value, :any, default: nil
+  attr :options, :list, required: true, doc: "`[{value, label}]`"
+
+  # A select the page re-renders under, without closing it. LiveView leaves
+  # a focused select alone - unless its markup changed, and then it blurs it
+  # on purpose (dom_patch.ts, "blur focused select if it changed"), which
+  # shuts the list the arbiter has open. Eight boards re-render this page
+  # every half second, and a row whose number or options moved under the
+  # arbiter's hand (2026-11-23, tournament 311) lost its list, and its
+  # choice with it. So the select is never patched (`phx-update="ignore"`);
+  # the `.SteadySelect` hook copies what the server says from the data
+  # attributes, which LiveView does keep up to date, when it is safe to.
+  defp steady_select(assigns) do
+    assigns =
+      assign(assigns,
+        current: to_string(assigns.value || ""),
+        pairs: Enum.map(assigns.options, fn {v, l} -> [to_string(v), to_string(l)] end)
+      )
+
+    ~H"""
+    <div
+      id={"#{@id}-box"}
+      class="steady-select"
+      phx-update="ignore"
+      phx-hook=".SteadySelect"
+      data-value={@current}
+      data-options={Jason.encode!(@pairs)}
+    >
+      <select id={@id} name={@name} class={@class}>
+        <option :for={[v, l] <- @pairs} value={v} selected={v == @current}>{l}</option>
+      </select>
+    </div>
+    """
+  end
+
+  # The board numbers a row's select offers: "not linked", the round's
+  # pairings, and the number the board feeds now, wherever that is.
+  defp link_options(numbers, s, round) do
+    own = if s.round == round && s.board_no, do: [s.board_no], else: []
+
+    [{"", gettext("not linked")}] ++
+      for n <- Enum.sort(Enum.uniq(numbers ++ own)), do: {n, gettext("board %{n}", n: n)}
+  end
+
   # The tournaments a board's select offers: those placed in this hall, and
   # the one the board plays in now, wherever that is placed.
   defp row_options(placed, by_id, current) do
@@ -1316,19 +1363,16 @@ defmodule AlnaslWeb.BoardsLive do
                       "Tournament of %{name}",
                       name: s.name
                     )}</label>
-                    <select
+                    <.steady_select
                       id={"tournament-#{s.id}"}
                       name="tournament_id"
                       class="input fit narrow"
-                    >
-                      <option
-                        :for={t <- row_options(@tournaments, @by_id, s[:tournament_id])}
-                        value={t.id}
-                        selected={t.id == s[:tournament_id]}
-                      >
-                        {@names[t.id]}
-                      </option>
-                    </select>
+                      value={s[:tournament_id]}
+                      options={
+                        for t <- row_options(@tournaments, @by_id, s[:tournament_id]),
+                            do: {t.id, @names[t.id]}
+                      }
+                    />
                   </form>
                 </td>
 
@@ -1361,24 +1405,13 @@ defmodule AlnaslWeb.BoardsLive do
                     <label class="sr-only" for={"link-#{s.id}"}>{gettext("Board number for %{name}",
                       name: s.name
                     )}</label>
-                    <select id={"link-#{s.id}"} name="board_no" class="input fit">
-                      <option value="">{gettext("not linked")}</option>
-
-                      <option
-                        :for={
-                          n <-
-                            Enum.uniq(
-                              @numbers ++
-                                if(s.round == @round && s.board_no, do: [s.board_no], else: [])
-                            )
-                            |> Enum.sort()
-                        }
-                        value={n}
-                        selected={s.round == @round and s.board_no == n}
-                      >
-                        {gettext("board %{n}", n: n)}
-                      </option>
-                    </select>
+                    <.steady_select
+                      id={"link-#{s.id}"}
+                      name="board_no"
+                      class="input fit"
+                      value={if(s.round == @round, do: s.board_no)}
+                      options={link_options(@numbers, s, @round)}
+                    />
                   </form>
                   <span
                     :if={not @may_arbiter and s.round == @round and s.board_no}
@@ -1469,6 +1502,42 @@ defmodule AlnaslWeb.BoardsLive do
               const row = document.getElementById(id)
               if (row) row.scrollIntoView({block: "center", behavior: "smooth"})
             })
+          }
+        }
+      </script>
+
+      <script :type={Phoenix.LiveView.ColocatedHook} name=".SteadySelect">
+        // A select the page never patches (see steady_select/1). What the
+        // server says is in data-value and data-options; it is put into the
+        // select only while nobody has it open, or once the choice made in
+        // it has been answered.
+        export default {
+          mounted() {
+            this.select = this.el.querySelector("select")
+            this.sent = null
+            this.select.addEventListener("change", () => {
+              this.sent = this.select.value
+              this.sentAt = Date.now()
+            })
+            this.select.addEventListener("blur", () => this.sync())
+          },
+          updated() {
+            const open = document.activeElement === this.select
+            if (open && this.sent === null) return
+            // The answer to the choice, not a refresh that crossed it.
+            if (this.sent !== null && this.el.dataset.value !== this.sent &&
+                Date.now() - this.sentAt < 1500) return
+            this.sent = null
+            this.sync()
+          },
+          sync() {
+            const s = this.select
+            const options = JSON.parse(this.el.dataset.options || "[]")
+            const same = s.options.length === options.length &&
+              options.every(([v, l], i) => s.options[i].value === v && s.options[i].text === l)
+            if (!same) s.replaceChildren(...options.map(([v, l]) => new Option(l, v)))
+            const want = this.el.dataset.value || ""
+            if (s.value !== want) s.value = want
           }
         }
       </script>

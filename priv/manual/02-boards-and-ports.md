@@ -47,6 +47,14 @@ Twelve boards look alike, and so do twelve cables. The box keeps three things ap
 - **Its table number.** The sticker on the board: "this is table 7". You set it once for the hall and it stays. "Labels" on the Boards page prints a sheet of stickers with the table number and the serial.
 - **Its board of the round.** Normally the same number as the table. For one round you can say otherwise in the column "Board of round N" ("table 7 plays board 3 today"), swap two boards, or put everything back. When the next round begins, it starts from this round's assignment: what you remapped or swapped is carried over, and you can edit it again as before. Only what still makes sense is carried: a remap to a board the new round's pairings do not have, or from a table that is no longer one of the tournament's, is dropped (the Log says so) and that board follows its table number again. A board put in another tournament never takes its old mapping along. "All back to their table numbers" returns every board to its table number. On the Live page the board number is the big one; "table 7 · serial 06310" is the small print.
 
+### Changing the board of the round during play {#relink-mid-game}
+
+The lists in the columns "Table" and "Board of round N" stay open while the page updates around them, which with a hall full of boards is several times a second; what another device changed meanwhile is shown as soon as you let go of the list. A board number that another table already plays is asked first: picking it takes that game away from the other table only after you say so.
+
+A board linked to a game that has no moves while its pieces are in the middle of one does not simply start a new game from where they stand. Alnasl first reads its own recording of that board back (the capture files, see [Recordings and replay](#recordings)): from the last time the starting position stood on it, played through again. When that ends exactly where the pieces stand now, the game is whole again, every move marked as imported (no clock time), and it is sent in full, replacing what the results site held. When it does not, nothing is changed and the game begins from the board as before. A board plugged in only a move or two into its game is caught up by itself, as it always was.
+
+The same is tried, once each time, when a board stays out of sync with nothing on the board to explain it, for instance because its game was started from a position the board had long left behind. The recording is trusted over the stored moves; stored moves that are the same moves at the same place keep their clock times. The Log says how many moves came back, or why the recording could not put the game back (nothing recorded, no starting position, or it does not end where the board stands).
+
 ### Giving the table numbers {#giving-numbers}
 
 Three ways, side by side in the panel "Number the boards" on the Boards page:
