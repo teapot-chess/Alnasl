@@ -19,6 +19,8 @@ section, word for word. See [docs/releasing.md](docs/releasing.md).
 
 ## [Unreleased]
 
+- [Feature] **The results site meets the boards before the first move.** OpenResults lists the boards a hall has reported and, until it has heard of one, every board of the round, so a team event with thirty-two boards and a hall with eight put thirty-two tiles on the projector and waited for somebody to move a pawn. A board linked to a game of a tournament with a results page is now announced there at once, as a game not started yet: once a game, not again on every restart, and never for a paused game, one that stays on the box, or the box's own tournament. An announcement for a round that is not published yet is dropped rather than left to hold up the queue; the first move says everything again anyway.
+
 ## [0.22.0] - 2026-11-23
 
 - [Change] **Arkab 0.7.2.** A LiveChess folder is one source however its path is typed, asking for a folder again brings its put-away boards back, and removing a source forgets them. Alnasl stops pretending the old tag was temporary.

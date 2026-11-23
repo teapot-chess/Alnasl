@@ -94,6 +94,8 @@ OpenResults is waar de toeschouwers de partijen volgen. Om te zien wat zij zien:
 
 Een partij wordt enkel getoond voor een bord van een gepubliceerde ronde. Toont de uitslagensite niets, zie dan [Opnemen, herhalen en problemen oplossen](07-recording-and-troubleshooting.md).
 
+Een bord wordt bij de uitslagensite aangemeld zodra het aan een partij gekoppeld is, nog voor de eerste zet, als een partij die nog niet begonnen is. De live-pagina's tonen de borden die de zaal meldt, dus toeschouwers zien de borden van de zaal en niet elk bord van de ronde.
+
 ## Uitzenden op Lichess {#lichess}
 
 Twee manieren, en ze kunnen naast elkaar draaien. In beide gevallen maak je eerst een uitzending op Lichess (lichess.org/broadcast/new) en een ronde erin.

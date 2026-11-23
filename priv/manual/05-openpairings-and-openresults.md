@@ -94,6 +94,8 @@ OpenResults is where spectators follow the games. To see what they see: on the L
 
 A game is only shown for a board of a published round. If the results site shows nothing, see [Recording, replay and troubleshooting](07-recording-and-troubleshooting.md).
 
+A board is announced to the results site as soon as it is linked to a game, before the first move, as a game not started yet. The live pages list the boards the hall reports, so spectators see the hall's boards and not every board of the round.
+
 ## Broadcasting on Lichess {#lichess}
 
 Two ways, and they can run side by side. Either way, first make a broadcast on Lichess (lichess.org/broadcast/new) and a round in it.
