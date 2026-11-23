@@ -78,7 +78,7 @@ Een brug die per ongeluk uitgezet werd, werkt hetzelfde: zet ze aan en ze gaat v
 
 "Verwijderen" beëindigt de brug hier en op de brug zelf, en haar borden gaan mee. Deze server verwijderen op de pagina van de brug doet hetzelfde vanaf de andere kant: elke kant beëindigt de verbinding voor beide.
 
-Een brug die verwijderd werd, kan met een nieuwe link opnieuw aansluiten. Ze komt terug als dezelfde brug, met een nieuwe sleutel. Een brug kwijt zijn is één keer Verwijderen op de server. Een brug die nog in een zaal zit, wordt niet meegenomen met de link van een andere zaal: de server weigert, en de pagina van de brug zegt dat dit geen server is waarbij ze kan aansluiten. Verwijder haar eerst uit haar zaal, of laat een beheerder haar verplaatsen (hieronder).
+Een brug die verwijderd werd, kan met een nieuwe link opnieuw aansluiten. Ze komt terug als dezelfde brug, met een nieuwe sleutel. Terug in dezelfde zaal binnen twaalf uur, staan haar borden weer waar ze stonden: dezelfde tafel, hetzelfde toernooi, dezelfde ronde en hetzelfde bord, dus een lopende partij gaat gewoon verder. Een tafel of partij die een ander bord intussen nam, blijft bij dat bord. Een brug kwijt zijn is één keer Verwijderen op de server. Een brug die nog in een zaal zit, wordt niet meegenomen met de link van een andere zaal: de server weigert, en de pagina van de brug zegt dat dit geen server is waarbij ze kan aansluiten. Verwijder haar eerst uit haar zaal, of laat een beheerder haar verplaatsen (hieronder).
 
 ## Een brug hernoemen {#renaming}
 

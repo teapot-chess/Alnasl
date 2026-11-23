@@ -19,6 +19,10 @@ defmodule Alnasl.Bridges.Bridge do
     field :last_connected_at, :utc_datetime
     field :revoked_at, :utc_datetime
     field :hall_id, :integer
+    # Where its boards stood when it was removed, by port (JSON): what the
+    # same bridge back in the same hall soon after takes up again
+    # (`Alnasl.Bridges.forget/1`).
+    field :left_boards, :string
     timestamps(type: :utc_datetime)
   end
 end

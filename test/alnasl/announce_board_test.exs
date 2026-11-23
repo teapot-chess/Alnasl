@@ -38,7 +38,7 @@ defmodule Alnasl.AnnounceBoardTest do
     assert [entry] = queued(game)
     assert entry.plies == 0 and not entry.replace
     body = Jason.decode!(entry.body)
-    assert body["moves"] == []
+    assert body["moves"] == [] and body["start_fen"] == Alnasl.Chess.start_fen()
     assert {body["round"], body["board"]} == {1, 1}
 
     # A restart of the board's process links the same game again: no second word.
