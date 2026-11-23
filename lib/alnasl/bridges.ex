@@ -33,6 +33,13 @@ defmodule Alnasl.Bridges do
   connected bridge is told to forget this server; a bridge that dials in
   later is told the same. Removed on the bridge, it says `leave` and the
   same happens here (`forget/1`). Its board rows go with it.
+
+  What they were is kept on the bridge's row (`left_boards`): the same
+  bridge joining the same hall again within twelve hours - a
+  laptop removed and joined again in a hurry mid-round - gets its boards back
+  where they stood, matched by port: table, tournament, round and board, so
+  the game in play carries on from the moves it has. Each is taken once, and
+  not where another board has taken that table or game meanwhile.
   """
 
   import Ecto.Query, only: [from: 2]
@@ -43,6 +50,10 @@ defmodule Alnasl.Bridges do
 
   @topic "bridges"
   @join_minutes 15
+  # How long a removed bridge's tables wait for it to join the same hall again.
+  @rejoin_hours 12
+  # What of a removed bridge's board rows it takes up again (`forget/1`).
+  @left [:name, :tournament_id, :round, :board_no, :table_no, :flipped, :enabled, :serial]
   # No 0/O, no 1/I/L: read off a screen across a hall, if it comes to that.
   @alphabet ~c"23456789ABCDEFGHJKMNPQRSTUVWXYZ"
 
@@ -114,6 +125,7 @@ defmodule Alnasl.Bridges do
                 Repo.rollback(:elsewhere)
 
               old ->
+                fields = Map.put(fields, :left_boards, left_boards(old, fields.hall_id, now))
                 bridge = old |> Ecto.Changeset.change(fields) |> Repo.update!()
                 # Joined again from another hall after it was removed: its
                 # boards (if any are left from before) go with it.
@@ -263,11 +275,16 @@ defmodule Alnasl.Bridges do
 
   @doc "The bridge is gone (it said `leave`, or `remove/1`): revoked, its boards with it."
   def forget(%Bridge{} = bridge) do
+    rows = rows(bridge)
+
     bridge
-    |> Ecto.Changeset.change(revoked_at: DateTime.utc_now(:second))
+    |> Ecto.Changeset.change(
+      revoked_at: DateTime.utc_now(:second),
+      left_boards: rows |> Map.new(&{&1.port, left(&1)}) |> Jason.encode!()
+    )
     |> Repo.update!()
 
-    for row <- rows(bridge), do: Boards.delete(row)
+    for row <- rows, do: Boards.delete(row)
     Log.add(:info, "bridge.removed", %{name: bridge.name}, %{})
     notify()
     :ok
@@ -334,19 +351,87 @@ defmodule Alnasl.Bridges do
       nil ->
         {_port, address} = Arkab.Protocol.parse_board_id(name)
 
-        Boards.create(%{
+        %{
           name: board_name(bridge, name),
           driver: "remote",
           port: port,
           address: address,
           options: %{},
           hall_id: bridge.hall_id || Halls.own_id()
-        })
+        }
+        |> Map.merge(take_left(bridge, port))
+        |> Boards.create()
 
       row ->
         {:ok, row}
     end
   end
+
+  # --- what a removed bridge left behind ------------------------------------
+
+  # What of a row the same board takes up again when its bridge comes back.
+  defp left(%Board{} = row), do: Map.take(row, @left)
+
+  # Kept for a bridge back in the hall it was removed from, and not too long
+  # after: a bridge removed this afternoon and joined again tonight is a new
+  # evening's boards, not this one's.
+  defp left_boards(%Bridge{revoked_at: %DateTime{} = at} = old, hall_id, now) do
+    if old.hall_id == hall_id and DateTime.diff(now, at) <= @rejoin_hours * 3600,
+      do: old.left_boards
+  end
+
+  defp left_boards(_old, _hall_id, _now), do: nil
+
+  # Where the board on `port` stood when the bridge was removed, taken once:
+  # its table, tournament, round, board and the rest, as far as nobody has
+  # taken them meanwhile. Empty when nothing was left for it.
+  defp take_left(%Bridge{id: id}, port) do
+    with %Bridge{left_boards: json} = bridge when is_binary(json) <- Repo.get(Bridge, id),
+         {:ok, %{} = left} <- Jason.decode(json),
+         {%{} = attrs, rest} <- Map.pop(left, port) do
+      bridge |> Ecto.Changeset.change(left_boards: Jason.encode!(rest)) |> Repo.update!()
+
+      for(
+        key <- @left,
+        Map.has_key?(attrs, Atom.to_string(key)),
+        into: %{},
+        do: {key, attrs[Atom.to_string(key)]}
+      )
+      |> free()
+    else
+      _nothing -> %{}
+    end
+  end
+
+  # A tournament that is gone, or a table or game another board has taken in
+  # the meantime, is not taken back: two boards on one game is worse than one
+  # board without.
+  defp free(%{tournament_id: tournament} = attrs) do
+    others =
+      if Alnasl.Tournaments.get(tournament),
+        do: Repo.all(from b in Board, where: b.tournament_id == ^tournament),
+        else: nil
+
+    if others == nil do
+      Map.drop(attrs, [:tournament_id, :table_no, :round, :board_no])
+    else
+      attrs
+      |> drop_if(
+        attrs.table_no != nil and Enum.any?(others, &(&1.table_no == attrs.table_no)),
+        [:table_no]
+      )
+      |> drop_if(
+        attrs.board_no != nil and
+          Enum.any?(others, &({&1.round, &1.board_no} == {attrs.round, attrs.board_no})),
+        [:round, :board_no]
+      )
+    end
+  end
+
+  defp free(attrs), do: attrs
+
+  defp drop_if(attrs, true, keys), do: Map.drop(attrs, keys)
+  defp drop_if(attrs, false, _keys), do: attrs
 
   defp board_name(bridge, name) do
     case Arkab.Protocol.parse_board_id(name) do

@@ -40,6 +40,121 @@ defmodule AlnaslWeb.BridgesTest do
     {bridge, server_id}
   end
 
+  defp linked_tournament do
+    Repo.insert!(%Alnasl.Tournaments.Tournament{
+      kind: "linked",
+      name: "Interclubs",
+      hall_id: Alnasl.Halls.own_id(),
+      remote_id: 1
+    })
+  end
+
+  # The game on board `board` of round 1, `sans` already played.
+  defp played(tournament, board, sans) do
+    game = Alnasl.Games.ensure(tournament.id, 1, board, %{})
+    plies = Enum.map(sans, &%{san: &1, flags: [], clock: nil})
+    {game, false} = Alnasl.Games.apply_event(game, {:moves, plies}, 1_000)
+    game
+  end
+
+  defp joined(identity \\ @identity, now \\ DateTime.utc_now(:second)) do
+    {:ok, join} = Bridges.create_join(now)
+    {:ok, %{bridge: bridge}} = Bridges.redeem(join.code, identity, now)
+    bridge
+  end
+
+  describe "a bridge that comes back" do
+    # Hall 5, 2026-11-23, 17:58: a laptop's eight LiveChess boards at tables
+    # 1-8 of a linked tournament; the bridge leaves, joins again five
+    # seconds later and reports its boards. They came back as eight new
+    # boards in the hall's own tournament without a table between them.
+    test "keeps its boards' tables, tournament, round and board, and the games carry on" do
+      t = linked_tournament()
+      bridge = joined()
+
+      for n <- 1..8 do
+        {:ok, row} = Bridges.board_row(bridge, "LiveChess##{n}")
+
+        {:ok, _row} =
+          Boards.update(row, %{
+            tournament_id: t.id,
+            table_no: n,
+            round: 1,
+            board_no: n,
+            flipped: n == 5
+          })
+      end
+
+      played(t, 5, ~w(e4 c5 Nf3 d6))
+
+      # It said `leave` (what the socket does with it), and came back.
+      Bridges.forget(Repo.get!(Bridge, bridge.id))
+      assert Bridges.rows(bridge) == []
+      again = joined()
+      assert again.id == bridge.id
+
+      rows =
+        for n <- 1..8 do
+          {:ok, row} = Bridges.board_row(again, "LiveChess##{n}")
+          row
+        end
+
+      for {row, n} <- Enum.with_index(rows, 1) do
+        assert row.port == "bridge-#{bridge.id}:LiveChess##{n}"
+        assert {row.tournament_id, row.table_no, row.round, row.board_no} == {t.id, n, 1, n}
+        assert row.flipped == (n == 5)
+      end
+
+      five = Enum.at(rows, 4)
+      eventually(fn -> length(List.wrap(Boards.snapshot(five.id)[:plies])) == 4 end)
+      assert Enum.map(Boards.snapshot(five.id).plies, & &1.san) == ~w(e4 c5 Nf3 d6)
+
+      # Taken once: a board removed by hand and reported again is a new one.
+      Boards.delete(five)
+      {:ok, fresh} = Bridges.board_row(again, "LiveChess#5")
+      assert fresh.table_no == nil
+    end
+
+    test "a table or game taken meanwhile stays with the board that took it" do
+      t = linked_tournament()
+      bridge = joined()
+      {:ok, row} = Bridges.board_row(bridge, "LiveChess#1")
+      {:ok, _row} = Boards.update(row, %{tournament_id: t.id, table_no: 1, round: 1, board_no: 1})
+
+      Bridges.forget(Repo.get!(Bridge, bridge.id))
+
+      {:ok, other} =
+        Boards.create(%{name: "spare", driver: "remote", port: "elsewhere", tournament_id: t.id})
+
+      {:ok, _other} = Boards.update(other, %{table_no: 1, round: 1, board_no: 1})
+
+      {:ok, back} = Bridges.board_row(joined(), "LiveChess#1")
+      assert back.tournament_id == t.id
+      assert {back.table_no, back.round, back.board_no} == {nil, nil, nil}
+    end
+
+    test "after half a day, or in another hall, it starts afresh" do
+      t = linked_tournament()
+      now = DateTime.utc_now(:second)
+      bridge = joined(@identity, now)
+      {:ok, row} = Bridges.board_row(bridge, "LiveChess#1")
+      {:ok, _row} = Boards.update(row, %{tournament_id: t.id, table_no: 1, round: 1, board_no: 1})
+
+      Bridges.forget(Repo.get!(Bridge, bridge.id))
+      late = joined(@identity, DateTime.add(now, 13 * 3600))
+      {:ok, back} = Bridges.board_row(late, "LiveChess#1")
+      assert {back.table_no, back.round, back.board_no} == {nil, nil, nil}
+    end
+
+    test "Remove on the server still takes its boards away" do
+      bridge = joined()
+      {:ok, _row} = Bridges.board_row(bridge, "LiveChess#1")
+      Bridges.remove(Repo.get!(Bridge, bridge.id))
+      assert Bridges.list() == []
+      assert Bridges.rows(bridge) == []
+    end
+  end
+
   describe "the code" do
     test "works once, for fifteen minutes, and only the key's hash is kept" do
       now = ~U[2026-10-16 12:00:00Z]
@@ -178,6 +293,31 @@ defmodule AlnaslWeb.BridgesTest do
       {bridge, _server_id} = bridge_joined()
       Bridges.remove(Repo.get!(Bridge, bridge.id))
       eventually(fn -> Arkab.Bridge.Store.servers() == [] end)
+    end
+
+    test "a bridge removed and joined again on the spot keeps its tables, and the game carries on" do
+      {bridge, server_id} = bridge_joined()
+      t = linked_tournament()
+      {:ok, row} = Bridges.board_row(bridge, "LiveChess#3")
+      {:ok, _row} = Boards.update(row, %{tournament_id: t.id, table_no: 3, round: 1, board_no: 3})
+      played(t, 3, ~w(d4 d5 c4))
+
+      [%{url: url}] = Arkab.Bridge.Store.servers()
+      Arkab.Bridge.remove(server_id)
+      eventually(fn -> Bridges.rows(bridge) == [] end)
+
+      {:ok, code} = Bridges.create_join()
+
+      {:ok, _server} =
+        Arkab.Bridge.join("http://127.0.0.1:#{URI.parse(url).port}/join/#{code.code}")
+
+      [again] = Bridges.list()
+      assert again.id == bridge.id
+      eventually(fn -> Bridges.live(again.id) end)
+
+      {:ok, back} = Bridges.board_row(again, "LiveChess#3")
+      assert {back.tournament_id, back.table_no, back.round, back.board_no} == {t.id, 3, 1, 3}
+      eventually(fn -> Boards.snapshot(back.id)[:plies] |> List.wrap() |> length() == 3 end)
     end
 
     test "Remove on the bridge ends it here, boards and all" do

@@ -19,6 +19,9 @@ section, word for word. See [docs/releasing.md](docs/releasing.md).
 
 ## [Unreleased]
 
+- [Fix] **A bridge that leaves and comes straight back keeps its tables.** Removing a bridge threw its boards away, which was fine until somebody removed a laptop mid-round and joined it again five seconds later: eight boards came back as eight strangers in the hall's own tournament, without a table between them, and every move went nowhere until an arbiter put each table back by hand. The server now remembers where a removed bridge's boards stood, by port, and the same bridge back in the same hall within twelve hours gets its boards back there: table, tournament, round, board, the lot, so the game in play carries on from the moves it has. A table or game somebody else took in the meantime stays taken. A bridge that is actually removed still takes its boards with it; it just isn't forgotten in five seconds any more.
+- [Fix] **A game from the standard position says so to the results site.** The live-boards update left out `start_fen` whenever the game began from the usual position, on the theory that silence means "standard". The results site reads silence as "whatever you told me last", so a game first picked up halfway and later put back to move 1 was checked against the halfway position, and every correction, `replace` included, was refused at 1. d4. The start position now goes with every update, the boring one included.
+
 ## [0.22.0] - 2026-11-23
 
 - [Change] **Arkab 0.7.2.** A LiveChess folder is one source however its path is typed, asking for a folder again brings its put-away boards back, and removing a source forgets them. Alnasl stops pretending the old tag was temporary.

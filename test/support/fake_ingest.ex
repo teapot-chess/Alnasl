@@ -186,7 +186,10 @@ defmodule Alnasl.FakeIngest do
 
   defp ingest(%{"round" => round, "board" => board, "moves" => moves} = body)
        when is_integer(round) and is_integer(board) and is_list(moves) do
-    start = body["start_fen"] || Chess.start_fen()
+    # As OpenResults reads it: a body without `start_fen` keeps the start
+    # the game was stored with, not the standard one.
+    held = Agent.get(__MODULE__, & &1.games[{round, board}])
+    start = body["start_fen"] || (held && held.start_fen) || Chess.start_fen()
 
     case Chess.replay(start, moves) do
       {:ok, plies} ->
@@ -244,7 +247,7 @@ defmodule Alnasl.FakeIngest do
       status: status,
       result: if(status == "finished", do: body["result"] || (held && held.result)),
       clock: clock,
-      start_fen: body["start_fen"]
+      start_fen: body["start_fen"] || (held && held.start_fen)
     }
 
     {{200, %{status: "ok", applied: true, ply: length(moves)}}, put_in(state.games[key], game)}

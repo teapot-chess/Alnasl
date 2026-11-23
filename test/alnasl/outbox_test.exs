@@ -286,6 +286,36 @@ defmodule Alnasl.OutboxTest do
     assert Games.pgn(game) =~ "4. g4 Qh4# 0-1" or Games.pgn(game) =~ "Qh4# 0-1"
   end
 
+  test "a game picked up halfway and put back to move 1 is checked from the standard start" do
+    # 1. e4 e5 already on the board when the box first saw it.
+    halfway = "rnbqkbnr/pppp1ppp/8/4p3/4P3/8/PPPP1PPP/RNBQKBNR w KQkq e6 0 2"
+    {game, true} = Games.apply_event(new_game(), {:restart, halfway}, 1_000)
+    game = play(game, ~w(Nf3 Nc6))
+    assert Outbox.drain() == :empty
+    assert FakeIngest.game(1, 1).start_fen == halfway
+
+    # The arbiter puts the whole game in, from move 1: the standard start,
+    # which the server must be told about, or it replays e4 from the halfway
+    # position and refuses the lot.
+    {game, true} = Games.apply_event(game, {:restart, Alnasl.Chess.start_fen()}, 2_000)
+    assert game.start_fen == nil
+
+    {game, false} =
+      Games.apply_event(
+        game,
+        {:moves, Enum.map(~w(e4 e5 Nf3 Nc6), &%{san: &1, flags: [], clock: nil})},
+        3_000
+      )
+
+    Outbox.enqueue(game, nil, true)
+    assert Outbox.drain() == :empty
+
+    {200, last} = List.last(FakeIngest.requests())
+    assert last["replace"] == true and last["start_fen"] == Alnasl.Chess.start_fen()
+    assert FakeIngest.game(1, 1).moves == ~w(e4 e5 Nf3 Nc6)
+    assert FakeIngest.game(1, 1).start_fen == Alnasl.Chess.start_fen()
+  end
+
   test "while sending is paused for a game nothing is queued for it" do
     game = new_game() |> Games.pause(true)
     game = play(game, ~w(e4 e5))
