@@ -46,12 +46,12 @@ defmodule Alnasl.CaptureRecoveryTest do
     sans = CaptureFixtures.game(30)
     CaptureFixtures.write(root, 7, sans)
 
-    # The board shows one move more than the capture has.
-    assert {:error, :does_not_reach} =
-             Capture.recover(7,
-               root: root,
-               target: CaptureFixtures.board_after(CaptureFixtures.game(31))
-             )
+    # One move more than the files have is the half second the recorder
+    # still buffers: the board as it stands is the last reading, so it reaches.
+    one_more = CaptureFixtures.game(31)
+
+    assert {:ok, ^one_more} =
+             Capture.recover(7, root: root, target: CaptureFixtures.board_after(one_more))
 
     # A piece too many, set down by a hand: no legal game ends there.
     final = CaptureFixtures.board_after(sans)

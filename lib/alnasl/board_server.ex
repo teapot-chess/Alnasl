@@ -609,8 +609,6 @@ defmodule Alnasl.BoardServer do
   defp capture_wanted?(_state), do: false
 
   defp read_capture(state, why) do
-    flush_captures()
-
     result =
       Alnasl.BoardHistory.Capture.recover(state.board.id,
         target: state.seen,
@@ -665,13 +663,6 @@ defmodule Alnasl.BoardServer do
 
     state = %{state | capture_tried: nil}
     {:ok, state |> resume(game) |> enqueue(now(state), true) |> refeed() |> dirty()}
-  end
-
-  # What the recorder still holds in its buffers goes to the files first.
-  defp flush_captures do
-    Recorder.flush()
-  catch
-    :exit, _reason -> :ok
   end
 
   # Linked to a game with no moves while the board is in the middle of one:

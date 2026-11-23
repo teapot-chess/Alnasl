@@ -56,7 +56,8 @@ defmodule Alnasl.BoardHistory.Capture do
 
     with {:ok, lines} <- lines(Path.join(root, "board-#{board_id}")),
          {:ok, events} <- from_last_start(lines, opts[:flipped?] || false),
-         {:ok, sans} <- replay(events, opts[:tracker] || Settings.tracker_opts()) do
+         {:ok, sans} <-
+           replay(standing(events, target), opts[:tracker] || Settings.tracker_opts()) do
       if reaches?(sans, target), do: {:ok, sans}, else: {:error, :does_not_reach}
     end
   end
@@ -241,6 +242,18 @@ defmodule Alnasl.BoardHistory.Capture do
   defp running(_other), do: :none
 
   # --- replaying -----------------------------------------------------------------
+
+  # The files are read as they are, without asking the recorder to close
+  # them: a flush closes the board's file and the next reading begins a new
+  # one, a file per recovery attempt. What the recorder still buffers (half
+  # a second of it at most) is missing, so the board as the box sees it now
+  # is the last reading - it is, after all, the last thing the board said.
+  defp standing(events, target) do
+    case List.last(Enum.filter(events, &match?({_t, {:position, _}}, &1))) do
+      {_t, {:position, ^target}} -> events
+      _other -> events ++ [{elem(List.last(events), 0) + 1_000, {:position, target}}]
+    end
+  end
 
   defp replay(events, tracker_opts) do
     opts =
