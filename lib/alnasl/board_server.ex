@@ -198,6 +198,8 @@ defmodule Alnasl.BoardServer do
        when is_integer(round) and is_integer(no) do
     pairing = Tournaments.board(tournament, round, no)
     game = Games.ensure(tournament, round, no, Games.pairing_attrs(pairing))
+    # The results site lists the board from now, not from its first move.
+    if pairing, do: Outbox.announce(game)
 
     opts =
       Settings.tracker_opts()

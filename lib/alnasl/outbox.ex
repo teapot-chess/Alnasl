@@ -31,7 +31,7 @@ defmodule Alnasl.Outbox do
   |---|---|
   | 200 | `sent` (also `applied: false, older_than_stored`: the server already knew) |
   | 409 `moves_conflict` | the server holds other moves: the row is `rejected` and the game is queued again in full with `replace: true` - the board is the authority |
-  | 409 `board_not_published` | the round is not on the results page yet: the same row again, after the same doubling pause as a 5xx, until it is |
+  | 409 `board_not_published` | the round is not on the results page yet: the same row again, after the same doubling pause as a 5xx, until it is; an announcement (`announce/1`, no moves yet) is dropped instead |
   | 409 `live_game_limit` | the tournament shows as many live games as it may: `rejected` with that reason, the queue moves on |
   | 422 | this message is wrong and stays wrong: `rejected`, shown to the arbiter, the queue moves on |
   | 401, 403, 404 | the key or the tournament is wrong - nothing a retry of this row fixes, and nothing to throw moves away for: the queue **waits**, says why, and tries again every 30 s and when the settings change |
@@ -112,6 +112,47 @@ defmodule Alnasl.Outbox do
     Phoenix.PubSub.broadcast(Alnasl.PubSub, @topic, :outbox_changed)
     kick()
     game
+  end
+
+  @doc """
+  Tells the results site that a board has a game before it has a move: an
+  empty game, from its start position, with the clocks if the box has them.
+  The site lists the boards a hall reports, and until one has, every board
+  of the round - thirty-two tiles for a hall with eight boards.
+
+  Once a game: not when the game has a row already (it was announced, or
+  has moved), not for a game that has begun, is finished, stays on the box
+  or is paused, and only for a tournament of a pairing program with a
+  results page. Returns the game.
+  """
+  def announce(%Game{} = game) do
+    if announce?(game) do
+      body = game |> Games.body(game.clock && decode_clock(game.clock), false) |> stamp_clock()
+
+      Repo.insert!(%Entry{
+        game_id: game.id,
+        tournament_id: game.tournament_id,
+        round: game.round,
+        board_no: game.board_no,
+        seq: game.seq,
+        plies: 0,
+        replace: false,
+        body: Jason.encode!(body)
+      })
+
+      Phoenix.PubSub.broadcast(Alnasl.PubSub, @topic, :outbox_changed)
+      kick()
+    end
+
+    game
+  end
+
+  defp announce?(%Game{} = game) do
+    not game.local and not game.paused and game.status != "finished" and
+      not Games.begun?(game) and
+      match?(%Tournament{kind: "linked"}, Tournaments.get(game.tournament_id)) and
+      wanted?(game.tournament_id) and
+      not Repo.exists?(from e in Entry, where: e.game_id == ^game.id)
   end
 
   # When the clocks in a row were read, by this box's own clock. Never sent
@@ -530,6 +571,15 @@ defmodule Alnasl.Outbox do
   # somebody pressed publish. Nothing is wrong with the row; it is early.
   # The same row again after the usual growing pause, and it goes through
   # once the pairings are out.
+  # An announcement (`announce/1`: no moves, no correction) is not worth
+  # holding the tournament's queue for: the game's first move says it all
+  # again, by which time the round is out.
+  defp conflict(%Entry{plies: 0, replace: false} = entry, "board_not_published", _body) do
+    if finished?(entry),
+      do: {:retry, {:http, 409, "board_not_published"}, nil},
+      else: {:superseded, mark(entry, "superseded", "board_not_published")}
+  end
+
   defp conflict(_entry, "board_not_published", _body),
     do: {:retry, {:http, 409, "board_not_published"}, nil}
 
