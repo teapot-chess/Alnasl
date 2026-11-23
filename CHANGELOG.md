@@ -19,6 +19,7 @@ section, word for word. See [docs/releasing.md](docs/releasing.md).
 
 ## [Unreleased]
 
+- [Change] **Arkab 0.7.2.** A LiveChess folder is one source however its path is typed, asking for a folder again brings its put-away boards back, and removing a source forgets them. Alnasl stops pretending the old tag was temporary.
 - [Fix] **Alnasl remembers which hall you were in.** The hall picker used to write your choice into the browser session and nowhere else, so every sign-out, closed browser or second phone dropped you in whichever hall happened to sort first, and you went looking for your own again. The last hall you picked is now kept on your account and a new session opens there. A hall that has since been deleted, or taken away from you, is not opened on memory alone: you get your first hall, as before.
 
 ## [0.21.0] - 2026-11-22
