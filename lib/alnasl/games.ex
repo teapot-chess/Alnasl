@@ -732,21 +732,12 @@ defmodule Alnasl.Games do
   # --- what the server is told -------------------------------------------------
 
   @doc """
-  The body of a live-boards update for this game: the whole move list, every
-  time (docs/live-boards-api.md). `clock` is a reading or `nil`.
-
-  `start_fen` goes every time, the standard position included: a results
-  site that is not told keeps the start it heard last, so a game first
-  picked up halfway and later put back to move 1 would be checked against
-  the halfway position for the rest of the evening.
+  The body of a live-boards update (docs/live-boards-api.md): every move, and the
+  start, the standard one too: a site not told keeps the last. `clock` or `nil`.
   """
   def body(%Game{} = game, clock \\ nil, replace? \\ false) do
-    %{
-      "round" => game.round,
-      "board" => game.board_no,
-      "moves" => sans(game),
-      "start_fen" => game.start_fen || Chess.start_fen()
-    }
+    %{"round" => game.round, "board" => game.board_no, "moves" => sans(game)}
+    |> Map.put("start_fen", game.start_fen || Chess.start_fen())
     |> put_clock(clock, game.status)
     |> put_if("status", if(game.status == "finished", do: "finished"))
     |> put_if("result", if(game.status == "finished", do: game.result))
