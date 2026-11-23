@@ -57,7 +57,7 @@ Three ways, side by side in the panel "Number the boards" on the Boards page:
 
 "Show me" on a row is none of these: it helps you find that board in the hall, and gives no number.
 
-The list keeps its order while you number: a board does not move up or down because it got a number, so the next row you tap is the board you meant. A table number is on one board only, and a board of the round is fed by one board: when the number you give takes one from another board, the page says which board lost what. And when a board you numbered turns out to be a board the box already knew by its serial (replugged on another port), the box keeps the number it knew it by, and the log says which number went.
+The list keeps its order while you number: a board does not move up or down because it got a number, so the next row you tap is the board you meant. A table number is on one board only, and a board of the round is fed by one board: when the number you give takes one from another board, the page says which board lost what. A board of the round that another board already plays is not taken on the spot: the page asks first ("Board 3 is already played on ..."), and only "Move board 3 here" moves it - so a list run through with the arrow keys takes nothing on its way. And when a board you numbered turns out to be a board the box already knew by its serial (replugged on another port), the box keeps the number it knew it by, and the log says which number went.
 
 ### Which board is this? {#which-board-is-this}
 

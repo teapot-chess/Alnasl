@@ -56,6 +56,7 @@ defmodule AlnaslWeb.BoardsLive do
        lit: nil,
        seeking: nil,
        missed: nil,
+       move_request: nil,
        swap_form: to_form(%{"a" => "", "b" => ""}, as: :swap)
      )
      |> assign(add_form: add_form(%{}), order_form: to_form(%{"first" => "1"}, as: :order))
@@ -398,16 +399,44 @@ defmodule AlnaslWeb.BoardsLive do
     end)
   end
 
+  # A board number another table already plays is not taken on a change of
+  # the select: the change fires for every option a keyboard or a scroll
+  # wheel passes on its way, and each one took that board's game away from
+  # the table that had it. 2026-11-23, Barco cup round 6: someone stepped
+  # through the list on eight tables and left six of them feeding nothing.
+  # Taking a board from another table is asked first (`confirm_move`).
   def handle_event("link", %{"board_id" => id, "board_no" => value}, socket) do
     with_board(socket, id, fn board ->
       case Integer.parse(value) do
-        {number, ""} when number > 0 -> Boards.link(board, socket.assigns.round, number)
-        _none -> Boards.unlink(board)
-      end
+        {number, ""} when number > 0 ->
+          case occupant(board, socket.assigns.round, number) do
+            nil ->
+              Boards.link(board, socket.assigns.round, number)
+              {:noreply, socket |> assign(move_request: nil) |> load()}
 
-      {:noreply, load(socket)}
+            other ->
+              request = %{board_id: board.id, to: board.name, from: other.name, board_no: number}
+              {:noreply, socket |> assign(move_request: request) |> load()}
+          end
+
+        _none ->
+          Boards.unlink(board)
+          {:noreply, socket |> assign(move_request: nil) |> load()}
+      end
     end)
   end
+
+  def handle_event("confirm_move", _params, %{assigns: %{move_request: %{} = req}} = socket) do
+    with_board(socket, req.board_id, fn board ->
+      Boards.link(board, socket.assigns.round, req.board_no)
+      {:noreply, socket |> assign(move_request: nil) |> load()}
+    end)
+  end
+
+  def handle_event("confirm_move", _params, socket), do: {:noreply, socket}
+
+  def handle_event("cancel_move", _params, socket),
+    do: {:noreply, assign(socket, move_request: nil)}
 
   # Which tournament this board plays in: one board, by hand. A range of
   # tables is given to a tournament on the Setup page.
@@ -540,6 +569,13 @@ defmodule AlnaslWeb.BoardsLive do
 
   # The board an event names, or a word that it is gone: another tab, or
   # another arbiter, may have removed it since this page was drawn.
+  defp occupant(board, round, board_no) do
+    Enum.find(Boards.list(), fn other ->
+      other.id != board.id and other.tournament_id == board.tournament_id and
+        other.round == round and other.board_no == board_no
+    end)
+  end
+
   defp with_board(socket, id, fun) do
     with {id, ""} <- Integer.parse(to_string(id)),
          %Alnasl.Boards.Board{} = board <- Boards.get(id) do
@@ -765,6 +801,27 @@ defmodule AlnaslWeb.BoardsLive do
 
         <.button id="print-labels" small href={~p"/files/labels"}>{gettext("Labels")}</.button>
       </:actions>
+
+      <div :if={@move_request} id="move-request" class="callout" role="alertdialog">
+        <b>
+          {gettext("Board %{n} is already played on %{from}.",
+            n: @move_request.board_no,
+            from: @move_request.from
+          )}
+        </b>
+        <span>
+          {gettext("Move it to %{to}? %{from} is then linked to nothing.",
+            to: @move_request.to,
+            from: @move_request.from
+          )}
+        </span>
+        <div class="row">
+          <.button id="confirm-move" small variant="primary" phx-click="confirm_move">
+            {gettext("Move board %{n} here", n: @move_request.board_no)}
+          </.button>
+          <.button id="cancel-move" small phx-click="cancel_move">{gettext("Cancel")}</.button>
+        </div>
+      </div>
 
       <div :if={@find?} id="find-banner" class="callout" role="status">
         <b>{gettext("Lift a piece on the board you mean.")}</b>

@@ -57,7 +57,7 @@ Drie manieren, naast elkaar in het blok "De borden nummeren" op de pagina Borden
 
 "Toon mij" op een rij is geen van de drie: het helpt je dat bord in de zaal te vinden, en geeft geen nummer.
 
-De lijst houdt haar volgorde terwijl je nummert: een bord schuift niet op of neer omdat het een nummer kreeg, dus de volgende rij die je aantikt is het bord dat je bedoelt. Een tafelnummer staat op één bord, en een bord van de ronde wordt door één bord gespeeld: neemt het nummer dat je geeft er een af van een ander bord, dan zegt de pagina welk bord wat kwijt is. En blijkt een bord dat je nummerde een bord dat het kastje al kende aan zijn serienummer (omgestoken op een andere poort), dan houdt het kastje het nummer waaronder het dat bord kende, en zegt het logboek welk nummer verdween.
+De lijst houdt haar volgorde terwijl je nummert: een bord schuift niet op of neer omdat het een nummer kreeg, dus de volgende rij die je aantikt is het bord dat je bedoelt. Een tafelnummer staat op één bord, en een bord van de ronde wordt door één bord gespeeld: neemt het nummer dat je geeft er een af van een ander bord, dan zegt de pagina welk bord wat kwijt is. Een bord van de ronde dat al door een ander bord gespeeld wordt, wordt niet meteen afgenomen: de pagina vraagt het eerst ("Bord 3 wordt al gespeeld op ..."), en pas "Bord 3 hierheen verplaatsen" verplaatst het - zo neemt een lijst die je met de pijltjestoetsen doorloopt onderweg niets mee. En blijkt een bord dat je nummerde een bord dat het kastje al kende aan zijn serienummer (omgestoken op een andere poort), dan houdt het kastje het nummer waaronder het dat bord kende, en zegt het logboek welk nummer verdween.
 
 ### Welk bord is dit? {#which-board-is-this}
 

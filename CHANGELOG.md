@@ -19,6 +19,10 @@ section, word for word. See [docs/releasing.md](docs/releasing.md).
 
 ## [Unreleased]
 
+## [0.23.1] - 2026-11-23
+
+- [Fix] **A board number is not stolen in passing.** Choosing the board of the round in the Boards list linked on every change of the select, and a select run through with the arrow keys or a scroll wheel changes once per option: each one it passed took that board away from the table that played it. One round of that left six tables of eight feeding nothing. A number another table already plays is now asked first - "Board 3 is already played on ..." - and only the button moves it; a free number still links at once.
+
 ## [0.23.0] - 2026-11-23
 
 - [Fix] **A clock that stops talking stops running.** A board whose clock went quiet mid-game had its running side counted down by the box until it flagged - on the site, the projector and every phone - while the real clock ticked on, unbothered. After ten seconds without a reading the clock now stands at the last time it actually sent, and a move made in the meantime gets no `[%clk]` in the PGN rather than a made-up one. The next reading puts it all back.
