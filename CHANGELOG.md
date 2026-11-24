@@ -19,6 +19,8 @@ section, word for word. See [docs/releasing.md](docs/releasing.md).
 
 ## [Unreleased]
 
+## [0.24.3] - 2026-11-24
+
 - [Change] **Manual pass, English and Dutch.** Every entry from 0.20.0 to 0.24.2 checked against the manual and the screens: one gap found, a silent clock stops counting after ten seconds (0.23.0), now on the Live page's state table in both languages. The rest was already written down, which is the kind of finding a manual pass hopes for.
 
 - [Fix] **LiveChess boards stop resurrecting last round.** Arkab 0.7.4: when the server asked a LiveChess board for its state again, the bridge answered with the first game it ever saw on that board, which after the next round belongs to somebody else. It now answers with the game that is actually there.
