@@ -64,6 +64,7 @@ defmodule Alnasl.BoardServer do
     Clock,
     Driver,
     Games,
+    LiveChessMatch,
     Log,
     MemoryDrafts,
     Outbox,
@@ -159,6 +160,9 @@ defmodule Alnasl.BoardServer do
       capture_tried: nil,
       # Out of sync, and the captures already asked once this time.
       capture_episode?: false,
+      # Who is playing, from a bridge's LiveChess board (`{:game, facts}`),
+      # and what `Alnasl.LiveChessMatch` made of it: `%{facts, match}`.
+      livechess: nil,
       dirty?: false
     }
 
@@ -493,14 +497,54 @@ defmodule Alnasl.BoardServer do
   # and the game stays as it was.
   defp driver_event(state, {:history, events}, _t) when is_list(events) do
     dbg(state, :connection, "history.received", %{count: length(events)})
-    %{state | memory: events} |> recover(events) |> release()
+    %{state | memory: events} |> recover(events) |> release() |> livechess_result()
   rescue
     error ->
       Log.add(:error, "board.history_failed", %{reason: Exception.message(error)}, ref(state))
       release(state)
   end
 
+  # Who is playing, from a LiveChess board: the pairing is looked up beside
+  # this process when the players change, and a result in the file is
+  # suggested, as a board suggests one.
+  defp driver_event(state, {:game, facts}, _t) when is_map(facts) do
+    before = state.livechess
+    changed? = before == nil or LiveChessMatch.key(before.facts) != LiveChessMatch.key(facts)
+    state = %{state | livechess: %{facts: facts, match: before && before.match}}
+
+    if changed? do
+      dbg(state, :other, "livechess.game", Map.take(facts, [:round, :game]))
+      LiveChessMatch.kick(state.board.id)
+    end
+
+    if facts[:forfeit] && (before == nil or before.facts[:forfeit] != facts[:forfeit]),
+      do: Log.add(:warn, "livechess.forfeit", %{side: facts.forfeit}, ref(state))
+
+    state |> livechess_result() |> dirty()
+  end
+
   defp driver_event(state, _other, _t), do: state
+
+  @decided ["1-0", "0-1", "1/2-1/2"]
+
+  # LiveChess's result, for the arbiter to confirm: the path a board's
+  # own suggestion takes.
+  defp livechess_result(
+         %{livechess: %{facts: %{result: result}}, session: session, game: game} = state
+       )
+       when result in @decided and session != nil and game != nil do
+    if game.status == "finished", do: state, else: suggest(state, result, :livechess)
+  end
+
+  defp livechess_result(state), do: state
+
+  # A LiveChess board put on its pairing after its game arrived: the game
+  # came as its memory, and is played into the pairing's game now, move by
+  # move, instead of being guessed from the last position.
+  defp catch_up(%{livechess: %{}, memory: [_ | _] = memory} = state),
+    do: state |> recover(memory) |> livechess_result()
+
+  defp catch_up(state), do: state
 
   # A memory is for the game under way; a finished game has its moves, and
   # a board with no game has nothing to hold it up against.
@@ -1479,9 +1523,19 @@ defmodule Alnasl.BoardServer do
         heartbeat_ms: (Settings.get("clock_heartbeat_s") || 20) * 1000
     }
 
-    state = if relink?, do: state |> load_game() |> refeed() |> linked_mid_game(), else: state
+    state =
+      if relink?,
+        do: state |> load_game() |> catch_up() |> refeed() |> linked_mid_game(),
+        else: state
+
+    if relink? and state.livechess, do: LiveChessMatch.linked(board.id)
     {:reply, :ok, dirty(state)}
   end
+
+  def handle_call({:livechess_match, match}, _from, %{livechess: %{} = lc} = state),
+    do: {:reply, :ok, dirty(%{state | livechess: %{lc | match: match}})}
+
+  def handle_call({:livechess_match, _match}, _from, state), do: {:reply, :ok, state}
 
   # Somebody else wrote to the game's row - the names, a pairing flag: read
   # it again. The moves are this process's and are in the row already.
@@ -2005,7 +2059,8 @@ defmodule Alnasl.BoardServer do
       # The clock beside the board, linked to a game or not: the boards page
       # shows it, so an arbiter can see the clock is in and talking before
       # a game is ever linked.
-      board_clock: Clock.read(state.clock, t)
+      board_clock: Clock.read(state.clock, t),
+      livechess: state.livechess
     }
 
     if tracker do

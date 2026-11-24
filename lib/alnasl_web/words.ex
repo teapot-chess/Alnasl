@@ -583,6 +583,25 @@ defmodule AlnaslWeb.Words do
   defp capture_reason("does_not_reach"), do: gettext("it does not end where the board stands")
   defp capture_reason(other), do: to_string(other)
 
+  @doc "Why a LiveChess board is on no pairing (`Alnasl.LiveChessMatch`)."
+  def livechess_why(why) when is_atom(why) and why != nil, do: livechess_why(Atom.to_string(why))
+
+  def livechess_why("none"), do: gettext("no pairing of the round has these players")
+
+  def livechess_why("ambiguous"),
+    do: gettext("more than one pairing of the round has these players")
+
+  def livechess_why("claimed"), do: gettext("another LiveChess game has the same players")
+  def livechess_why("taken"), do: gettext("another board plays that pairing")
+  def livechess_why("no_pairings"), do: gettext("the round has no pairings yet")
+  def livechess_why(other), do: to_string(other)
+
+  @doc "Who forfeited, as LiveChess says it."
+  def forfeit_side("white"), do: gettext("White")
+  def forfeit_side("black"), do: gettext("Black")
+  def forfeit_side("both"), do: gettext("both players")
+  def forfeit_side(other), do: to_string(other)
+
   @doc "A line of the log as a sentence."
   def log(%Log.Event{kind: kind} = event), do: log(kind, Log.data(event))
 
@@ -851,6 +870,38 @@ defmodule AlnaslWeb.Words do
         "The clock stands the other way round: its times are read the other way from now on, and those of the moves from move %{ply} on are swapped.",
         ply: d["from"]
       )
+
+  defp log("result.suggested", %{"why" => "livechess"} = d),
+    do: gettext("LiveChess says the game ended %{result}.", result: d["result"])
+
+  defp log("livechess.placed", d),
+    do:
+      gettext("%{name} plays board %{board} of %{tournament}: its players are that pairing's.",
+        name: d["name"],
+        board: d["board"],
+        tournament: d["tournament"]
+      )
+
+  defp log("livechess.chosen", d),
+    do: gettext("%{name} put on board %{board} by hand.", name: d["name"], board: d["board"])
+
+  defp log("livechess.reversed", d),
+    do:
+      gettext(
+        "%{name}: LiveChess has the players of board %{board} with the colours the other way round.",
+        name: d["name"],
+        board: d["board"]
+      )
+
+  defp log("livechess.unplaced", d),
+    do:
+      gettext("%{name} is on no pairing: %{why}.",
+        name: d["name"],
+        why: livechess_why(d["why"])
+      )
+
+  defp log("livechess.forfeit", d),
+    do: gettext("LiveChess says: forfeit (%{side}).", side: forfeit_side(d["side"]))
 
   defp log("result.suggested", %{"why" => "gesture"} = d),
     do: gettext("The kings are in the centre: %{result}?", result: d["result"])

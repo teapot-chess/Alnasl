@@ -721,7 +721,8 @@ defmodule AlnaslWeb.PagesTest do
            takeover.box_paired takeover.box_removed takeover.taken_over takeover.handed_over
            takeover.paired takeover.standing_by takeover.left takeover.handed_over_here
            takeover.silent_taken takeover.took_over takeover.restore_failed takeover.superseded
-           takeover.revoked takeover.queue_full takeover.replica_used takeover.replica_stopped)
+           takeover.revoked takeover.queue_full takeover.replica_used takeover.replica_stopped
+           livechess.placed livechess.chosen livechess.reversed livechess.unplaced livechess.forfeit)
 
       for kind <- kinds do
         sentence = AlnaslWeb.Words.log(%Alnasl.Log.Event{kind: kind, data: "{}"})

@@ -361,6 +361,8 @@ defmodule Alnasl.Boards do
     end
 
     Tournaments.set_round(tournament_id, round)
+    # A LiveChess board plays the pairing its players have in this round.
+    Alnasl.LiveChessMatch.again()
     :ok
   end
 
