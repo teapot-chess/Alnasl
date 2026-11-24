@@ -537,8 +537,6 @@ defmodule AlnaslWeb.BoardsLive do
     end)
   end
 
-  defp pairing_gone, do: gettext("That pairing is not there any more.")
-
   def handle_event("livechess_rematch", %{"id" => id}, socket) do
     with_board(socket, id, fn board ->
       Alnasl.LiveChessMatch.rematch(board.id)
@@ -677,7 +675,10 @@ defmodule AlnaslWeb.BoardsLive do
 
   # The board an event names, or a word that it is gone: another tab, or
   # another arbiter, may have removed it since this page was drawn.
-  defp occupant(board, round, board_no), do: occupant_in(board, board.tournament_id, round, board_no)
+  defp pairing_gone, do: gettext("That pairing is not there any more.")
+
+  defp occupant(board, round, board_no),
+    do: occupant_in(board, board.tournament_id, round, board_no)
 
   defp occupant_in(board, tid, round, board_no) do
     Enum.find(Boards.list(), fn other ->
@@ -708,6 +709,12 @@ defmodule AlnaslWeb.BoardsLive do
             @facts[:black]
           ) || gettext("Black")}
         </div>
+      </div>
+
+      <div :if={@facts[:no_game]} id={"livechess-no-game-#{@board.id}"} class="note">
+        {gettext(
+          "No game in LiveChess on this board yet: the starting position stands in until one is started."
+        )}
       </div>
 
       <.badge

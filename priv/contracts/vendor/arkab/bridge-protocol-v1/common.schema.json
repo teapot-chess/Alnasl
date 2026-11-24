@@ -216,7 +216,8 @@
             "white": { "$ref": "#/definitions/game_player" },
             "black": { "$ref": "#/definitions/game_player" },
             "result": { "description": "The result the game file has; \"*\" while it goes on.", "type": "string", "enum": ["1-0", "0-1", "1/2-1/2", "*"] },
-            "forfeit": { "description": "Only when the source says the game was forfeited: the side that forfeited, or both.", "type": "string", "enum": ["white", "black", "both"] }
+            "forfeit": { "description": "Only when the source says the game was forfeited: the side that forfeited, or both.", "type": "string", "enum": ["white", "black", "both"] },
+            "no_game": { "description": "Only ever true: the source has no game on this board yet (LiveChess: an empty game file, tag pairs only, or no moves on an empty e-board). The board shows the starting position meanwhile; the players, if any, come from the round's pairings.", "const": true }
           },
           "required": ["source"],
           "additionalProperties": false
