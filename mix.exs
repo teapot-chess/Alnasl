@@ -226,7 +226,7 @@ defmodule Alnasl.MixProject do
       # line says so, not when somebody pushes.
       # Arkab 0.7.3 by its merge commit on main, until v0.7.3 is tagged;
       # then back to `tag: "v0.7.3"`.
-      {:arkab, github: "teapot-chess/Arkab", ref: "2c55189a83c3fadad5667394944624cd7f0664b9"}
+      {:arkab, github: "teapot-chess/Arkab", tag: "v0.7.3"}
     ] ++ uart()
   end
 
