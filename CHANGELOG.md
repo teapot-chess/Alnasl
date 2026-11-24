@@ -19,6 +19,10 @@ section, word for word. See [docs/releasing.md](docs/releasing.md).
 
 ## [Unreleased]
 
+## [0.24.4] - 2026-11-24
+
+- [Security] **Arkab 0.7.5.** The bridge inside catches up with db_connection 2.10.3 (EEF-CVE-2026-133555), which Alnasl itself already had.
+
 ## [0.24.3] - 2026-11-24
 
 - [Security] **db_connection 2.10.3.** A fresh advisory (EEF-CVE-2026-133555) against 2.10.2; the dependency audit noticed before anyone else had to.
