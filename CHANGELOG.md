@@ -18,6 +18,7 @@ section here (`## [0.2.0] - 2026-11-03`): the release's page on GitHub is that
 section, word for word. See [docs/releasing.md](docs/releasing.md).
 
 ## [Unreleased]
+
 - [Change] **Sobelow skips live in the code.** A reviewed finding is now skipped by a `# sobelow_skip` comment above the function that holds it, instead of a line-number fingerprint in `.sobelow-skips`, which stopped matching the moment anybody edited the file above it. The fingerprint file is gone (it also carried about a hundred entries for findings that no longer exist); the same 118 findings are suppressed, nothing new is, and the two config-level checks that cannot take a comment (`Config.CSWH`, `Config.HTTPS`) are ignored by name in `.sobelow-conf`, with the reasons written down.
 - [Change] **Line endings are settled.** `.gitattributes` keeps LF for all text (the tests read bytes), CRLF for `.bat`, `.cmd` and `.ps1`, and a longer list of binaries git is to leave alone. `mix gettext.extract --merge` leaves no line-ending churn in the catalogues.
 - [Feature] **`mix i18n.check`.** Fails on fuzzy `.po` entries and on `%{placeholders}` that differ between msgid and msgstr, in every catalogue. Runs in `mix precommit` (before the tests) and in CI, because a fuzzy translation is a guess nobody reviewed. All four catalogues pass as they stand.
