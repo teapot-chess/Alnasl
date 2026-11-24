@@ -19,7 +19,7 @@ A tile per board: the players, the position Alnasl is sure of, the clocks, the l
 | Out of sync | The board does not match the game and nothing is being sent for it |
 | No signal | The board does not answer. Check cable and power. The game is kept |
 | Clock wrong way | The clock disagrees with the moves in a way turning it round does not explain |
-| Clock not answering | The clock was there and went quiet: unplugged, switched off or its battery. The tile is red; the moves are still followed |
+| Clock not answering | The clock was there and went quiet: unplugged, switched off or its battery. The tile is red; the moves are still followed. After ten seconds of silence the clock stands at the last time it sent instead of counting down on, and a move made meanwhile gets no clock time in the PGN |
 | Finished | A result has been set |
 
 A banner across the top means the results site cannot be reached. Play goes on and nothing is lost; the Results page says how much is waiting and why.

@@ -19,7 +19,7 @@ Een tegel per bord: de spelers, de stelling waar Alnasl zeker van is, de klokken
 | Niet synchroon | Het bord komt niet overeen met de partij en er wordt niets voor verstuurd |
 | Geen signaal | Het bord antwoordt niet. Kijk kabel en stroom na. De partij blijft bewaard |
 | Klok verkeerd om | De klok spreekt de zetten tegen op een manier die omdraaien niet verklaart |
-| Klok antwoordt niet | De klok was er en zweeg: uitgetrokken, uitgezet of zijn batterij. De tegel is rood; de zetten worden gewoon gevolgd |
+| Klok antwoordt niet | De klok was er en zweeg: uitgetrokken, uitgezet of zijn batterij. De tegel is rood; de zetten worden gewoon gevolgd. Na tien seconden stilte blijft de klok staan op de laatste tijd die hij stuurde in plaats van door te tellen, en een zet in die tijd krijgt geen kloktijd in de PGN |
 | Afgelopen | Er is een resultaat ingesteld |
 
 Een balk over de volle breedte bovenaan betekent dat de uitslagensite niet bereikt kan worden. Het spel gaat door en er gaat niets verloren; de pagina Resultaten zegt hoeveel er wacht en waarom.
