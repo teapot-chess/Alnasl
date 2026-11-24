@@ -19,6 +19,8 @@ section, word for word. See [docs/releasing.md](docs/releasing.md).
 
 ## [Unreleased]
 
+- [Fix] **Symantec stops mistaking the Windows launcher for ransomware.** The start screen's status file was written to `start-status.tmp` and renamed over `start-status.js`, a tidy habit that SONAR shares with every program encrypting your documents, so `SONAR.Ransom!gen88` removed Alnasl the moment it started. The launcher now rewrites the file in place, all of it in one write, and the start screen, should it catch the file half written, keeps what it knew and simply looks again a moment later. A `start-status.tmp` left by an older launcher is cleared away. (Ascella, which started Alnasl through WMI, a second thing SONAR likes to see in ransomware, starts programs the ordinary way since 0.5.0.)
+
 ## [0.23.2] - 2026-11-23
 
 - [Fix] **The board select stays open long enough to choose.** The Boards list re-renders whenever a board says anything, and LiveView, finding a focused select whose options had changed under it, blurs it on purpose - so the list snapped shut half a second after it opened and the choice went nowhere. The board and tournament selects in that list now sit out the page's updates and catch up on their own once nobody is holding them; what was chosen is what gets linked.

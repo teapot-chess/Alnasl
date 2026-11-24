@@ -194,17 +194,24 @@
     location.replace(appUrl());
   }
 
-  // Way 1: the launcher's own word, from the file beside this one.
-  function readStatus() {
+  // Way 1: the launcher's own word, from the file beside this one. The
+  // launcher rewrites it in place, so a read can catch it half written: that
+  // script does not run, ALNASL_START stays unset, and what the page had
+  // stands until a second look a moment later.
+  function readStatus(again) {
     var el = document.createElement("script");
+    window.ALNASL_START = undefined;
     el.src = "start-status.js?t=" + Date.now();
     el.onload = function () {
-      if (window.ALNASL_START) {
-        fromLauncher = window.ALNASL_START;
+      var s = window.ALNASL_START;
+      el.remove();
+      if (s && typeof s === "object") {
+        fromLauncher = s;
         if (fromLauncher.port) port = fromLauncher.port;
         if (fromLauncher.state === "ready") go();
+      } else if (!again) {
+        setTimeout(function () { readStatus(true); }, 200);
       }
-      el.remove();
       render();
     };
     el.onerror = function () { el.remove(); };

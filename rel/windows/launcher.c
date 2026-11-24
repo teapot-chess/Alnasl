@@ -1476,14 +1476,14 @@ static void build_details(HWND wnd)
  * wrong - no page in the release, a folder that cannot be written - nothing
  * is lost: the browser opens when the server answers, as it always did. */
 
-static WCHAR g_splash_page[MAXP], g_splash_status[MAXP], g_splash_tmp[MAXP];
+static WCHAR g_splash_page[MAXP], g_splash_status[MAXP];
 static BOOL g_splash_ok, g_first_run;
 
 static void splash_write(const char *state)
 {
     char log8[MAXP * 3], json[MAXP * 7], num[16];
-    int n = 0, i;
-    HANDLE f;
+    int n = 0, i, tries;
+    HANDLE f = INVALID_HANDLE_VALUE;
     DWORD written;
 
     if (!g_splash_ok)
@@ -1509,15 +1509,25 @@ static void splash_write(const char *state)
     }
     append(json, sizeof json, &n, "\"};\n");
 
-    /* Written beside and moved over: the page reads it every second, and
-     * should see the old file or the new one, never half of one. */
-    f = CreateFileW(g_splash_tmp, GENERIC_WRITE, FILE_SHARE_READ, NULL, CREATE_ALWAYS,
-                    FILE_ATTRIBUTE_NORMAL, NULL);
+    /* Written in place, whole, in one call, then trimmed to its length.
+     * It used to be written beside and renamed over the old one, which is
+     * tidy and is also, to Symantec's SONAR, exactly what ransomware does
+     * to a folder it is encrypting: SONAR.Ransom!gen88 removed Alnasl on
+     * start (2026-11). A reader that catches the file half written, or
+     * between the write and the trim, gets a script that does not run,
+     * keeps what it had and asks again (rel/start/start.html). The browser
+     * may hold the file for a moment while it reads it: a few tries. */
+    for (tries = 0; tries < 5 && f == INVALID_HANDLE_VALUE; tries++) {
+        f = CreateFileW(g_splash_status, GENERIC_WRITE, FILE_SHARE_READ | FILE_SHARE_WRITE,
+                        NULL, OPEN_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
+        if (f == INVALID_HANDLE_VALUE)
+            Sleep(40);
+    }
     if (f == INVALID_HANDLE_VALUE)
         return;
     WriteFile(f, json, (DWORD)n, &written, NULL);
+    SetEndOfFile(f);
     CloseHandle(f);
-    MoveFileExW(g_splash_tmp, g_splash_status, MOVEFILE_REPLACE_EXISTING);
 }
 
 /* Returns TRUE when the browser was sent to the page. */
@@ -1532,7 +1542,9 @@ static BOOL splash_open(void)
     CreateDirectoryW(dir, NULL);
     join(g_splash_page, dir, L"\\start.html");
     join(g_splash_status, dir, L"\\start-status.js");
-    join(g_splash_tmp, dir, L"\\start-status.tmp");
+    /* What an older launcher left beside it, once. */
+    join(src, dir, L"\\start-status.tmp");
+    DeleteFileW(src);
     join(src, g_root, L"start.html");
     join(db, data, L"\\alnasl.db");
 
