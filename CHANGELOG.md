@@ -23,6 +23,9 @@ section, word for word. See [docs/releasing.md](docs/releasing.md).
 
 - [Change] **`mix contracts.sync` is the one contracts command.** It names each file it added, changed or removed instead of counting them, `--check` compares and writes nothing (CI's contracts job runs that now), and `--local` or `--path <repo>=<dir>` copies from a provider's checkout instead of GitHub, so Alnasl can catch up with a contract change before the provider has merged it rather than after it breaks. `mix contracts.check` stays, as the old name for `--check`.
 - [Change] **The vendored publish-v1 is revision 6**: OpenPairings' snapshot now lists the tournament's officials one by one. Alnasl sends no snapshots, so nothing here reads it; the copy only has to stay byte for byte the provider's.
+- [Change] **Sobelow skips live in the code.** A reviewed finding is now skipped by a `# sobelow_skip` comment above the function that holds it, instead of a line-number fingerprint in `.sobelow-skips`, which stopped matching the moment anybody edited the file above it. The fingerprint file is gone (it also carried about a hundred entries for findings that no longer exist); the same 118 findings are suppressed, nothing new is, and the two config-level checks that cannot take a comment (`Config.CSWH`, `Config.HTTPS`) are ignored by name in `.sobelow-conf`, with the reasons written down.
+- [Change] **Line endings are settled.** `.gitattributes` keeps LF for all text (the tests read bytes), CRLF for `.bat`, `.cmd` and `.ps1`, and a longer list of binaries git is to leave alone. `mix gettext.extract --merge` leaves no line-ending churn in the catalogues.
+- [Feature] **`mix i18n.check`.** Fails on fuzzy `.po` entries and on `%{placeholders}` that differ between msgid and msgstr, in every catalogue. Runs in `mix precommit` (before the tests) and in CI, because a fuzzy translation is a guess nobody reviewed. All four catalogues pass as they stand.
 
 ## [0.24.0] - 2026-11-24
 
