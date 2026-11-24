@@ -28,7 +28,9 @@ defmodule AlnaslWeb.Hall do
 
   import Plug.Conn
   import Phoenix.Component, only: [assign: 2]
-  import Phoenix.LiveView, only: [attach_hook: 4, connected?: 1, put_flash: 3, redirect: 2]
+
+  import Phoenix.LiveView,
+    only: [attach_hook: 4, connected?: 1, get_connect_params: 1, put_flash: 3, redirect: 2]
 
   use Gettext, backend: AlnaslWeb.Gettext
 
@@ -220,6 +222,9 @@ defmodule AlnaslWeb.Hall do
       {:ok, scope} ->
         scope = AlnaslWeb.Mode.mount(scope)
 
+        # Every time on this page is on the hall's wall clock (`Alnasl.Zone`).
+        AlnaslWeb.Words.put_zone(hall_zone(scope, socket))
+
         if connected?(socket) do
           Outbox.subscribe()
           Settings.subscribe()
@@ -272,6 +277,15 @@ defmodule AlnaslWeb.Hall do
         {:halt, redirect(socket, to: to)}
     end
   end
+
+  # The hall's zone: told by an owner's browser on connect (`app.js`), kept
+  # by `Alnasl.Halls.note_zone/3`, else what the hall has.
+  defp hall_zone(%Scope{hall: %{} = hall} = scope, socket) do
+    reported = if connected?(socket), do: get_connect_params(socket)["time_zone"]
+    Alnasl.Halls.note_zone(scope, hall, reported)
+  end
+
+  defp hall_zone(_scope, _socket), do: nil
 
   defp path(_params, uri, socket) do
     %URI{path: path, query: query} = URI.parse(uri)

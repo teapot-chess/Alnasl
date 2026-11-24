@@ -40,7 +40,11 @@ const Hooks = {
 const csrfToken = document.querySelector("meta[name='csrf-token']").getAttribute("content")
 const liveSocket = new LiveSocket("/live", Socket, {
   longPollFallbackMs: 2500,
-  params: {_csrf_token: csrfToken},
+  // The browser's time zone: an owner's tells the hall its own (Alnasl.Halls.note_zone).
+  params: () => ({
+    _csrf_token: csrfToken,
+    time_zone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+  }),
   hooks: {...colocatedHooks, ...Hooks},
 })
 

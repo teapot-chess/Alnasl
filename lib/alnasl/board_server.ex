@@ -869,7 +869,8 @@ defmodule Alnasl.BoardServer do
     with true <- state.no_clock.on?,
          %{session: %{tracker: %{plies: []}} = session, game: %{status: "live"}} <- state,
          false <- Clock.present?(session.clock),
-         true <- at == nil or NaiveDateTime.compare(NaiveDateTime.local_now(), at) != :lt do
+         true <-
+           at == nil or NaiveDateTime.compare(Alnasl.Zone.local_now(zone_of(state)), at) != :lt do
       Log.add(
         :info,
         "game.started_without_clock",
@@ -1501,6 +1502,9 @@ defmodule Alnasl.BoardServer do
   end
 
   defp dirty(state), do: %{state | dirty?: true}
+
+  # The time zone of the hall this board is in (`nil`: the box's own clock).
+  defp zone_of(%{board: board}), do: board |> Alnasl.Halls.of() |> Alnasl.Halls.zone()
 
   defp ref(%{board: board}),
     do: %{board_id: board.id, round: board.round, board_no: board.board_no}

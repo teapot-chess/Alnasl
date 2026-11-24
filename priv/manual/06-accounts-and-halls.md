@@ -25,6 +25,8 @@ With more than one hall, the hall picker at the top of the rail says which one t
 
 A hall's own page has tabs, each with an address of its own: **People**, **Invitations**, **Bridges** and **Settings** (rename, delete). Invitations and Settings are an owner's; an arbiter or a viewer has People and Bridges.
 
+The **Settings** tab also shows the hall's time zone, read-only. It is taken from the owner's browser the first time one opens the hall, and follows it when that browser says another one. Every time Alnasl shows for the hall, and the start time of a round for "Play without a clock", use it; until a browser has said so, the box's own clock stands in.
+
 ### What a page shows {#scope}
 
 Every page is about the hall you are looking at: Live, Boards, the pages that number and find boards, Games, the Results page (its lists, its counts and the number in the frame), the Log and Recordings. Boards offers only the tournaments played in this hall for each board, and the one the board plays in now.

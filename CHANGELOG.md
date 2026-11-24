@@ -19,6 +19,10 @@ section, word for word. See [docs/releasing.md](docs/releasing.md).
 
 ## [Unreleased]
 
+## [0.25.0] - 2026-11-24
+
+- [Feature] **A time zone per hall.** The owner's browser tells the hall its zone the first time it opens it (and again when it says another), checked against a time zone database before it is kept, and shown read-only on the hall's Settings. "Play without a clock" now compares the round's start time with the hall's wall clock, and every time Alnasl shows follows the hall's zone, instead of whatever the server's operating system believed: right on a Pi set up properly, an hour or two off on the hosted Alnasl, which keeps UTC and was never asked. A hall nobody has opened yet keeps the box's own clock. The database is `tz`: compiled in, no updater process and no downloads at runtime, so the Pi image needs nothing extra.
+
 ## [0.24.4] - 2026-11-24
 
 - [Security] **Arkab 0.7.5.** The bridge inside catches up with db_connection 2.10.3 (EEF-CVE-2026-133555), which Alnasl itself already had.

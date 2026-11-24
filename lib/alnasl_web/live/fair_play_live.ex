@@ -861,7 +861,9 @@ defmodule AlnaslWeb.FairPlayLive do
   defp round_label(0), do: "?"
   defp round_label(round), do: Integer.to_string(round)
 
+  defp time(%DateTime{} = at), do: AlnaslWeb.Words.datetime(at)
   defp time(at), do: Calendar.strftime(at, "%Y-%m-%d %H:%M")
+  defp day(%DateTime{} = at), do: AlnaslWeb.Words.date(at)
   defp day(at), do: Calendar.strftime(at, "%Y-%m-%d")
 
   defp grant_state(grant) do

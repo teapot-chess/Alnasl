@@ -66,6 +66,35 @@ defmodule Alnasl.BeginFromBoardTest do
     assert sans(board.id) == ~w(e4 e5)
   end
 
+  test "without a clock the start time is read on the hall's wall clock, not the box's" do
+    tournament = Tournaments.default()
+    # Ahead of UTC by fourteen hours: an hour ago there is still the future
+    # on a box that keeps UTC.
+    zone = "Pacific/Kiritimati"
+    started = Alnasl.Zone.local_now(zone) |> NaiveDateTime.add(-3600)
+
+    Tournaments.update(tournament, %{
+      document:
+        Jason.encode!(%{
+          "rounds" => [
+            %{
+              "number" => 1,
+              "date" => Date.to_iso8601(NaiveDateTime.to_date(started)),
+              "time" => Calendar.strftime(started, "%H:%M"),
+              "boards" => []
+            }
+          ]
+        })
+    })
+
+    Alnasl.Halls.own() |> Ecto.Changeset.change(time_zone: zone) |> Repo.update!()
+
+    board = fake_dgt("FAKE1", %{round: 1, board_no: 1})
+    eventually(fn -> Boards.snapshot(board.id).raw end)
+    Tournaments.set_no_clock(tournament.id, true)
+    eventually(fn -> Boards.snapshot(board.id).started_without_clock != nil end)
+  end
+
   test "the round's start time comes from the pairing program's date and time" do
     tournament = Tournaments.default()
 

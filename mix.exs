@@ -4,7 +4,7 @@ defmodule Alnasl.MixProject do
   def project do
     [
       app: :alnasl,
-      version: "0.24.4",
+      version: "0.25.0",
       elixir: "~> 1.19",
       elixirc_paths: elixirc_paths(Mix.env()),
       start_permanent: Mix.env() == :prod,
@@ -219,6 +219,9 @@ defmodule Alnasl.MixProject do
       {:req, "~> 0.5"},
       # The QR code of the box's address, for a phone to scan. Pure Elixir, MIT.
       {:eqrcode, "~> 0.2.1"},
+      # The time zone database, for the hall's own zone: compiled in, no updater
+      # process and no HTTP at runtime (tzdata would fetch), so a Pi needs nothing.
+      {:tz, "~> 0.28"},
       {:earmark_parser, "~> 1.4"},
       # The board drivers, the DGT protocol and the capture format, and the
       # bridge that brings a hall's boards here from elsewhere. Pinned by tag,
