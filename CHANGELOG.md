@@ -19,6 +19,10 @@ section, word for word. See [docs/releasing.md](docs/releasing.md).
 
 ## [Unreleased]
 
+## [0.24.2] - 2026-11-24
+
+- [Fix] **A hall that will not be deleted keeps its boards.** Deleting a hall stopped every board in it first and only then asked whether the hall could go. A hall with bridges, tournaments or a connection left cannot, so the refusal arrived with all its boards already stopped, mid-round if that is when somebody tried, until something restarted them. The question now comes first; should the answer change in between, what was stopped is started again. A deleted hall's boards take their debug log with them.
+- [Fix] **A board-number question stays in its round.** "Board 3 is already played on Table A" remembered the board number but not the round, so switching the Boards page to another round and then saying yes took board 3 of that round, from whoever had it there, without asking. Changing round now closes the question, and the yes links the round it was asked about.
 - [Change] **Sobelow skips live in the code.** A reviewed finding is now skipped by a `# sobelow_skip` comment above the function that holds it, instead of a line-number fingerprint in `.sobelow-skips`, which stopped matching the moment anybody edited the file above it. The fingerprint file is gone (it also carried about a hundred entries for findings that no longer exist); the same 118 findings are suppressed, nothing new is, and the two config-level checks that cannot take a comment (`Config.CSWH`, `Config.HTTPS`) are ignored by name in `.sobelow-conf`, with the reasons written down.
 - [Change] **Line endings are settled.** `.gitattributes` keeps LF for all text (the tests read bytes), CRLF for `.bat`, `.cmd` and `.ps1`, and a longer list of binaries git is to leave alone. `mix gettext.extract --merge` leaves no line-ending churn in the catalogues.
 - [Feature] **`mix i18n.check`.** Fails on fuzzy `.po` entries and on `%{placeholders}` that differ between msgid and msgstr, in every catalogue. Runs in `mix precommit` (before the tests) and in CI, because a fuzzy translation is a guess nobody reviewed. All four catalogues pass as they stand.

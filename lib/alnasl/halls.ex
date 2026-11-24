@@ -154,7 +154,21 @@ defmodule Alnasl.Halls do
     end
   end
 
+  # A hall that is refused keeps its boards running: they were stopped
+  # before the question was asked, and a refused delete of a hall with
+  # bridges (which is exactly what refuses) left every board of it dead
+  # until something restarted it. Asked first now; the answer inside the
+  # transaction is the one that counts, and if that one refuses too, what
+  # was stopped is started again.
   defp do_delete(%Hall{id: id} = hall) do
+    left = leftovers(hall)
+
+    if left.bridges + left.tournaments + left.links > 0,
+      do: {:error, {:not_empty, left}},
+      else: stop_and_delete(hall, id)
+  end
+
+  defp stop_and_delete(hall, id) do
     boards = Repo.all(from b in Boards.Board, where: b.hall_id == ^id)
     Enum.each(boards, &Boards.stop/1)
 
@@ -182,11 +196,13 @@ defmodule Alnasl.Halls do
     case result do
       {:ok, hall} ->
         Log.add(:info, "hall.deleted", %{name: hall.name}, %{})
+        Enum.each(boards, &Alnasl.BoardLog.clear(&1.id))
         kick(members)
         notify()
         {:ok, hall}
 
       error ->
+        for board <- boards, board.enabled, do: Boards.start(board)
         error
     end
   end

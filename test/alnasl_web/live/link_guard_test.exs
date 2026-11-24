@@ -42,4 +42,20 @@ defmodule AlnaslWeb.LinkGuardTest do
     assert %{board_no: nil} = Boards.get!(a.id)
     refute has_element?(view, "#move-request")
   end
+
+  test "a question about one round is not answered in another", %{conn: conn} do
+    a = board("Table A")
+    b = board("Table B")
+    {:ok, view, _html} = live(conn, ~p"/boards")
+
+    view |> form("#link-form-#{a.id}", %{board_no: "1"}) |> render_change()
+    view |> form("#link-form-#{b.id}", %{board_no: "1"}) |> render_change()
+    assert has_element?(view, "#move-request")
+
+    render_click(view, "round", %{"round" => "2"})
+    refute has_element?(view, "#move-request")
+    assert render_click(view, "confirm_move", %{})
+    assert %{round: 1, board_no: 1} = Boards.get!(a.id)
+    assert %{board_no: nil} = Boards.get!(b.id)
+  end
 end
