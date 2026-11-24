@@ -19,6 +19,8 @@ section, word for word. See [docs/releasing.md](docs/releasing.md).
 
 ## [Unreleased]
 
+- [Fix] **LiveChess boards stop resurrecting last round.** Arkab 0.7.4: when the server asked a LiveChess board for its state again, the bridge answered with the first game it ever saw on that board, which after the next round belongs to somebody else. It now answers with the game that is actually there.
+
 ## [0.24.2] - 2026-11-24
 
 - [Fix] **A hall that will not be deleted keeps its boards.** Deleting a hall stopped every board in it first and only then asked whether the hall could go. A hall with bridges, tournaments or a connection left cannot, so the refusal arrived with all its boards already stopped, mid-round if that is when somebody tried, until something restarted them. The question now comes first; should the answer change in between, what was stopped is started again. A deleted hall's boards take their debug log with them.
