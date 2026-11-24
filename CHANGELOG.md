@@ -21,6 +21,8 @@ section, word for word. See [docs/releasing.md](docs/releasing.md).
 
 - [Change] **Manual pass, English and Dutch.** Every entry from 0.20.0 to 0.24.2 checked against the manual and the screens: one gap found, a silent clock stops counting after ten seconds (0.23.0), now on the Live page's state table in both languages. The rest was already written down, which is the kind of finding a manual pass hopes for.
 
+- [Fix] **LiveChess boards stop resurrecting last round.** Arkab 0.7.4: when the server asked a LiveChess board for its state again, the bridge answered with the first game it ever saw on that board, which after the next round belongs to somebody else. It now answers with the game that is actually there.
+
 ## [0.24.2] - 2026-11-24
 
 - [Fix] **A hall that will not be deleted keeps its boards.** Deleting a hall stopped every board in it first and only then asked whether the hall could go. A hall with bridges, tournaments or a connection left cannot, so the refusal arrived with all its boards already stopped, mid-round if that is when somebody tried, until something restarted them. The question now comes first; should the answer change in between, what was stopped is started again. A deleted hall's boards take their debug log with them.
