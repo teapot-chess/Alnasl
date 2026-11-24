@@ -105,6 +105,16 @@ defmodule AlnaslWeb.DeleteHallTest do
     assert {:error, {:not_empty, %{links: 1}}} = Halls.delete(scope(owner, hall), hall)
   end
 
+  test "a refused delete leaves the hall's boards running", %{hall: hall, owner: owner} do
+    {:ok, board} = Boards.create(%{name: "A-1", driver: "remote", port: "b:1", hall_id: hall.id})
+    assert pid = Alnasl.BoardServer.whereis(board.id)
+
+    Repo.insert!(%Link{hall_id: hall.id, root: "http://op.example", secret: "s"})
+    assert {:error, {:not_empty, %{links: 1}}} = Halls.delete(scope(owner, hall), hall)
+
+    assert Alnasl.BoardServer.whereis(board.id) == pid
+  end
+
   test "another hall's tournament played here keeps the hall", %{hall: hall, owner: owner} do
     t = Repo.insert!(%Tournament{kind: "remote", hall_id: Halls.own_id(), name: "Open"})
 

@@ -462,7 +462,14 @@ defmodule AlnaslWeb.BoardsLive do
               {:noreply, socket |> assign(move_request: nil) |> load()}
 
             other ->
-              request = %{board_id: board.id, to: board.name, from: other.name, board_no: number}
+              request = %{
+                board_id: board.id,
+                to: board.name,
+                from: other.name,
+                board_no: number,
+                round: socket.assigns.round
+              }
+
               {:noreply, socket |> assign(move_request: request) |> load()}
           end
 
@@ -492,7 +499,8 @@ defmodule AlnaslWeb.BoardsLive do
 
   def handle_event("confirm_move", _params, %{assigns: %{move_request: %{} = req}} = socket) do
     with_board(socket, req.board_id, fn board ->
-      Boards.link(board, socket.assigns.round, req.board_no)
+      # The round asked about, not the one the page has moved on to since.
+      Boards.link(board, req.round, req.board_no)
       {:noreply, socket |> assign(move_request: nil) |> load()}
     end)
   end
@@ -668,7 +676,10 @@ defmodule AlnaslWeb.BoardsLive do
     do: {:noreply, assign(socket, seeking: nil, missed: nil)}
 
   def handle_event("round", %{"round" => round}, socket) do
-    {:noreply, socket |> assign(round: int(round, socket.assigns.round)) |> load()}
+    {:noreply,
+     socket
+     |> assign(round: int(round, socket.assigns.round), move_request: nil)
+     |> load()}
   end
 
   def handle_event("rescan", _params, socket), do: {:noreply, load(socket)}
