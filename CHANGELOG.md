@@ -19,6 +19,11 @@ section, word for word. See [docs/releasing.md](docs/releasing.md).
 
 ## [Unreleased]
 
+## [0.24.1] - 2026-11-24
+
+- [Change] **`mix contracts.sync` is the one contracts command.** It names each file it added, changed or removed instead of counting them, `--check` compares and writes nothing (CI's contracts job runs that now), and `--local` or `--path <repo>=<dir>` copies from a provider's checkout instead of GitHub, so Alnasl can catch up with a contract change before the provider has merged it rather than after it breaks. `mix contracts.check` stays, as the old name for `--check`.
+- [Change] **The vendored publish-v1 is revision 6**: OpenPairings' snapshot now lists the tournament's officials one by one. Alnasl sends no snapshots, so nothing here reads it; the copy only has to stay byte for byte the provider's.
+
 ## [0.24.0] - 2026-11-24
 
 - [Feature] **A LiveChess game finds its own pairing.** Each game a bridge reads from a LiveChess export folder now brings its players, and the board is put on the pairing they play in the round in play of the hall's OpenPairings tournaments, team events included: by FIDE ID, else by name, however LiveChess spelt or ordered it. Colours the wrong way round still fit, and are said. When it cannot tell (nobody fits, two pairings fit, two games want one pairing, another board has it, no pairings yet) the Boards page says why and offers the candidates, one click each. Every LiveChess board is looked up again each round. A result in the PGN is suggested to the arbiter, as a board suggests one; a forfeit is shown, not entered. Without OpenPairings the tiles carry LiveChess's names.

@@ -16,7 +16,15 @@
     "system": "swiss",
     "swiss_variant": "dutch",
     "arbiter": "A. Arbiter",
-    "deputy": null,
+    "deputy": "Deputy, Bea; Deputy, Cas",
+    "arbiters": "Floor, Dirk",
+    "officials": [
+      { "role": "chief_arbiter", "name": "A. Arbiter", "fide_id": "209000" },
+      { "role": "deputy_chief_arbiter", "name": "Deputy, Bea" },
+      { "role": "deputy_chief_arbiter", "name": "Deputy, Cas", "fide_id": "209001" },
+      { "role": "arbiter", "name": "Floor, Dirk" },
+      { "role": "organiser", "name": "Gent Chess Club" }
+    ],
     "fide_rated": true,
     "registration_open": true,
     "listed": true,

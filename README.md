@@ -582,10 +582,14 @@ examples, and copied here, byte for byte, under `priv/contracts/vendor/`
 (`test/contracts/`) puts every example answer through Alnasl's own code and
 checks every request Alnasl builds against the schemas - and holds the
 stand-ins the other tests talk to to the same. `mix contracts.sync` copies
-the providers' current versions in; `mix contracts.check` only says whether
-they differ, and CI runs it on every push and once a day, so a provider
-that moved is found before a user finds it. A vendored file is never
-edited here: a schema that is wrong goes to its provider.
+the providers' current versions in and names every file it added, changed
+or removed; `mix contracts.sync --check` only says whether they differ, and
+CI runs it on every push and once a day, so a provider that moved is found
+before a user finds it. `--local` copies from the sibling checkouts
+(`../openpairings`, `../Arkab`) and `--path <repo>=<dir>` from one in
+particular, for catching up with a provider's change before it is merged.
+A vendored file is never edited here: a schema that is wrong goes to its
+provider.
 
 ### From source on the box (Raspberry Pi, Linux)
 

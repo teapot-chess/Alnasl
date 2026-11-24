@@ -108,6 +108,28 @@
     }
   },
   "definitions": {
+    "official": {
+      "description": "Revision 6. One person in `tournament.officials`.",
+      "type": "object",
+      "required": ["role", "name"],
+      "additionalProperties": true,
+      "properties": {
+        "role": {
+          "description": "chief_arbiter, deputy_chief_arbiter (FIDE's Deputy Chief Arbiter, at most two, ranked), arbiter (any further arbiter, unranked), organiser (who runs the tournament: a person or a club, as typed).",
+          "enum": ["chief_arbiter", "deputy_chief_arbiter", "arbiter", "organiser"]
+        },
+        "name": {
+          "description": "As the arbiter typed it, trimmed; usually \"Surname, First name\".",
+          "type": "string",
+          "minLength": 1
+        },
+        "fide_id": {
+          "description": "The person's FIDE ID, digits only. Absent when none is known.",
+          "type": "string",
+          "pattern": "^[0-9]{1,12}$"
+        }
+      }
+    },
     "flow": {
       "description": "Revision 2, `kind: \"flow\"` only. A Flow tournament as it stands: settings, every game so far, who is waiting, and the standings exactly as the arbiter's app ranks them. Players are named by `no` like everywhere else; in a Flow tournament the numbers follow the order the players were entered in and stay put when someone is added.",
       "type": "object",
@@ -295,8 +317,23 @@
           "description": "Which Swiss pairing system, beside `system: swiss` only. Absent: not said - every publisher before this field paired the Dutch system (C.04.3). Adding a value here is an additive change.",
           "enum": ["dutch", "dubov", "burstein", "lim"]
         },
-        "arbiter": { "$ref": "#/definitions/nullableString" },
-        "deputy": { "$ref": "#/definitions/nullableString" },
+        "arbiter": {
+          "description": "The chief arbiter's name. The old string form of the `chief_arbiter` entry in `officials`, kept for readers before revision 6; a reader that has `officials` reads that instead.",
+          "$ref": "#/definitions/nullableString"
+        },
+        "deputy": {
+          "description": "The deputies' names in one string. The old form of the `deputy_chief_arbiter` entries in `officials`, kept for readers before revision 6. Since OpenPairings 0.156.1 several are joined by \"; \" (each name may hold a comma, \"Surname, First name\"); before that by \", \", which cannot be split.",
+          "$ref": "#/definitions/nullableString"
+        },
+        "arbiters": {
+          "description": "The further arbiters' names, joined by \"; \", sent since OpenPairings 0.156.0. The old form of the `arbiter` entries in `officials`, kept for readers before revision 6.",
+          "$ref": "#/definitions/nullableString"
+        },
+        "officials": {
+          "description": "Added in revision 6. Everyone who runs the tournament, one entry per person, in the order a pairing sheet names them: the chief arbiter, the ranked deputies, the further arbiters as entered, the organiser. Always sent by a revision-6 publisher, `[]` when nobody is named; absent from an older one, whose reader falls back on `arbiter`, `deputy` and `arbiters`. A reader shows the names as plain text and keeps the order within a role. The arbiter's `display.arbiter` tick covers the chief, `display.deputy` the deputies and the further arbiters. Adding a role is an additive change; a reader shows an unknown role under a generic heading or not at all.",
+          "type": "array",
+          "items": { "$ref": "#/definitions/official" }
+        },
         "organiser": {
           "description": "Who runs the tournament, as the arbiter typed it. Absent when not set; at most 200 characters. A reader shows it as plain text.",
           "type": "string",

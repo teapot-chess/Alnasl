@@ -299,7 +299,7 @@ jobs:
       # `mix contracts.sync`, the tests, and whatever they then say.
       - name: Compare the vendored contracts with the providers'
         if: env.CONTRACTS_TOKEN != ''
-        run: mix contracts.check
+        run: mix contracts.sync --check
 
       - name: Skipped, no SIBLINGS_TOKEN
         if: env.CONTRACTS_TOKEN == ''
