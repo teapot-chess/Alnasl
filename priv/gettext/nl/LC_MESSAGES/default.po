@@ -11294,4 +11294,4 @@ msgstr "De uren in deze zaal en het beginuur van een ronde voor partijen zonder 
 #: lib/alnasl_web/live/halls_live.ex:624
 #, elixir-autogen, elixir-format
 msgid "not known yet (this box's own clock)"
-msgstr "nog niet bekend (de klok van deze box zelf)"
+msgstr "nog niet bekend (de klok van dit kastje zelf)"
