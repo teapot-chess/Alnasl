@@ -2,8 +2,8 @@ defmodule Alnasl.Contracts.VendoredTest do
   @moduledoc """
   The vendored copies themselves: whole, as their providers list them, and
   each example fitting its own schema. A copy somebody "fixed" by hand
-  fails here before it fails anywhere more confusing; `mix contracts.check`
-  (CI, daily) says when the provider has moved on.
+  fails here before it fails anywhere more confusing; `mix contracts.sync
+  --check` (CI, daily) says when the provider has moved on.
   """
 
   use ExUnit.Case, async: true
