@@ -47,6 +47,22 @@ defmodule Alnasl.StartScreenTest do
              ~r/function probe\(\) \{\s+if \(fromLauncher && fromLauncher\.state === "stopped"\) return;/
   end
 
+  test "the status file is rewritten in place, and a half-written read is read again" do
+    launcher = File.read!(Path.expand("../../rel/windows/launcher.c", __DIR__))
+    [writer] = Regex.run(~r/static void splash_write\(.*?\n\}\n/s, launcher)
+
+    # No temporary file renamed over the old one: SONAR.Ransom!gen88.
+    refute writer =~ "MoveFile"
+    refute writer =~ ".tmp"
+    assert writer =~ "OPEN_ALWAYS"
+    assert writer =~ "SetEndOfFile"
+    assert length(Regex.scan(~r/WriteFile\(/, writer)) == 1
+
+    html = File.read!(@page)
+    assert html =~ "window.ALNASL_START = undefined;"
+    assert html =~ "readStatus(true)"
+  end
+
   test "a startup timeout has its own word and does not claim the server stopped" do
     html = File.read!(@page)
     assert html =~ "Alnasl is not answering yet."
