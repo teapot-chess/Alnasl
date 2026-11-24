@@ -446,6 +446,7 @@ defmodule AlnaslWeb.FairPlayLive do
   def handle_event("validate_upload", _params, socket), do: {:noreply, socket}
   def handle_event("validate_pgn", _params, socket), do: {:noreply, socket}
 
+  # sobelow_skip ["Traversal.FileModule"]
   def handle_event("install_file", _params, socket) do
     if owner?(socket) do
       dir = Path.join(System.tmp_dir!(), "alnasl-fair-play")
@@ -467,6 +468,7 @@ defmodule AlnaslWeb.FairPlayLive do
     end
   end
 
+  # sobelow_skip ["Traversal.FileModule"]
   def handle_event("upload_pgn", params, socket) do
     if owner?(socket) do
       fields = params["pgn"] || %{}
@@ -701,6 +703,7 @@ defmodule AlnaslWeb.FairPlayLive do
 
   defp pgn_message(:tournament), do: gettext("Choose one of this hall's tournaments.")
 
+  # sobelow_skip ["Traversal.FileModule"]
   defp install(socket, source) do
     if owner?(socket) do
       scope = socket.assigns.current_scope

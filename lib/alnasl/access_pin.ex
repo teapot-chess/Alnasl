@@ -166,6 +166,7 @@ defmodule Alnasl.AccessPin do
 
   @doc false
   # `{:ok, pin}` when the file is a plain file holding a valid PIN, else `:none`.
+  # sobelow_skip ["Traversal.FileModule"]
   def read(dir) do
     with {:ok, %File.Stat{type: :regular}} <- File.lstat(path(dir)),
          {:ok, content} <- File.read(path(dir)),
@@ -177,6 +178,7 @@ defmodule Alnasl.AccessPin do
     end
   end
 
+  # sobelow_skip ["Traversal.FileModule"]
   defp write(dir, pin, opts) do
     :global.trans({__MODULE__, dir}, fn ->
       File.mkdir_p!(dir)

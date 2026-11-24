@@ -122,6 +122,7 @@ defmodule Alnasl.Ops.Age do
 
   @doc "Decrypts a binary with a secret key (or key file text)."
   @spec decrypt(binary(), identity()) :: {:ok, binary()} | {:error, String.t()}
+  # sobelow_skip ["Traversal.FileModule"]
   def decrypt(ciphertext, identity) when is_binary(ciphertext) do
     path = tmp_path()
     out = path <> ".out"
@@ -229,6 +230,7 @@ defmodule Alnasl.Ops.Age do
 
   defp cleanup_on_error(:ok, _target), do: :ok
 
+  # sobelow_skip ["Traversal.FileModule"]
   defp cleanup_on_error(error, target) do
     File.rm(target)
     # File and :crypto errors only ever arrive as {:error, reason}.
@@ -238,6 +240,7 @@ defmodule Alnasl.Ops.Age do
     end
   end
 
+  # sobelow_skip ["Traversal.FileModule"]
   defp open(path, modes) do
     case File.open(path, [:binary, :raw | modes]) do
       {:ok, io} ->

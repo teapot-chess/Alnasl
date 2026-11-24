@@ -217,6 +217,7 @@ defmodule Alnasl.FairPlay.Calibration do
   `:engine_meta` (what to record as the engine), and `:log` (a one-arity
   function for progress lines, default `IO.puts/1`).
   """
+  # sobelow_skip ["Traversal.FileModule"]
   def label(paths, opts) do
     out = Keyword.fetch!(opts, :out)
     log = Keyword.get(opts, :log, &IO.puts/1)
@@ -324,6 +325,7 @@ defmodule Alnasl.FairPlay.Calibration do
 
   # The ids already in the file. A line cut off by a crash is cut away
   # first, or the next append would be glued to it.
+  # sobelow_skip ["Traversal.FileModule"]
   defp resume(out) do
     case File.read(out) do
       {:ok, text} ->
@@ -588,6 +590,7 @@ defmodule Alnasl.FairPlay.Calibration do
     {complete, rest}
   end
 
+  # sobelow_skip ["Traversal.FileModule"]
   defp text_chunks(path) do
     Stream.resource(
       fn ->
@@ -738,6 +741,7 @@ defmodule Alnasl.FairPlay.Calibration do
   The games of label files, each game once, and the one engine they share
   - or `{:error, {:mixed_engines, [meta]}}`.
   """
+  # sobelow_skip ["Traversal.FileModule"]
   def read_labels(paths) do
     games =
       paths

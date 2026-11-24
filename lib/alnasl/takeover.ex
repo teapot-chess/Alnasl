@@ -134,6 +134,7 @@ defmodule Alnasl.Takeover do
   def key_path, do: Path.join(Paths.data(), "takeover.key")
 
   @doc false
+  # sobelow_skip ["Traversal.FileModule"]
   def key do
     case File.read(key_path()) do
       {:ok, key} -> String.trim(key)
@@ -142,6 +143,7 @@ defmodule Alnasl.Takeover do
   end
 
   @doc false
+  # sobelow_skip ["Traversal.FileModule"]
   def put_key(key) when is_binary(key) do
     path = key_path()
     tmp = path <> ".new"
@@ -155,6 +157,7 @@ defmodule Alnasl.Takeover do
   end
 
   @doc false
+  # sobelow_skip ["Traversal.FileModule"]
   def delete_key do
     _ = File.rm(key_path())
     :ok

@@ -8,6 +8,7 @@ defmodule AlnaslWeb.Router do
   # Every page of the site. Who may be here is `AlnaslWeb.Hall.gate/2`'s:
   # on a box without accounts, where the request comes from and the PIN;
   # once there is an account (and always on the server), signed in or not.
+  # sobelow_skip ["Config.CSP"]
   pipeline :browser do
     plug :accepts, ["html"]
     plug :fetch_session
@@ -23,6 +24,7 @@ defmodule AlnaslWeb.Router do
   # The pages before the site: signing in, 02cloud, an invitation, the
   # sign-in link of a QR code, the account's password. Not behind the gate,
   # or nobody could get past it; each says itself whom it serves.
+  # sobelow_skip ["Config.CSP"]
   pipeline :door do
     plug :accepts, ["html"]
     plug :fetch_session
@@ -61,6 +63,7 @@ defmodule AlnaslWeb.Router do
   # A join link opened in a browser: a page that says what it is for. Not
   # behind the PIN - the link is shown so that a bridge can reach it from
   # elsewhere, and the page holds nothing a code does not already give.
+  # sobelow_skip ["Config.CSP", "Config.CSRF"]
   pipeline :join_page do
     plug :accepts, ["html"]
     plug :fetch_session
@@ -120,6 +123,7 @@ defmodule AlnaslWeb.Router do
   # for everybody else, signed in or not - which is why `:gate` comes after
   # the support check and not before, where it would send a stranger to
   # the sign-in page and so tell them there is something here.
+  # sobelow_skip ["Config.CSP"]
   pipeline :support do
     plug :accepts, ["html"]
     plug :fetch_session

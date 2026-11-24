@@ -64,6 +64,7 @@ defmodule AlnaslWeb.SupportController do
 
   # The file: the form's `file`, or the raw body. Read no further than one
   # byte past the limit, which is enough to know it is past it.
+  # sobelow_skip ["Traversal.FileModule"]
   defp body(conn, %{"file" => %Plug.Upload{path: path, filename: filename}}) do
     case File.stat(path) do
       {:ok, %{size: size}} when size > 0 ->

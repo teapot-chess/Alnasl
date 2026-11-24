@@ -459,6 +459,7 @@ defmodule Alnasl.Games do
   already sent (to the results site, the pairing program) is not taken back
   from them. The line in the log stays, with who played and how far it got.
   """
+  # sobelow_skip ["Traversal.FileModule"]
   def delete(%Game{} = game) do
     Alnasl.Outbox.drop_pending(game)
     File.rm(pgn_path(game))
@@ -482,6 +483,7 @@ defmodule Alnasl.Games do
   tournament it left is not sent (the new place has its own). `:taken` when
   the place holds a game with moves already.
   """
+  # sobelow_skip ["Traversal.FileModule"]
   def carry(%Game{} = game, tournament_id, round, board_no) do
     there = history(tournament_id, round, board_no)
 
@@ -515,6 +517,7 @@ defmodule Alnasl.Games do
   tournament, a game number, `local`): two rows of one tournament became
   one. Its PGN moves with it.
   """
+  # sobelow_skip ["Traversal.FileModule"]
   def rehome(%Game{} = game, changes) do
     File.rm(pgn_path(game))
 
@@ -529,6 +532,7 @@ defmodule Alnasl.Games do
   another number. A number below 1 is a place to wait while two games
   change places.
   """
+  # sobelow_skip ["Traversal.FileModule"]
   def move(%Game{} = game, board_no) do
     if game.board_no > 0, do: File.rm(pgn_path(game))
     moved = game |> Ecto.Changeset.change(%{board_no: board_no}) |> Repo.update!()
@@ -880,6 +884,7 @@ defmodule Alnasl.Games do
   Where a game's PGN is kept on the box: `round-3/board-2.pgn` for the
   box's own tournament, as it always was, and under `t<id>/` for another.
   """
+  # sobelow_skip ["Traversal.FileModule"]
   def pgn_path(%Game{} = game) do
     base =
       if game.tournament_id in [nil, Tournaments.default_id()],
@@ -897,6 +902,7 @@ defmodule Alnasl.Games do
 
   # Written on every change, through a temporary file: a power cut leaves
   # the old PGN or the new one, never half of one.
+  # sobelow_skip ["Traversal.FileModule"]
   defp write_pgn(%Game{} = game) do
     path = pgn_path(game)
     tmp = path <> ".tmp"

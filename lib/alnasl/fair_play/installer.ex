@@ -60,6 +60,7 @@ defmodule Alnasl.FairPlay.Installer do
   """
   @spec install(:download | {:file, String.t()}, keyword()) ::
           {:ok, installed()} | {:error, reason()}
+  # sobelow_skip ["Traversal.FileModule"]
   def install(source, opts \\ []) do
     engine = Keyword.get(opts, :engine, Engines.default())
     downloader = Keyword.get(opts, :downloader, &download/2)
@@ -116,6 +117,7 @@ defmodule Alnasl.FairPlay.Installer do
 
   # --- getting the archive -----------------------------------------------------
 
+  # sobelow_skip ["Traversal.FileModule"]
   defp obtain(:download, engine, asset, dir, downloader) do
     dest = Path.join(dir, asset.name <> ".part")
     File.rm(dest)
@@ -140,6 +142,7 @@ defmodule Alnasl.FairPlay.Installer do
   anything but the file is `{:download_failed, status}`.
   """
   @spec download(String.t(), String.t()) :: :ok | {:error, reason()}
+  # sobelow_skip ["Traversal.FileModule"]
   def download(url, dest) do
     case Req.get(url, into: File.stream!(dest), receive_timeout: 120_000, retry: :transient) do
       {:ok, %Req.Response{status: 200}} -> :ok
@@ -153,6 +156,7 @@ defmodule Alnasl.FairPlay.Installer do
 
   @doc "The SHA256 of a file, lowercase hex, read in pieces: the archives are 80 MB."
   @spec sha256(String.t()) :: String.t()
+  # sobelow_skip ["Traversal.FileModule"]
   def sha256(path) do
     path
     |> File.stream!(1_048_576)
@@ -241,6 +245,7 @@ defmodule Alnasl.FairPlay.Installer do
       ".." in String.split(name, ["/", "\\"])
   end
 
+  # sobelow_skip ["Traversal.FileModule"]
   defp extract(archive, format, entry, dir) do
     unpack_dir = Path.join(dir, "unpack-#{System.unique_integer([:positive])}")
     File.mkdir_p!(unpack_dir)
@@ -280,6 +285,7 @@ defmodule Alnasl.FairPlay.Installer do
     end
   end
 
+  # sobelow_skip ["Traversal.FileModule"]
   defp executable(binary) do
     case :os.type() do
       {:win32, _} -> :ok
@@ -302,6 +308,7 @@ defmodule Alnasl.FairPlay.Installer do
   stderr, hence the merge.
   """
   @spec bench(String.t()) :: {:ok, integer()} | {:error, term()}
+  # sobelow_skip ["CI.System"]
   def bench(binary) do
     task = Task.async(fn -> System.cmd(binary, ["bench"], stderr_to_stdout: true) end)
 

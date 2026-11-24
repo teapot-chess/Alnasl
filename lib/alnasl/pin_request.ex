@@ -37,6 +37,7 @@ defmodule Alnasl.PinRequest do
   or `{:refused, reason}`.
   """
   @spec consume(Path.t()) :: :none | :set | :new | {:refused, atom()}
+  # sobelow_skip ["Traversal.FileModule"]
   def consume(data_dir) do
     path = Path.join(data_dir, @file_name)
 

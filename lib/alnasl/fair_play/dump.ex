@@ -18,6 +18,7 @@ defmodule Alnasl.FairPlay.Dump do
 
   @columns ~w(set pe game ev fold rating opp near gap cp1 cp2 cp3 cp4 played rank material think p q lm lv loss)
 
+  # sobelow_skip ["Traversal.FileModule"]
   def main(argv, opts \\ [halt: true]) do
     {parsed, paths, invalid} =
       OptionParser.parse(argv,

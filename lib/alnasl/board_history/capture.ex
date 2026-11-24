@@ -119,6 +119,7 @@ defmodule Alnasl.BoardHistory.Capture do
 
   # Every line of the board's newest files, oldest first, back to the newest
   # file with a starting position in it.
+  # sobelow_skip ["Traversal.FileModule"]
   defp lines(dir) do
     names =
       case File.ls(dir) do

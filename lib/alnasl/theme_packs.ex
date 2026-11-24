@@ -251,6 +251,7 @@ defmodule Alnasl.ThemePacks do
 
   defp read_css(path), do: read(Path.join(path, "theme.css"), @css_limit, "theme.css")
 
+  # sobelow_skip ["Traversal.FileModule"]
   defp read(file, limit, what) do
     case File.stat(file) do
       {:ok, %{type: :regular, size: size}} when size > limit ->

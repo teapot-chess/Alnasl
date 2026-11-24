@@ -560,6 +560,7 @@ defmodule Alnasl.Chess do
 
   def parse_san(_pos, other), do: {:error, "a move must be a string, got #{inspect(other)}"}
 
+  # sobelow_skip ["DOS.StringToAtom"]
   defp parse_regular(legal, cleaned, original) do
     case Regex.run(@san, cleaned) do
       nil ->

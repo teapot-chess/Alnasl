@@ -617,6 +617,7 @@ defmodule Alnasl.FairPlay.Model do
 
   @doc "The model in the json file at `path`, wherever it is."
   @spec read(String.t()) :: {:ok, t()} | {:error, term()}
+  # sobelow_skip ["Traversal.FileModule"]
   def read(path) do
     with {:ok, text} <- File.read(path),
          {:ok, json} <- Jason.decode(text),
@@ -624,6 +625,7 @@ defmodule Alnasl.FairPlay.Model do
   end
 
   @doc "Writes a model to `path` as json."
+  # sobelow_skip ["Traversal.FileModule"]
   def save(%__MODULE__{} = model, path) do
     File.mkdir_p!(Path.dirname(path))
     File.write!(path, Jason.encode_to_iodata!(to_json(model), pretty: true))

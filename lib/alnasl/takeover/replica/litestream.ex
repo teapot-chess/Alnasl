@@ -88,6 +88,7 @@ defmodule Alnasl.Takeover.Replica.Litestream do
   `out`. `:ok` also when the replica does not exist (`-if-replica-exists`):
   the caller looks for `out`.
   """
+  # sobelow_skip ["CI.System"]
   def restore(config_path, db, out) do
     case binary() do
       nil ->

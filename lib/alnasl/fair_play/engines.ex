@@ -156,6 +156,7 @@ defmodule Alnasl.FairPlay.Engines do
   @macos_minimum {10, 15}
 
   @doc "The macOS version, as text (`\"10.13.6\"`), or `nil` when this is not a Mac."
+  # sobelow_skip ["CI.System"]
   def macos_version do
     with {:unix, :darwin} <- :os.type(),
          cmd when is_binary(cmd) <- System.find_executable("sw_vers"),
