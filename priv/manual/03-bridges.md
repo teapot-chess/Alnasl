@@ -64,7 +64,19 @@ If a command cannot be done, the panel says so in words: "The bridge is not conn
 
 A hall that already runs DGT LiveChess can be followed without unplugging a board from it. In LiveChess, switch on the export to the file system (the "filesystem exporter") and choose a folder. Then give that folder to the bridge on the same computer: in its own page under "LiveChess export folder", or here in the bridge's panel under "LiveChess export folder" and "Read folder".
 
-Every game of the round being played becomes a board, LiveChess#1, LiveChess#2 and so on by game number, and is placed at a table like any other board. The next round's games arrive on the same boards. Positions and clocks come from LiveChess's PGN files. A game that was already under way when the bridge first saw it is handed over as the board's memory, so the moves before then are added in one go, marked as from the board's memory, instead of guessed. The players' names come from OpenPairings, as for every board; LiveChess's own pairings are not read. Lichess, OpenResults and OpenPairings get these games exactly as they get any other.
+Every game of the round being played becomes a board, LiveChess#1, LiveChess#2 and so on by game number. The next round's games arrive on the same boards. Positions and clocks come from LiveChess's PGN files. A game that was already under way when the bridge first saw it is handed over as the board's memory, so the moves before then are added in one go, marked as from the board's memory, instead of guessed. Lichess, OpenResults and OpenPairings get these games exactly as they get any other.
+
+### Which pairing a LiveChess game is {#livechess-pairing}
+
+Each LiveChess game comes with its two players, as LiveChess has them. The server looks them up among the pairings of the round in play of every OpenPairings tournament in the hall, team events included, and puts the board on the one pairing they play: that board number of that tournament, by itself. The names and ratings on the board are then OpenPairings', as for every board. A player is found by FIDE ID when both sides have one, else by name: case, accents, punctuation and the order of first and last name do not matter, and a single name will do. A game whose players have the colours the other way round from the pairing is still put on it, and the Boards page and the log say the colours are reversed.
+
+When it cannot tell, the board is put on no pairing, and the Boards page says why under the board's name: no pairing of the round has these players, more than one does, another LiveChess game has the same players (then neither game is placed), another board already plays that pairing, or the round has no pairings yet. The pairings it could be are buttons beside it; one click puts the board there. A pairing another table already plays is asked first, as when you choose a board number by hand: the board moves only when you say so, and the other table is then linked to nothing. A board put on a pairing by hand stays there until its players change; "Match by players again" lets the server decide again. At the next round, and whenever the pairings change, every LiveChess board is looked up again.
+
+A LiveChess board with no game yet (its game file is empty, or LiveChess has not started one) shows the starting position, and the Boards page says "No game in LiveChess on this board yet"; when the game starts it comes in with everything played so far.
+
+A result LiveChess writes in the game is suggested on the board, as a board suggests one: the arbiter confirms it. A forfeit LiveChess records is shown on the Boards page and in the log, and not entered: enter it in OpenPairings.
+
+Without OpenPairings, the board shows LiveChess's names, and a board linked to a game of the hall's own tournament gives that game those names, unless names were typed there already.
 
 ## When the line drops {#line-drops}
 
