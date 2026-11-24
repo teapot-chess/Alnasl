@@ -619,6 +619,17 @@ defmodule AlnaslWeb.HallsLive do
           </.form>
         </.panel>
 
+        <.panel :if={@tab == "settings"} id="hall-zone" title={gettext("Time zone")}>
+          <p id="hall-zone-value" class="mono">
+            {@shown.time_zone || gettext("not known yet (this box's own clock)")}
+          </p>
+          <p class="note">
+            {gettext(
+              "Times in this hall, and the start time of a round for games without a clock, follow this zone. It is taken from the owner's browser; nothing to set here."
+            )}
+          </p>
+        </.panel>
+
         <.panel :if={@tab == "people"} id="hall-people" title={gettext("People")}>
           <%= if @current_scope.open? do %>
             <p id="hall-people-open" class="note">
@@ -741,7 +752,7 @@ defmodule AlnaslWeb.HallsLive do
               <li :for={i <- @invitations} id={"invitation-#{i.id}"} class="row">
                 <span class="mono">{i.email}</span> <span class="note">{Words.role(i.role)}</span>
                 <span class="note">
-                  {gettext("until %{date}", date: Calendar.strftime(i.expires_at, "%Y-%m-%d"))}
+                  {gettext("until %{date}", date: AlnaslWeb.Words.date(i.expires_at))}
                 </span>
 
                 <.button
@@ -886,7 +897,7 @@ defmodule AlnaslWeb.HallsLive do
         <p id="box-join-link" class="addresses mono">{@join.url}</p>
         <p id="box-join-expiry" class="note">
           {gettext("Good for one box, until %{time} (UTC).",
-            time: Calendar.strftime(@join.expires_at, "%H:%M")
+            time: AlnaslWeb.Words.hm(@join.expires_at)
           )}
         </p>
       </div>

@@ -1565,9 +1565,17 @@ defmodule AlnaslWeb.Words do
   def size(bytes) when bytes >= 1_000, do: "#{Float.round(bytes / 1_000, 1)} kB"
   def size(bytes), do: "#{bytes} B"
 
-  @doc "A time of day in the box's own time zone (UTC when the system offers nothing else)."
+  @doc "A time of day in the hall's time zone (the box's own without one)."
   def time(%DateTime{} = at), do: Calendar.strftime(local(at), "%H:%M:%S")
   def time(_none), do: "-"
+
+  @doc "A time of day without the seconds."
+  def hm(%DateTime{} = at), do: Calendar.strftime(local(at), "%H:%M")
+  def hm(_none), do: "-"
+
+  @doc "A date."
+  def date(%DateTime{} = at), do: Calendar.strftime(local(at), "%Y-%m-%d")
+  def date(_none), do: "-"
 
   def datetime(%DateTime{} = at), do: Calendar.strftime(local(at), "%Y-%m-%d %H:%M")
 
@@ -1576,14 +1584,15 @@ defmodule AlnaslWeb.Words do
 
   def datetime(_none), do: "-"
 
-  # The box's wall clock: the offset the operating system reports.
-  defp local(%DateTime{} = at) do
-    {{y, mo, d}, {h, mi, s}} =
-      :calendar.universal_time_to_local_time(
-        {{at.year, at.month, at.day}, {at.hour, at.minute, at.second}}
-      )
+  # The wall clock of the hall the page is for (`put_zone/1`, set once per
+  # LiveView by `AlnaslWeb.Hall`), else the box's own: the offset the
+  # operating system reports.
+  defp local(%DateTime{} = at), do: Alnasl.Zone.shift(at, Process.get(:alnasl_zone))
 
-    %{at | year: y, month: mo, day: d, hour: h, minute: mi, second: s}
+  @doc "Sets the time zone this process shows times in (`nil`: the box's own)."
+  def put_zone(zone) do
+    Process.put(:alnasl_zone, zone)
+    :ok
   end
 
   @doc "How this copy was started (`Alnasl.BoxInfo.kind/0`)."

@@ -74,7 +74,7 @@ defmodule AlnaslWeb.BridgeComponents do
             <p id="bridge-join-link" class="addresses mono">{@join.url}</p>
             <p id="bridge-join-expiry" class="note">
               {gettext("Good for one bridge, until %{time} (UTC).",
-                time: Calendar.strftime(@join.expires_at, "%H:%M")
+                time: AlnaslWeb.Words.hm(@join.expires_at)
               )}
             </p>
           </div>

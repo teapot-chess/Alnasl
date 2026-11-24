@@ -51,6 +51,8 @@ Het logboek zegt welk van de twee het was. Een bord dat niet als stelling te lez
 
 Heeft een bord van de ronde geen klok, dan zegt Live dat ("2 borden hebben geen klok") met een knop, "Spelen zonder klok", voor het toernooi. Staat die aan, dan begint een bord zonder klok zijn partij op het beginuur van de ronde uit OpenPairings, of meteen als OpenPairings geen uur voor de ronde geeft; de tegel zegt dan "Speelt zonder klok". Een bord met een andere stelling dan de beginstelling begint vanuit die stelling, zoals een klok het gestart zou hebben. Druk nog eens op de knop om weer op klokken te wachten.
 
+Het beginuur van de ronde wordt gelezen op de klok van de zaal, in de tijdzone van de zaal (zie Instellingen van de zaal, bij Accounts en zalen), zodat een gehoste Alnasl die UTC aanhoudt de partij toch laat beginnen op het uur dat het pairingprogramma bedoelde.
+
 ## De pagina van een bord {#a-board}
 
 De stelling groot, de zettenlijst, en het gereedschap. De pijltoetsen links en rechts, de knoppen onder het bord, of een tik op een zet laten je door de partij terugstappen; Home is het begin, End of "Live" is de partij zoals ze gespeeld wordt. Zetten die binnenkomen terwijl je terugkijkt, komen in de lijst en verschuiven het bord niet.

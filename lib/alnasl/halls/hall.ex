@@ -11,6 +11,7 @@ defmodule Alnasl.Halls.Hall do
   schema "halls" do
     field :name, :string
     field :own, :boolean, default: false
+    field :time_zone, :string
     timestamps(type: :utc_datetime)
   end
 

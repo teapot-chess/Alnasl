@@ -43,6 +43,40 @@ defmodule Alnasl.Halls do
 
   def own_id, do: own().id
 
+  @doc "The time zone of a hall (`halls.time_zone`), `nil` while no browser has told it."
+  def zone(hall_id) when is_integer(hall_id),
+    do: Repo.one(from h in Hall, where: h.id == ^hall_id, select: h.time_zone)
+
+  def zone(_none), do: nil
+
+  @doc """
+  A browser of the hall's owner says which zone it is in (`Alnasl.Zone`).
+  Kept when the hall has none or when it differs; a name the time zone
+  database does not know, or a browser that is not an owner of the hall, is
+  ignored. Returns the zone the hall has afterwards.
+  """
+  def note_zone(%Scope{} = scope, %Hall{} = hall, zone) do
+    cond do
+      not Scope.can?(scope, :owner, hall.id) ->
+        hall.time_zone
+
+      not Alnasl.Zone.valid?(zone) or zone == hall.time_zone ->
+        hall.time_zone
+
+      true ->
+        case hall |> Ecto.Changeset.change(time_zone: zone) |> Repo.update() do
+          {:ok, hall} ->
+            notify()
+            hall.time_zone
+
+          {:error, _changeset} ->
+            hall.time_zone
+        end
+    end
+  end
+
+  def note_zone(_scope, _hall, _zone), do: nil
+
   @doc "Every hall, the own one first."
   def list, do: Repo.all(from h in Hall, order_by: [desc: h.own, asc: h.id])
 

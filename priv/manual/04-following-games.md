@@ -51,6 +51,8 @@ The log says which it was. A board that cannot be read as a position (a king mis
 
 When a board of the round has no clock, Live says so ("2 boards have no clock") with a switch, "Play without a clock", for the tournament. With it on, a board without a clock starts its game at the round's start time from OpenPairings, or at once when OpenPairings gives no time for the round; its tile then says "Playing without a clock". A board set up with another position than the starting one starts from it, as a clock would have started it. Press the switch again to wait for clocks instead.
 
+The round's start time is read on the hall's own clock, in the hall's time zone (see Settings of the hall, in Accounts and halls), so a hosted Alnasl that keeps UTC still starts the game at the hour the pairing program meant.
+
 ## A board's page {#a-board}
 
 The position large, the move list, and the tools. The Left and Right arrow keys, the buttons under the board, or a tap on a move step back through the game; Home is the start, End or "Live" is the game as it is played. Moves that arrive while you look back are added to the list and do not move the board.

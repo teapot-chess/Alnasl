@@ -19,6 +19,9 @@ config :alnasl, data_dir: Path.expand("../data", __DIR__)
 # chooser asks for it by name (`allow_upload(:pgn, accept: ~w(.pgn))`).
 config :mime, :types, %{"application/vnd.chess-pgn" => ["pgn"]}
 
+# The time zone database (`tz`, compiled in): a hall's own zone, `Alnasl.Zone`.
+config :elixir, :time_zone_database, Tz.TimeZoneDatabase
+
 # Whether the box asks GitHub, on a timer, if a newer version is out. Off in
 # tests, which ask when they mean to.
 config :alnasl, updates_timer: true
