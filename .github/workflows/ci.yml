@@ -70,8 +70,12 @@ jobs:
           mix hex.audit
 
       - name: Sobelow
-        # Findings reviewed in context live in .sobelow-skips; a NEW finding fails here.
+        # Reviewed findings carry an inline `# sobelow_skip [...]` comment or are ignored by name in .sobelow-conf; a NEW finding fails here.
         run: mix sobelow --config
+
+      - name: Check translations
+        # No fuzzy entries, and every %{placeholder} survives translation.
+        run: mix i18n.check
 
       - name: Check formatting
         run: mix format --check-formatted

@@ -442,6 +442,7 @@ defmodule Alnasl.OpenPairings.Duplicates do
   # games that never began (they make way), or held by a game that began
   # (this one stays on the box as the next game there). An empty game
   # whose place is taken is not worth keeping.
+  # sobelow_skip ["Traversal.FileModule"]
   defp move_game(%Game{} = game, to) do
     there = Games.history(to, game.round, game.board_no)
     empty? = fn g -> not Games.begun?(g) and g.status == "live" end

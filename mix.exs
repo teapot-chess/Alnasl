@@ -289,6 +289,7 @@ defmodule Alnasl.MixProject do
         "deps.audit",
         "hex.audit",
         "sobelow --config",
+        "i18n.check",
         "test"
       ]
     ]

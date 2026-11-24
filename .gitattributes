@@ -1,11 +1,38 @@
 # The tests read files byte for byte (heredocs, the .po catalogue, capture
 # fixtures): a checkout with CRLF line endings fails three of them.
 * text=auto eol=lf
+
+# Binary: never touched by line-ending conversion, never diffed as text.
 *.pyc binary
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.webp binary
+*.ico binary
+*.icns binary
+*.pdf binary
+*.zip binary
+*.gz binary
+*.tgz binary
+*.xz binary
+*.img.xz binary
+*.7z binary
+*.woff binary
+*.woff2 binary
+*.ttf binary
+*.otf binary
+*.eot binary
+*.db binary
+*.sqlite3 binary
+*.mo binary
+
 # cmd reads a batch file with LF endings until the day it does not.
 *.bat text eol=crlf
 *.bat.eex text eol=crlf
-*.ico binary
+*.cmd text eol=crlf
+*.ps1 text eol=crlf
+
 # Vendored contracts are the providers' bytes, compared byte for byte by
 # `mix contracts.check`: git leaves them exactly as they came.
 priv/contracts/vendor/** -text

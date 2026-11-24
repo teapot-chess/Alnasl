@@ -10,6 +10,7 @@ defmodule Alnasl.Paths do
   def pgn, do: ensure(Path.join(data(), "pgn"))
   def fixtures, do: ensure(Path.join(data(), "fixtures"))
 
+  # sobelow_skip ["Traversal.FileModule"]
   defp ensure(dir) do
     File.mkdir_p!(dir)
     dir

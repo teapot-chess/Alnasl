@@ -95,6 +95,7 @@ defmodule Alnasl.Recorder do
   the captures of a board since removed still belong to that hall: its owner
   can reach them, and nobody else of it (`removed_visible?/2`).
   """
+  # sobelow_skip ["Traversal.FileModule"]
   def remember_hall(board_id, hall_id) when is_integer(hall_id) do
     dir = Path.join(Paths.captures(), "board-#{board_id}")
     if File.dir?(dir), do: File.write(Path.join(dir, "hall"), Integer.to_string(hall_id))
@@ -104,6 +105,7 @@ defmodule Alnasl.Recorder do
   def remember_hall(_board_id, _hall_id), do: :ok
 
   @doc "The hall a removed board's captures belong to, or `nil` (removed before that was written down)."
+  # sobelow_skip ["Traversal.FileModule"]
   def hall_of(board_id) do
     with {:ok, text} <- File.read(Path.join([Paths.captures(), "board-#{board_id}", "hall"])),
          {id, ""} <- Integer.parse(String.trim(text)) do
@@ -211,6 +213,7 @@ defmodule Alnasl.Recorder do
   end
 
   @doc "Copies a capture to `<data>/fixtures/<name>.jsonl`, a file a test can replay. `{:ok, path}`."
+  # sobelow_skip ["Traversal.FileModule"]
   def export_fixture(path, name) do
     safe = name |> String.replace(~r/[^A-Za-z0-9_-]+/, "-") |> String.trim("-")
     safe = if safe == "", do: "capture", else: safe

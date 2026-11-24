@@ -149,6 +149,7 @@ defmodule AlnaslWeb.HelpLive do
   end
 
   @impl true
+  # sobelow_skip ["XSS.Raw"]
   def render(assigns) do
     ~H"""
     <Layouts.app

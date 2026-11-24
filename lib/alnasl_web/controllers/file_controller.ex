@@ -58,6 +58,7 @@ defmodule AlnaslWeb.FileController do
     end
   end
 
+  # sobelow_skip ["Traversal.SendFile"]
   def capture(conn, %{"board" => board, "name" => name}) do
     account = conn.assigns.current_scope
 
@@ -93,6 +94,7 @@ defmodule AlnaslWeb.FileController do
     end
   end
 
+  # sobelow_skip ["XSS.ContentType", "XSS.SendResp"]
   defp download(conn, text, filename, type) do
     conn
     |> put_resp_content_type(type)

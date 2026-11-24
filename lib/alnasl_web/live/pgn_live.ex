@@ -73,6 +73,7 @@ defmodule AlnaslWeb.PgnLive do
   @impl true
   def handle_event("validate", _params, socket), do: {:noreply, socket}
 
+  # sobelow_skip ["Traversal.FileModule"]
   def handle_event("upload", _params, socket) do
     texts =
       consume_uploaded_entries(socket, :pgn, fn %{path: path}, _entry ->

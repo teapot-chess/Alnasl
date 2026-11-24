@@ -43,6 +43,7 @@ defmodule Alnasl.HallReplays do
   def dir, do: @dir
 
   @doc "The pinned recordings: `%{name => entry}`, entries with string keys as stored."
+  # sobelow_skip ["Traversal.FileModule"]
   def pinned(dir \\ @dir) do
     case File.read(Path.join(dir, @manifest)) do
       {:ok, text} -> Jason.decode!(text)
@@ -79,6 +80,7 @@ defmodule Alnasl.HallReplays do
   writes its entry. Options: `:played` (the real game, SAN), `:source`
   (how that is known), `:note`, `:address`, `:dir`. `{:ok, entry}`.
   """
+  # sobelow_skip ["Traversal.FileModule"]
   def pin(source, name, opts \\ []) do
     dir = Keyword.get(opts, :dir, @dir)
     name = safe(name)
@@ -122,6 +124,7 @@ defmodule Alnasl.HallReplays do
   end
 
   # The capture as the tracker reads it, one line an event.
+  # sobelow_skip ["Traversal.FileModule"]
   defp compact(source, target, address) do
     with {:ok, capture} <- Recorder.read(source, address) do
       # Times from the first line of the recording, which is all a replay

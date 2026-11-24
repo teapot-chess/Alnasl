@@ -163,6 +163,7 @@ defmodule Alnasl.FairPlay.Power do
   The whole benchmark over label files; prints the tables and returns
   `{:ok, summary}` (`summarise/2`'s map, plus how the model came about).
   """
+  # sobelow_skip ["Traversal.FileModule"]
   def run(paths, opts) do
     holdout = Keyword.get(opts, :holdout, 0.2)
     log = Keyword.get(opts, :log, &IO.puts/1)

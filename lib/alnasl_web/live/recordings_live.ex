@@ -109,6 +109,7 @@ defmodule AlnaslWeb.RecordingsLive do
     end
   end
 
+  # sobelow_skip ["Traversal.FileModule"]
   def handle_event("delete", %{"board" => board, "name" => name}, socket) do
     case find(board, name, socket.assigns.current_scope) do
       %{path: path} ->

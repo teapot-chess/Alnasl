@@ -28,6 +28,7 @@ defmodule Alnasl.Listen do
   end
 
   @doc "What the next start will do: `\"lan\"` or `\"local\"`."
+  # sobelow_skip ["Traversal.FileModule"]
   def chosen do
     forced() ||
       case File.read(file()) do
@@ -36,6 +37,7 @@ defmodule Alnasl.Listen do
       end
   end
 
+  # sobelow_skip ["Traversal.FileModule"]
   def put(choice) when choice in ["lan", "local"], do: File.write(file(), choice <> "\n")
 
   defp file, do: Path.join(Paths.data(), "listen")

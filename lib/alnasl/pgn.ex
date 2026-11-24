@@ -47,6 +47,7 @@ defmodule Alnasl.Pgn do
   end
 
   @doc "The games of a PGN file that ships with Alnasl (`priv/games/<name>`)."
+  # sobelow_skip ["Traversal.FileModule"]
   def bundled(name) do
     {games, _problems} =
       :alnasl |> :code.priv_dir() |> Path.join("games/#{name}") |> File.read!() |> load()

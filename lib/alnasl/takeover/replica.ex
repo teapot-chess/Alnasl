@@ -134,6 +134,7 @@ defmodule Alnasl.Takeover.Replica do
     end
   end
 
+  # sobelow_skip ["Traversal.FileModule"]
   defp write_private(path, text) do
     tmp = path <> ".new"
     File.write!(tmp, "")
@@ -206,6 +207,7 @@ defmodule Alnasl.Takeover.Replica do
 
   defp timeout, do: Application.get_env(:alnasl, :takeover_replica_timeout_ms, 30_000)
 
+  # sobelow_skip ["Traversal.FileModule"]
   defp restore_and_read(config, url, uid) do
     dir = Path.join(Paths.data(), "replica-restore")
     File.rm_rf!(dir)

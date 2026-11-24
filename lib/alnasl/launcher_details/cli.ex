@@ -218,6 +218,7 @@ defmodule Alnasl.LauncherDetails.CLI do
 
   @doc false
   # The last `n` lines of a file, reading only its end.
+  # sobelow_skip ["Traversal.FileModule"]
   def tail_file(path, n) do
     with {:ok, %{size: size}} <- File.stat(path),
          {:ok, file} <- File.open(path, [:read, :binary]) do
@@ -259,6 +260,7 @@ defmodule Alnasl.LauncherDetails.CLI do
     end
   end
 
+  # sobelow_skip ["Traversal.FileModule"]
   defp from_file do
     with dir when is_binary(dir) <- data_dir(),
          file = LauncherDetails.token_file(dir),
@@ -302,7 +304,6 @@ defmodule Alnasl.LauncherDetails.CLI do
     if String.starts_with?(language, "nl"), do: "nl", else: "en"
   end
 
-  # main/0 and main/1 end in System.halt/1. (Here, not above them, so the lines
-  # .sobelow-skips cites do not move.)
+  # main/0 and main/1 end in System.halt/1.
   @dialyzer {:no_return, main: 0, main: 1}
 end

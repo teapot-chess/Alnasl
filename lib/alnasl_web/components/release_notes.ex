@@ -39,6 +39,7 @@ defmodule AlnaslWeb.Components.ReleaseNotes do
   attr :source, :atom, required: true, doc: "`:bundled`, `:live` or `:offline`"
   attr :releases_page, :string, required: true
 
+  # sobelow_skip ["XSS.Raw"]
   def release_notes(assigns) do
     ~H"""
     <section id="release-notes" class="release-notes stack" aria-labelledby="release-notes-title">

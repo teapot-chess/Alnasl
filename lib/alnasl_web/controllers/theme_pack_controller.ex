@@ -41,6 +41,7 @@ defmodule AlnaslWeb.ThemePackController do
     end
   end
 
+  # sobelow_skip ["Traversal.FileModule"]
   defp read_capped(path, limit) do
     case File.stat(path) do
       {:ok, %{type: :regular, size: size}} when size <= limit -> File.read(path)
@@ -48,6 +49,7 @@ defmodule AlnaslWeb.ThemePackController do
     end
   end
 
+  # sobelow_skip ["XSS.ContentType", "XSS.SendResp"]
   defp serve(conn, type, body, etag) do
     etag = ~s("#{etag}")
 

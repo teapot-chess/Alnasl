@@ -155,6 +155,7 @@ defmodule Alnasl.LauncherDetails do
   def handle_info(_other, state), do: {:noreply, state}
 
   @impl true
+  # sobelow_skip ["Traversal.FileModule"]
   def terminate(_reason, %{local?: true} = state) do
     :telemetry.detach(state.handler)
     if state.token_file, do: File.rm(state.token_file)
@@ -198,6 +199,7 @@ defmodule Alnasl.LauncherDetails do
 
   defp write_token(nil, _token, _port), do: nil
 
+  # sobelow_skip ["Traversal.FileModule"]
   defp write_token(dir, token, port) do
     run = Path.join(dir, "run")
     file = token_file(dir)

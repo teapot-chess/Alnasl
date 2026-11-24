@@ -180,6 +180,7 @@ defmodule Alnasl.Ops.OffsiteBackup do
     if enabled?(config), do: push_snapshot(config, opts), else: :disabled
   end
 
+  # sobelow_skip ["Traversal.FileModule"]
   defp push_snapshot(config, opts) do
     started = DateTime.utc_now(:second)
     now = Keyword.get(opts, :now, started)
@@ -214,6 +215,7 @@ defmodule Alnasl.Ops.OffsiteBackup do
   # Where the snapshot and its gzipped and encrypted copies live while a
   # push runs: the data directory's own `offsite/`, owner-only. The data
   # directory holds the database already; a shared /tmp holds anybody's.
+  # sobelow_skip ["Traversal.FileModule"]
   def work_dir do
     dir = Path.join(Paths.data(), "offsite")
     File.mkdir_p!(dir)
@@ -264,6 +266,7 @@ defmodule Alnasl.Ops.OffsiteBackup do
   defp describe(reason) when is_atom(reason), do: Atom.to_string(reason)
   # Exqlite and :file answer with a string or an atom; nothing else gets here.
 
+  # sobelow_skip ["Traversal.FileModule"]
   defp gzip(source, target) do
     write = fn out -> source |> File.stream!(64 * 1024) |> Enum.each(&IO.binwrite(out, &1)) end
 
@@ -279,6 +282,7 @@ defmodule Alnasl.Ops.OffsiteBackup do
     if prefix == "", do: name, else: prefix <> "/" <> name
   end
 
+  # sobelow_skip ["Traversal.FileModule"]
   defp upload(config, file, key) do
     s3 = config[:s3]
     size = File.stat!(file).size
