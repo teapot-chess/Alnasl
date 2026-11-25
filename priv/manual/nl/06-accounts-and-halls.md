@@ -25,7 +25,7 @@ Bij meer dan één zaal zegt de zaalkiezer bovenaan de balk over welke zaal de p
 
 De pagina van een zaal heeft tabbladen, elk met een eigen adres: **Mensen**, **Uitnodigingen**, **Bruggen** en **Instellingen** (hernoemen, verwijderen). Uitnodigingen en Instellingen zijn voor een eigenaar; een arbiter of kijker heeft Mensen en Bruggen.
 
-Het tabblad **Instellingen** toont ook de tijdzone van de zaal, enkel om te lezen. Ze wordt overgenomen van de browser van de eigenaar zodra die de zaal opent, en volgt die browser als hij een andere tijdzone meldt. Elk uur dat Alnasl voor de zaal toont, en het beginuur van een ronde bij "Spelen zonder klok", gebruiken ze; zolang geen browser iets gemeld heeft, geldt de klok van het kastje zelf.
+Het tabblad **Instellingen** toont ook de tijdzone van de zaal. Ze wordt maar één keer ingesteld: de eerste browser van een eigenaar (of een beheerder) die de zaal opent, meldt waar hij staat, en daarna verandert geen enkele browser ze nog. Twee eigenaars in verschillende tijdzones, of een beheerder die vanuit een andere tijdzone meekijkt, wisselen dus niet langer van beurt. Om ze te wijzigen kiezen eigenaars een andere tijdzone in de keuzelijst op het tabblad Instellingen; staat de browser die je gebruikt in een andere tijdzone dan de zaal, dan stelt een knop die voor. Elk uur dat Alnasl voor de zaal toont, en het beginuur van een ronde bij "Spelen zonder klok", gebruiken ze; zolang geen browser iets gemeld heeft, geldt de klok van het kastje zelf.
 
 ### Wat een pagina toont {#scope}
 

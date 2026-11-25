@@ -25,7 +25,7 @@ With more than one hall, the hall picker at the top of the rail says which one t
 
 A hall's own page has tabs, each with an address of its own: **People**, **Invitations**, **Bridges** and **Settings** (rename, delete). Invitations and Settings are an owner's; an arbiter or a viewer has People and Bridges.
 
-The **Settings** tab also shows the hall's time zone, read-only. It is taken from the owner's browser the first time one opens the hall, and follows it when that browser says another one. Every time Alnasl shows for the hall, and the start time of a round for "Play without a clock", use it; until a browser has said so, the box's own clock stands in.
+The **Settings** tab also shows the hall's time zone. It is set once: the first browser of an owner (or an admin) that opens the hall tells Alnasl where it is, and after that no browser changes it, so two owners in different zones, or an admin looking in from elsewhere, no longer take turns. To change it, owners pick another zone in the select on the Settings tab; when the browser you are using is in a different zone than the hall, a button offers that one. Every time Alnasl shows for the hall, and the start time of a round for "Play without a clock", use it; until a browser has said so, the box's own clock stands in.
 
 ### What a page shows {#scope}
 

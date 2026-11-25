@@ -33,6 +33,7 @@ defmodule AlnaslWeb.HallsLive do
     {:ok,
      socket
      |> assign(page_title: gettext("Halls"), base_url: nil, shown: nil)
+     |> assign(browser_zone: browser_zone(socket))
      |> assign(bridge_join: nil, bridge_message: nil, bridges: [])
      |> assign(
        box_join: nil,
@@ -160,6 +161,11 @@ defmodule AlnaslWeb.HallsLive do
     )
   end
 
+  # The zone this browser reports on connect, when the database knows it.
+  defp browser_zone(socket) do
+    if connected?(socket), do: Alnasl.Zone.clean(get_connect_params(socket)["time_zone"])
+  end
+
   # --- events ------------------------------------------------------------------
 
   @impl true
@@ -198,6 +204,22 @@ defmodule AlnaslWeb.HallsLive do
 
       {:error, %Ecto.Changeset{} = changeset} ->
         {:noreply, assign(socket, name_form: to_form(changeset, as: :hall))}
+
+      {:error, :forbidden} ->
+        {:noreply, refuse(socket)}
+    end
+  end
+
+  def handle_event("set_zone", params, socket) do
+    case Halls.set_zone(socket.assigns.current_scope, socket.assigns.shown, params["zone"]) do
+      {:ok, hall} ->
+        {:noreply,
+         socket
+         |> assign(shown: hall)
+         |> put_flash(:info, gettext("Time zone set to %{zone}.", zone: hall.time_zone))}
+
+      {:error, :invalid} ->
+        {:noreply, put_flash(socket, :error, gettext("That is not a time zone I know."))}
 
       {:error, :forbidden} ->
         {:noreply, refuse(socket)}
@@ -625,9 +647,39 @@ defmodule AlnaslWeb.HallsLive do
           </p>
           <p class="note">
             {gettext(
-              "Times in this hall, and the start time of a round for games without a clock, follow this zone. It is taken from the owner's browser; nothing to set here."
+              "Times in this hall, and the start time of a round for games without a clock, follow this zone. The first browser that opens the hall sets it; after that it changes only here."
             )}
           </p>
+          <%= if @owner? do %>
+            <form id="hall-zone-form" phx-submit="set_zone" class="row">
+              <label for="hall-zone-select">{gettext("Time zone")}</label>
+              <select id="hall-zone-select" name="zone">
+                <option
+                  :for={zone <- Alnasl.Zone.choices([@shown.time_zone, @browser_zone])}
+                  value={zone}
+                  selected={zone == @shown.time_zone}
+                >
+                  {zone}
+                </option>
+              </select>
+              <.button id="hall-zone-submit" type="submit">{gettext("Set")}</.button>
+            </form>
+            <p
+              :if={@browser_zone && @browser_zone != @shown.time_zone}
+              id="hall-zone-suggestion"
+              class="note"
+            >
+              {gettext("This browser is in %{zone}.", zone: @browser_zone)}
+              <.button
+                id="hall-zone-use-browser"
+                type="button"
+                phx-click="set_zone"
+                phx-value-zone={@browser_zone}
+              >
+                {gettext("Use it")}
+              </.button>
+            </p>
+          <% end %>
         </.panel>
 
         <.panel :if={@tab == "people"} id="hall-people" title={gettext("People")}>
