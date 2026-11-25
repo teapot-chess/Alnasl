@@ -19,6 +19,10 @@ section, word for word. See [docs/releasing.md](docs/releasing.md).
 
 ## [Unreleased]
 
+## [0.25.4] - 2026-11-25
+
+- [Change] **The capture proxy is Elixir now.** `tools/serial_proxy.py` was the one Python file in a repo that has none, and it needed pyserial installed on a Windows PC that otherwise needed nothing. It is `mix alnasl.serial_proxy --app COM11 --board COM3 --out capture.log` instead, with the same options and the same log, so `mix alnasl.replay` and the old captures read it unchanged. The compiled `.pyc` that had been committed alongside it left with it.
+
 ## [0.25.3] - 2026-11-25
 
 - [Removed] **Seven functions and a stylesheet rule nobody called.** A lichess round-page link, a draft counter, a rate-limit peek, a pairing-flag count and a few other helpers sat in the code waiting for a caller that never arrived; so did the `.cands` styling of a list that no longer exists. They are gone, and so are an alias and an import that only they were using. Nothing a person can see or do has changed.

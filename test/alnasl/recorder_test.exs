@@ -94,7 +94,7 @@ defmodule Alnasl.RecorderTest do
     assert total == 20
   end
 
-  test "a capture of raw bytes only - what tools/serial_proxy.py writes - is decoded with the protocol",
+  test "a capture of raw bytes only - what mix alnasl.serial_proxy writes - is decoded with the protocol",
        %{dir: dir} do
     # LiveChess asks for the board; the board answers, then reports 1.e4 as
     # two field updates, the second one split across two reads.

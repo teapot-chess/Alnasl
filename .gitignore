@@ -58,3 +58,7 @@ __pycache__/
 
 # Dialyzer PLTs (mix dialyzer), rebuilt on demand.
 /priv/plts/
+
+# Python bytecode (the repo has no Python, but a stray run leaves this)
+__pycache__/
+*.pyc

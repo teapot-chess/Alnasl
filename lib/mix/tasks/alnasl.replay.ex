@@ -9,7 +9,7 @@ defmodule Mix.Tasks.Alnasl.Replay do
       mix alnasl.replay data/captures/board-3/20261012-101500.jsonl --timeline
 
   Takes a capture written by Alnasl (`<data>/captures/...`, or `mix
-  alnasl.dgt`) or a log written by `tools/serial_proxy.py` - raw bytes are
+  alnasl.dgt`) or a log written by `mix alnasl.serial_proxy` - raw bytes are
   decoded with the DGT protocol on the way in. Prints how many readings it
   held, the moves the tracker found, every time it went out of sync and
   every correction, what the clock did (presses, switched off, running on

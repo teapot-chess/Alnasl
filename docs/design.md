@@ -1200,7 +1200,7 @@ captures together pass the cap from Setup, the oldest go.
 A capture is read back as the timed events a driver delivers, which is what
 the `Replay` driver plays, what "Replay through the tracker" on the
 Recordings page judges, and what `mix alnasl.replay` prints. A file with
-`rx` lines and no `pos` lines - or a log from `tools/serial_proxy.py` - is
+`rx` lines and no `pos` lines - or a log from `mix alnasl.serial_proxy` - is
 decoded with the board protocol on the way in, so a recording of a real
 board made *before* the driver is right can test the driver once it is.
 
