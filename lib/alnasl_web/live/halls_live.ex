@@ -33,6 +33,7 @@ defmodule AlnaslWeb.HallsLive do
     {:ok,
      socket
      |> assign(page_title: gettext("Halls"), base_url: nil, shown: nil)
+     |> assign(browser_zone: browser_zone(socket))
      |> assign(bridge_join: nil, bridge_message: nil, bridges: [])
      |> assign(
        box_join: nil,
@@ -65,7 +66,6 @@ defmodule AlnaslWeb.HallsLive do
            |> assign(deleting: false, delete_typed: "")
            |> assign(bridge_join: nil, bridge_message: nil, box_join: nil, box_message: nil)
            |> assign(name_form: to_form(%{"name" => hall.name}, as: :hall))
-           |> assign(browser_zone: browser_zone(socket))
            |> load_show()}
         else
           _not_yours ->
