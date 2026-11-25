@@ -33,8 +33,6 @@ defmodule Alnasl.OpenPairings do
   link says so and waits for the arbiter (`retry/1`, or a new code).
   """
 
-  import Ecto.Query
-
   alias Alnasl.{Boards, Log, Repo, Tournaments}
   alias Alnasl.OpenPairings.{Client, Code, Duplicates, Sync}
   alias Alnasl.Tournaments.{Link, Tournament}
@@ -449,13 +447,5 @@ defmodule Alnasl.OpenPairings do
           _none -> :not_published
         end
     }
-  end
-
-  @doc "Games of linked tournaments carry a pairing flag: how many, for the badge."
-  def flagged_count do
-    Repo.aggregate(
-      from(g in Alnasl.Games.Game, where: not is_nil(g.pairing_flag) and not g.local),
-      :count
-    )
   end
 end

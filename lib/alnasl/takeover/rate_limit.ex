@@ -79,28 +79,6 @@ defmodule Alnasl.Takeover.RateLimit do
     :ok
   end
 
-  @doc """
-  The same answer as `hit/4` would give, without counting: for limits that
-  count only failures, asked before the attempt and hit after a failed one.
-  """
-  def peek(key, limit, window_ms, now \\ System.system_time(:millisecond)) do
-    window = div(now, window_ms)
-
-    count =
-      if :ets.whereis(@table) == :undefined do
-        0
-      else
-        case :ets.lookup(@table, {key, window_ms, window}) do
-          [{_key, count}] -> count
-          [] -> 0
-        end
-      end
-
-    if count < limit,
-      do: :ok,
-      else: {:error, max(div((window + 1) * window_ms - now, 1000), 1)}
-  end
-
   @doc false
   def reset do
     if :ets.whereis(@table) != :undefined, do: :ets.delete_all_objects(@table)
