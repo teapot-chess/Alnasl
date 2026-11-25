@@ -22,11 +22,29 @@ defmodule Alnasl.HallZoneTest do
     assert Halls.zone(hall.id) == "Europe/Brussels"
   end
 
-  test "a different zone replaces it", %{hall: hall, scope: scope} do
+  test "a later browser in another zone does not overwrite it", %{hall: hall, scope: scope} do
     Halls.note_zone(scope, hall, "Europe/Brussels")
     hall = Repo.get!(Hall, hall.id)
-    assert Halls.note_zone(scope, hall, "America/New_York") == "America/New_York"
-    assert Halls.zone(hall.id) == "America/New_York"
+    assert Halls.note_zone(scope, hall, "America/New_York") == "Europe/Brussels"
+    # Not even with a stale copy of the hall that still thinks it has no zone.
+    stale = %{hall | time_zone: nil}
+    assert Halls.note_zone(scope, stale, "Asia/Tokyo") == "Europe/Brussels"
+    assert Halls.zone(hall.id) == "Europe/Brussels"
+  end
+
+  test "setting it on purpose changes it, owners only, known names only", %{
+    hall: hall,
+    scope: scope
+  } do
+    Halls.note_zone(scope, hall, "Europe/Brussels")
+    hall = Repo.get!(Hall, hall.id)
+
+    assert {:error, :forbidden} = Halls.set_zone(nil, hall, "Asia/Tokyo")
+    assert {:error, :invalid} = Halls.set_zone(scope, hall, "Mars/Olympus")
+    assert Halls.zone(hall.id) == "Europe/Brussels"
+
+    assert {:ok, %Hall{time_zone: "Asia/Tokyo"}} = Halls.set_zone(scope, hall, "Asia/Tokyo")
+    assert Halls.zone(hall.id) == "Asia/Tokyo"
   end
 
   test "a name the database does not know, or no name, changes nothing", %{

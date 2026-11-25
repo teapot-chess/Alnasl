@@ -50,32 +50,49 @@ defmodule Alnasl.Halls do
   def zone(_none), do: nil
 
   @doc """
-  A browser of the hall's owner says which zone it is in (`Alnasl.Zone`).
-  Kept when the hall has none or when it differs; a name the time zone
-  database does not know, or a browser that is not an owner of the hall, is
-  ignored. Returns the zone the hall has afterwards.
+  A browser of the hall's owner (or an admin) says which zone it is in
+  (`Alnasl.Zone`). Kept only when the hall has none yet: the first browser
+  to say sets it, later ones, in whatever zone, change nothing (the settings
+  page does that, `set_zone/3`). A name the time zone database does not know,
+  or a browser that is not an owner of the hall, is ignored. Returns the zone
+  the hall has afterwards.
   """
-  def note_zone(%Scope{} = scope, %Hall{} = hall, zone) do
+  def note_zone(%Scope{} = scope, %Hall{time_zone: nil} = hall, zone) do
+    if Scope.can?(scope, :owner, hall.id) and Alnasl.Zone.valid?(zone) do
+      # `is_nil` in the query keeps two browsers racing for the empty slot honest.
+      {n, _} =
+        Repo.update_all(from(h in Hall, where: h.id == ^hall.id and is_nil(h.time_zone)),
+          set: [time_zone: zone]
+        )
+
+      if n > 0, do: notify()
+      zone(hall.id)
+    else
+      nil
+    end
+  end
+
+  def note_zone(%Scope{}, %Hall{} = hall, _zone), do: hall.time_zone
+  def note_zone(_scope, _hall, _zone), do: nil
+
+  @doc "Sets a hall's time zone on purpose (its owner or an admin)."
+  def set_zone(%Scope{} = scope, %Hall{} = hall, zone) do
     cond do
       not Scope.can?(scope, :owner, hall.id) ->
-        hall.time_zone
+        {:error, :forbidden}
 
-      not Alnasl.Zone.valid?(zone) or zone == hall.time_zone ->
-        hall.time_zone
+      not Alnasl.Zone.valid?(zone) ->
+        {:error, :invalid}
 
       true ->
-        case hall |> Ecto.Changeset.change(time_zone: zone) |> Repo.update() do
-          {:ok, hall} ->
-            notify()
-            hall.time_zone
-
-          {:error, _changeset} ->
-            hall.time_zone
+        with {:ok, hall} <- hall |> Ecto.Changeset.change(time_zone: zone) |> Repo.update() do
+          notify()
+          {:ok, hall}
         end
     end
   end
 
-  def note_zone(_scope, _hall, _zone), do: nil
+  def set_zone(_scope, _hall, _zone), do: {:error, :forbidden}
 
   @doc "Every hall, the own one first."
   def list, do: Repo.all(from h in Hall, order_by: [desc: h.own, asc: h.id])
