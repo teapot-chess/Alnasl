@@ -22,23 +22,55 @@ defmodule AlnaslWeb.HallZoneLiveTest do
     view
   end
 
-  test "an owner's browser sets it, a later one changes it, a bad name is ignored", ctx do
+  test "the first owner's browser sets it, a later one does not, a bad name is ignored", ctx do
     %{conn: conn, hall: hall, owner: owner} = ctx
+    open(conn, owner, hall, "Not/AZone")
+    assert Halls.zone(hall.id) == nil
+
     view = open(conn, owner, hall, "Europe/Brussels")
     assert Halls.zone(hall.id) == "Europe/Brussels"
-    assert render(view) =~ "Europe/Brussels"
     assert has_element?(view, "#hall-zone-value", "Europe/Brussels")
+    refute has_element?(view, "#hall-zone-suggestion")
 
-    open(conn, owner, hall, "Not/AZone")
+    view = open(conn, owner, hall, "Asia/Tokyo")
+    assert Halls.zone(hall.id) == "Europe/Brussels"
+    # The other browser's zone is offered, not applied.
+    assert has_element?(view, "#hall-zone-suggestion", "Asia/Tokyo")
+  end
+
+  test "the settings page changes it, by select or by the browser suggestion", ctx do
+    %{conn: conn, hall: hall, owner: owner} = ctx
+    view = open(conn, owner, hall, "Europe/Brussels")
+
+    view |> form("#hall-zone-form", %{"zone" => "America/New_York"}) |> render_submit()
+    assert Halls.zone(hall.id) == "America/New_York"
+    assert has_element?(view, "#hall-zone-value", "America/New_York")
+    assert has_element?(view, "#hall-zone-suggestion", "Europe/Brussels")
+
+    view |> element("#hall-zone-use-browser") |> render_click()
     assert Halls.zone(hall.id) == "Europe/Brussels"
 
-    open(conn, owner, hall, "Asia/Tokyo")
-    assert Halls.zone(hall.id) == "Asia/Tokyo"
+    html = view |> form("#hall-zone-form") |> render_submit(%{"zone" => "Mars/Olympus"})
+    assert html =~ "time zone"
+    assert Halls.zone(hall.id) == "Europe/Brussels"
+  end
+
+  test "an admin visiting does not flip it", ctx do
+    %{conn: conn, hall: hall, owner: owner} = ctx
+    open(conn, owner, hall, "Europe/Brussels")
+    admin = user_fixture("zone-admin@example.org", %{admin: true})
+    open(conn, admin, hall, "Asia/Tokyo")
+    assert Halls.zone(hall.id) == "Europe/Brussels"
   end
 
   test "a viewer's browser does not set it", ctx do
     %{conn: conn, hall: hall, viewer: viewer} = ctx
-    open(conn, viewer, hall, "Asia/Tokyo")
+    view = open(conn, viewer, hall, "Asia/Tokyo")
+    assert Halls.zone(hall.id) == nil
+    refute has_element?(view, "#hall-zone-form")
+
+    # Nor can a forged event.
+    render_click(view, "set_zone", %{"zone" => "Asia/Tokyo"})
     assert Halls.zone(hall.id) == nil
   end
 end

@@ -22,6 +22,35 @@ defmodule Alnasl.Zone do
 
   def valid?(_other), do: false
 
+  @choices ~w(
+    Pacific/Honolulu America/Anchorage America/Los_Angeles America/Denver America/Chicago
+    America/New_York America/Halifax America/Sao_Paulo America/Argentina/Buenos_Aires
+    America/Mexico_City America/Bogota America/Lima America/Santiago America/Toronto
+    America/Vancouver Atlantic/Reykjavik Atlantic/Azores UTC Europe/London Europe/Dublin
+    Europe/Lisbon Europe/Madrid Europe/Paris Europe/Brussels Europe/Amsterdam Europe/Luxembourg
+    Europe/Berlin Europe/Zurich Europe/Vienna Europe/Rome Europe/Prague Europe/Warsaw
+    Europe/Budapest Europe/Copenhagen Europe/Oslo Europe/Stockholm Europe/Helsinki
+    Europe/Athens Europe/Bucharest Europe/Sofia Europe/Belgrade Europe/Zagreb Europe/Kyiv
+    Europe/Istanbul Europe/Moscow Africa/Casablanca Africa/Lagos Africa/Cairo
+    Africa/Johannesburg Africa/Nairobi Asia/Jerusalem Asia/Riyadh Asia/Tehran Asia/Dubai
+    Asia/Baku Asia/Tashkent Asia/Karachi Asia/Kolkata Asia/Dhaka Asia/Bangkok Asia/Jakarta
+    Asia/Ho_Chi_Minh Asia/Shanghai Asia/Hong_Kong Asia/Singapore Asia/Manila Asia/Seoul
+    Asia/Tokyo Australia/Perth Australia/Adelaide Australia/Sydney Australia/Brisbane
+    Pacific/Auckland Pacific/Fiji
+  )
+
+  @doc """
+  The zones the hall settings offer: a common list, plus `extra` (the hall's
+  own, the browser's) when the list lacks them. Names the database does not
+  know are dropped.
+  """
+  def choices(extra \\ []) do
+    (@choices ++ Enum.filter(extra, &is_binary/1))
+    |> Enum.uniq()
+    |> Enum.filter(&valid?/1)
+    |> Enum.sort()
+  end
+
   @doc "`zone` when valid, else `nil`."
   def clean(zone), do: if(valid?(zone), do: zone)
 

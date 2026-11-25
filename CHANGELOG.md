@@ -19,6 +19,10 @@ section, word for word. See [docs/releasing.md](docs/releasing.md).
 
 ## [Unreleased]
 
+## [0.25.2] - 2026-11-25
+
+- [Fix] **A hall's time zone is set once, not by whoever looked last.** Since 0.25.0 every owner's browser, and every admin dropping in on a hall elsewhere, overwrote the zone with its own, so two owners in different zones flipped it back and forth and the start times of "Play without a clock" went with it, a few hours at a time. Now the first browser that reports a zone sets it, while the hall has none, and then the zone stays put. Owners change it on purpose on the hall's Settings, with a select that starts at the stored zone, and a button when the browser they are using disagrees. Halls that already have a zone keep it.
+
 ## [0.25.1] - 2026-11-25
 
 - [Fix] **Expiry times no longer lie about their zone.** The one-time sign-in, bridge and box join codes still said "(UTC)" after 0.25.0 moved every time to the hall's wall clock, so a code good until 14:05 Brussels time claimed to be good until 14:05 UTC. The label is gone; the time is the hall's, like every other time on the page.
