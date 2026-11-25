@@ -1,7 +1,7 @@
 # Capturing the board bus
 
 How to record what the board maker's own software says to a loop, on Windows with a single
-serial adapter: LiveChess drives the boards as usual, and a small proxy in
+serial adapter: LiveChess drives the boards as usual, and a small proxy (`mix alnasl.serial_proxy`) in
 between passes every byte through and writes it down.
 
 **It has not been needed.** The bus driver was corrected against a real
@@ -10,7 +10,7 @@ loop directly on 2026-10-12 (`docs/real-loop-2026-10-12.md`,
 differently, should Alnasl ever misread a loop that LiveChess reads.
 
 ```
-LiveChess --> COM10 (virtual) <==com0com==> COM11 (virtual) --> serial_proxy.py --> COM3 (adapter) --> Loop
+LiveChess --> COM10 (virtual) <==com0com==> COM11 (virtual) --> alnasl.serial_proxy --> COM3 (adapter) --> Loop
                                                                       |
                                                                 capture.log
 ```
@@ -23,7 +23,7 @@ LiveChess --> COM10 (virtual) <==com0com==> COM11 (virtual) --> serial_proxy.py 
 - **com0com** - a free, signed virtual null-modem driver for Windows: it makes
   two COM ports wired to each other. Installing a driver is a change to the
   PC; you do this step yourself.
-- Python 3 with `pip install pyserial`.
+- Alnasl built with the serial library (`ALNASL_UART=1`, see the README).
 
 ## Steps
 
@@ -35,7 +35,7 @@ LiveChess --> COM10 (virtual) <==com0com==> COM11 (virtual) --> serial_proxy.py 
 3. **Start the proxy** (from the Alnasl folder):
 
    ```
-   py -3 tools/serial_proxy.py --app COM11 --board COM3 --out capture-1.log
+   ALNASL_UART=1 mix alnasl.serial_proxy --app COM11 --board COM3 --out capture-1.log
    ```
 
 4. **Point LiveChess at the other end.** Start LiveChess and connect the
