@@ -119,8 +119,12 @@ defmodule Mix.Tasks.Alnasl.SerialProxy do
     case IO.gets("") do
       line when is_binary(line) ->
         case String.trim(line) do
-          "" -> send(owner, :stop)
-          note -> send(owner, {:note, note}) && notes(owner)
+          "" ->
+            send(owner, :stop)
+
+          note ->
+            send(owner, {:note, note})
+            notes(owner)
         end
 
       _eof ->
