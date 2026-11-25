@@ -48,9 +48,6 @@ defmodule Alnasl.Destination.LichessApi do
   def token_test_url(base), do: base <> "/api/token/test"
   def round_url(base, round_id), do: base <> "/api/broadcast/-/-/" <> round_id
 
-  @doc "Where a person looks at the round."
-  def round_page(base, round_id), do: base <> "/broadcast/-/-/" <> round_id
-
   defp request(opts) do
     [retry: false, receive_timeout: 10_000]
     |> Keyword.merge(opts)

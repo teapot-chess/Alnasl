@@ -48,9 +48,6 @@ defmodule Alnasl.FairPlay.Scan do
   @min 20
   @cap 8.0
 
-  @doc "The fewest counted plies a game needs to be scanned."
-  def min_plies, do: @min
-
   @doc "The length bucket of a game of `n` counted plies; nil when it is too short to scan."
   def bucket(n) when n < @min, do: nil
   def bucket(n) when n < 30, do: "20-29"

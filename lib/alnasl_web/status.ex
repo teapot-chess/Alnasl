@@ -22,7 +22,6 @@ defmodule AlnaslWeb.Status do
   alias Alnasl.{Destination, Halls, Outbox, Seating, Tournaments}
   alias Alnasl.Accounts.Scope
   alias Alnasl.Destination.OpenResults
-  alias AlnaslWeb.LinkWords
 
   @doc """
   Everything the frame needs beyond the connection to the results server:
@@ -214,11 +213,5 @@ defmodule AlnaslWeb.Status do
        slug: tournament.slug,
        hint: Tournaments.relay_key_hint(tournament)
      )}
-  end
-
-  @doc "How a code stands, with the last contact: `{tone, icon, text}`."
-  def pairing_line(link) do
-    {tone, icon, word} = LinkWords.state(link)
-    {tone, icon, word}
   end
 end

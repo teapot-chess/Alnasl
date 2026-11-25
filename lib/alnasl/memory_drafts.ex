@@ -62,16 +62,6 @@ defmodule Alnasl.MemoryDrafts do
 
   def pending(_no_game), do: nil
 
-  @doc "The game ids that have a draft waiting, of those given."
-  def pending_games(game_ids) do
-    Draft
-    |> where([d], d.game_id in ^game_ids and d.status == "pending")
-    |> select([d], d.game_id)
-    |> distinct(true)
-    |> Repo.all()
-    |> MapSet.new()
-  end
-
   def get(id), do: Repo.get(Draft, id)
 
   @doc "Marks a draft `\"accepted\"` or `\"dismissed\"`."

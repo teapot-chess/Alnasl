@@ -2076,21 +2076,6 @@ code,
   color: var(--quiet);
 }
 
-.cands {
-  display: flex;
-  flex-direction: column;
-  gap: 0.35rem;
-}
-
-.cands button {
-  text-align: left;
-  justify-content: flex-start;
-  white-space: normal;
-  min-height: 2.5rem;
-  height: auto;
-  padding: 0.4rem 0.7rem;
-}
-
 /* --- tables ---------------------------------------------------------------- */
 
 .table-wrap {
