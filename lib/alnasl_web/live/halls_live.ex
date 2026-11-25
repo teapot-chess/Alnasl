@@ -896,7 +896,7 @@ defmodule AlnaslWeb.HallsLive do
         <p id="box-join-code" class="mono"><b>{@join.code}</b></p>
         <p id="box-join-link" class="addresses mono">{@join.url}</p>
         <p id="box-join-expiry" class="note">
-          {gettext("Good for one box, until %{time} (UTC).",
+          {gettext("Good for one box, until %{time}.",
             time: AlnaslWeb.Words.hm(@join.expires_at)
           )}
         </p>

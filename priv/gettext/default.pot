@@ -5783,7 +5783,7 @@ msgstr ""
 
 #: lib/alnasl_web/live/bridge_components.ex:76
 #, elixir-autogen, elixir-format
-msgid "Good for one bridge, until %{time} (UTC)."
+msgid "Good for one bridge, until %{time}."
 msgstr ""
 
 #: lib/alnasl_web/controllers/join_html.ex:10
@@ -6004,7 +6004,7 @@ msgstr ""
 
 #: lib/alnasl_web/access.ex:129
 #, elixir-autogen, elixir-format
-msgid "Good once, until %{time} (UTC). Do not leave it on a screen others photograph."
+msgid "Good once, until %{time}. Do not leave it on a screen others photograph."
 msgstr ""
 
 #: lib/alnasl_web/components/layouts.ex:561
@@ -9575,7 +9575,7 @@ msgstr ""
 
 #: lib/alnasl_web/live/halls_live.ex:899
 #, elixir-autogen, elixir-format
-msgid "Good for one box, until %{time} (UTC)."
+msgid "Good for one box, until %{time}."
 msgstr ""
 
 #: lib/alnasl_web/live/spare_live.ex:175
