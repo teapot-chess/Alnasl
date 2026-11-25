@@ -19,6 +19,10 @@ section, word for word. See [docs/releasing.md](docs/releasing.md).
 
 ## [Unreleased]
 
+## [0.25.3] - 2026-11-25
+
+- [Removed] **Seven functions and a stylesheet rule nobody called.** A lichess round-page link, a draft counter, a rate-limit peek, a pairing-flag count and a few other helpers sat in the code waiting for a caller that never arrived; so did the `.cands` styling of a list that no longer exists. They are gone, and so are an alias and an import that only they were using. Nothing a person can see or do has changed.
+
 ## [0.25.2] - 2026-11-25
 
 - [Fix] **A hall's time zone is set once, not by whoever looked last.** Since 0.25.0 every owner's browser, and every admin dropping in on a hall elsewhere, overwrote the zone with its own, so two owners in different zones flipped it back and forth and the start times of "Play without a clock" went with it, a few hours at a time. Now the first browser that reports a zone sets it, while the hall has none, and then the zone stays put. Owners change it on purpose on the hall's Settings, with a select that starts at the stored zone, and a button when the browser they are using disagrees. Halls that already have a zone keep it.

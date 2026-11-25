@@ -33,7 +33,6 @@ defmodule Alnasl.OpenPairings do
   link says so and waits for the arbiter (`retry/1`, or a new code).
   """
 
-
   alias Alnasl.{Boards, Log, Repo, Tournaments}
   alias Alnasl.OpenPairings.{Client, Code, Duplicates, Sync}
   alias Alnasl.Tournaments.{Link, Tournament}
