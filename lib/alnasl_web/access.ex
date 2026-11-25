@@ -127,7 +127,7 @@ defmodule AlnaslWeb.Access do
 
               <p id={"#{@id}-signin-expiry"} class="note">
                 {gettext(
-                  "Good once, until %{time} (UTC). Do not leave it on a screen others photograph.",
+                  "Good once, until %{time}. Do not leave it on a screen others photograph.",
                   time: AlnaslWeb.Words.hm(@signin.expires_at)
                 )}
               </p>

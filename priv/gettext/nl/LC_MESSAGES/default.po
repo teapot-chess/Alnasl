@@ -5783,8 +5783,8 @@ msgstr "Elektronisch bord, via een brug"
 
 #: lib/alnasl_web/live/bridge_components.ex:76
 #, elixir-autogen, elixir-format
-msgid "Good for one bridge, until %{time} (UTC)."
-msgstr "Goed voor één brug, tot %{time} (UTC)."
+msgid "Good for one bridge, until %{time}."
+msgstr "Goed voor één brug, tot %{time}."
 
 #: lib/alnasl_web/controllers/join_html.ex:10
 #, elixir-autogen, elixir-format
@@ -6004,8 +6004,8 @@ msgstr "Dit account een tijdelijk wachtwoord geven? Zijn sessies eindigen nu."
 
 #: lib/alnasl_web/access.ex:129
 #, elixir-autogen, elixir-format
-msgid "Good once, until %{time} (UTC). Do not leave it on a screen others photograph."
-msgstr "Eén keer geldig, tot %{time} (UTC). Laat hem niet staan op een scherm dat anderen fotograferen."
+msgid "Good once, until %{time}. Do not leave it on a screen others photograph."
+msgstr "Eén keer geldig, tot %{time}. Laat hem niet staan op een scherm dat anderen fotograferen."
 
 #: lib/alnasl_web/components/layouts.ex:561
 #: lib/alnasl_web/live/bridge_components.ex:153
@@ -9575,8 +9575,8 @@ msgstr "De zaal uit de cloud kopiëren mislukte (%{why}); dit kastje blijft rese
 
 #: lib/alnasl_web/live/halls_live.ex:899
 #, elixir-autogen, elixir-format
-msgid "Good for one box, until %{time} (UTC)."
-msgstr "Goed voor één kastje, tot %{time} (UTC)."
+msgid "Good for one box, until %{time}."
+msgstr "Goed voor één kastje, tot %{time}."
 
 #: lib/alnasl_web/live/spare_live.ex:175
 #, elixir-autogen, elixir-format

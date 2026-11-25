@@ -19,6 +19,10 @@ section, word for word. See [docs/releasing.md](docs/releasing.md).
 
 ## [Unreleased]
 
+## [0.25.1] - 2026-11-25
+
+- [Fix] **Expiry times no longer lie about their zone.** The one-time sign-in, bridge and box join codes still said "(UTC)" after 0.25.0 moved every time to the hall's wall clock, so a code good until 14:05 Brussels time claimed to be good until 14:05 UTC. The label is gone; the time is the hall's, like every other time on the page.
+
 ## [0.25.0] - 2026-11-24
 
 - [Feature] **A time zone per hall.** The owner's browser tells the hall its zone the first time it opens it (and again when it says another), checked against a time zone database before it is kept, and shown read-only on the hall's Settings. "Play without a clock" now compares the round's start time with the hall's wall clock, and every time Alnasl shows follows the hall's zone, instead of whatever the server's operating system believed: right on a Pi set up properly, an hour or two off on the hosted Alnasl, which keeps UTC and was never asked. A hall nobody has opened yet keeps the box's own clock. The database is `tz`: compiled in, no updater process and no downloads at runtime, so the Pi image needs nothing extra.
